@@ -1,0 +1,5 @@
+{
+   "<start>":["The <N> <V>\n."],
+   "<N>":["Cat[2] | Dog"],
+   "<V>":["meows | barks"],
+}
