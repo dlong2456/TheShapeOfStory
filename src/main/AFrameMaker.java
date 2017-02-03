@@ -29,10 +29,9 @@ import frameComponents.ASetting;
 import frameComponents.AnAction;
 import frameComponents.FrameComponent;
 
+//TODO: relationships between characters and objects?
 public class AFrameMaker implements FrameMaker {
 
-	// TODO: extend so this gets all of the info from concept net - I think
-	// pagination is an issue here
 	protected StanfordCoreNLP pipeline;
 
 	private enum WordType {
@@ -138,7 +137,6 @@ public class AFrameMaker implements FrameMaker {
 	}
 
 	private ArrayList<String> getGenericTypes(String word, AFrameComponent frameComponent) {
-		System.out.println("GENERIC");
 		ArrayList<String> partOf = getPartOf(word);
 		ArrayList<String> isA = getIsA(word);
 		ArrayList<String> genericTypes = new ArrayList<String>();
@@ -165,7 +163,7 @@ public class AFrameMaker implements FrameMaker {
 		JSONArray edges = obj.getJSONArray("edges");
 		for (int i = 0; i < edges.length(); i++) {
 			JSONObject edge = edges.getJSONObject(i);
-			// TODO: traverse one level higher in the IsA tree
+			// TODO: traverse one level higher in the IsA tree (maybe not necessary?)
 			if (edge.getDouble("weight") >= 2) {
 				String word = edge.getJSONObject(node).getString("label");
 				if (word.startsWith("a ")) {
@@ -176,7 +174,6 @@ public class AFrameMaker implements FrameMaker {
 					word = words.get(0);
 				}
 				if (findConcretenessValue(word) > 4) {
-					System.out.println(word);
 					arr.add(word);
 				}
 			}
@@ -185,7 +182,6 @@ public class AFrameMaker implements FrameMaker {
 	}
 
 	private ArrayList<String> getRelated(String word) {
-		System.out.println("RELATED");
 		String related = httpGet("http://api.conceptnet.io/query?start=/c/en/" + word + "&rel=/r/RelatedTo");
 		ArrayList<String> relatedArray = parseJSONObject(related, "end");
 		return relatedArray;
@@ -219,7 +215,6 @@ public class AFrameMaker implements FrameMaker {
 	}
 
 	private void parseFrameComponent(AFrameComponent frameComponent) {
-		System.out.println("ORIGINAL WORD: " + frameComponent.getOriginalWord());
 		frameComponent.setRelatedWords(getGenericTypes(frameComponent.getOriginalWord(), frameComponent));
 		frameComponent.setGenericTypes(getRelatedWords(frameComponent.getOriginalWord(), frameComponent));
 	}
@@ -258,7 +253,7 @@ public class AFrameMaker implements FrameMaker {
 	}
 
 	private double findConcretenessValue(String word) {
-		try (BufferedReader br = new BufferedReader(new FileReader("resources/concreteness_ratings.txt"))) {
+		try (BufferedReader br = new BufferedReader(new FileReader("concreteness_ratings.txt"))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (line.startsWith(word + "\t")) {

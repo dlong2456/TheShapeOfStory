@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="lib" path="/WebSocket/lib/json-20140107.jar"/>
+	<classpathentry kind="lib" path="/WebSocket/lib/json-simple-1.1.1.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/stanford-corenlp-3.7.0-javadoc.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/stanford-corenlp-3.7.0-models.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/ejml-0.23.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/javax.json-api-1.0-sources.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/javax.json.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/joda-time-2.9-sources.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/joda-time.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/jollyday-0.4.9-sources.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/jollyday.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/protobuf.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/slf4j-api.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/slf4j-simple.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/stanford-corenlp-3.7.0-sources.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/xom-1.2.10-src.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/xom.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/stanford-corenlp-full-2016-10-31/stanford-corenlp-3.7.0.jar"/>
+	<classpathentry kind="lib" path="core.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/Downloads/eliza 2/library/eliza.jar"/>
+	<classpathentry kind="lib" path="/Users/Duri/Downloads/controlP5-2.2.5/controlP5/library/controlP5.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
