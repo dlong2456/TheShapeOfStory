@@ -1,4 +1,5 @@
 package main;
+import eliza.ElizaInterface;
 
 import processing.core.PApplet;
 

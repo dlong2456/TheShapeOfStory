@@ -3,8 +3,8 @@ package eliza;
 import codeanticode.eliza.Eliza;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
-
-class PWindow extends PApplet {
+import processing.core.PImage;
+public class PWindow extends PApplet {
 	/**
 	 * 
 	 */
@@ -28,10 +28,8 @@ class PWindow extends PApplet {
 	}
 
 	public void draw() {
-		if (input) {
-			background(150);
-			displayResponse(textVal);
-		}
+		for(int i = 0 ; i < ElizaInterface.displays.size(); i++)
+			this.image(ElizaInterface.displays.get(i),0,0,200,200);
 	}
 
 	public void mousePressed() {

@@ -164,7 +164,8 @@ public class AFrameMaker implements FrameMaker {
 		for (int i = 0; i < edges.length(); i++) {
 			JSONObject edge = edges.getJSONObject(i);
 			// TODO: traverse one level higher in the IsA tree (maybe not necessary?)
-			if (edge.getDouble("weight") >= 2) {
+			if (edge.getDouble("weight") >= 1.15
+					) {
 				String word = edge.getJSONObject(node).getString("label");
 				if (word.startsWith("a ")) {
 					word = word.substring(2, word.length());
