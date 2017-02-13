@@ -20,4 +20,16 @@ public interface Frame {
 	public void setSettings(ArrayList<FrameComponent> newSettings);
 
 	public FrameType getFrameType();
+
+	public String getAnimation();
+
+	public void setAnimation(String newAnimation);
+
+	public void setAnimals(ArrayList<FrameComponent> newAnimals);
+
+	public void setObjects(ArrayList<FrameComponent> newObjects);
+
+	public ArrayList<FrameComponent> getObjects();
+
+	public ArrayList<FrameComponent> getAnimals();
 }

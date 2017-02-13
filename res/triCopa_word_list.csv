@@ -1,0 +1,101 @@
+Animation Title,Action,Descriptor,Sentiment,Setting,Objects,Characters
+stalker,"stalk, startle",sneaky,,,,
+shocked,"surprise, encounter",surprising,0,,,
+ignore,"ignore, pester",annoying,-1,,,
+slam door,"slam, reject",rude,-2,,,
+argue and door slam,"argue, yell",angry,-2,,"argument, fight, divorce, break-up",
+ambush,"attack, fear, trap",,,,,
+inquisitive,"inquire, encounter",curious,,,,
+angry punch,"punch, argue","angry, violent",-2,,,
+poking and punch,retaliate,irritating,-1,,,sibling
+argue and leave,argue,angry,-2,,,
+pacing,"pace, wait","anxious, late",-1,,curfew,
+playing outside,play,"outside, playful, happy",+2,,,children
+dancing,"dance, party",happy,+2,party,,
+bust in,"break-in, rob",,-1,,,
+console,"console, hug","sad, caring",0,,,
+tag,"play, chase",,+1,"playground, outside","game, tag",
+quick attack,attack,"playful, sneaky",0,,,friends
+simple knock,"visit, knock",,0,,,"friend, neighbor, visitor"
+door embrace,"hug, reunite",,+2,,,
+forgetful,forget, absentminded,-1,,,
+nodding,agree,,+1,,,
+searching,search,lost,-1,,,
+hearing a noise,"startle, notice, approach",,0,,,
+wave greet,"greet, meet",,0,,hello,
+goodbye,part,,0,,"goodbye, separation","friends, family, lovers"
+limp and help,help,,0,,,hero
+block save,rescue,,,,,"hero, family, lover"
+bolt,avoid,,,,," ex-girlfriend, ex-boyfriend"
+moving away,"reject, leave",fed-up,,,,
+block from entering,prevent,,,,, security
+talk and hug,"talk, hug",,,,,"friends, family, lovers"
+cling,cling,"lonely, scared",,,,
+argue and push,discipline,,,,,"parent, teacher, child"
+just strolling,stroll, pleasant,+1,,,
+run stop,exercise,tired,,"gym, outside",,
+family stroll,stroll,relaxed,,"outside, park",,"family, friends"
+huddle,huddle,cold,,,,"friends, lovers"
+kiss avoided,reject, unrequited,,,,lovers
+date night,date,romantic,,"restaurant, theater",,lovers
+carry,care,,,,,"parent, child"
+tickle,tickle,"playful, annoying",,,,
+hug and enter,"reunite, hug",,,,,
+limp,injure,,,,,
+cold outside,freeze,cold,,,winter,
+arguing,argue,angry,,,,
+pursue,pursue,,,,,
+creeping,"scare, sneak",,,,,
+run and hug,"reunite, hug",,,,,
+nod,agree,,,,,
+bolt out of house,"retreat, foil","fear, cowardly",,,,
+attack,battle,,,,,"team, ally, hero"
+poke,"poke, alert",,,,,
+poke ignore,pester,,,,,child
+wave goodbye,depart,,,, goodbye,
+intimidate,intimidate,,,,, bully
+bother and argue,"harrass, intervene",,,,,
+bother and argue,annoy,,,,,sibling
+punch and leave,"fight, abuse, flee","scared, angry",,,,
+racing,"race, compete",,,,sport,athlete
+flirt,flirt,"sexy, romantic",,,,
+timeout,punish,,,"school, house",,
+flirt and push,envy,"jealous, envious",,,,
+resolve argument,"apologize, resolve",,,,,
+in love,love,romantic,,,,lovers
+hug and pull away,, star-crossed,,,,lovers
+argue and trudge,"sulk, punish, argue",,,house,,
+creeping,"foil, spy", undercover,,,,spy
+parent goodbye,depart,loving,,house,"date, goodbye","family, parents"
+fight and limp,"fight, injure"," physical, violent",,,,
+waiting,"primp, pre-game",,,,"party, make-up",friends
+knock and hide,hide,scared,,,,police
+kidnap,kidnap,,,,,
+corner on screen,"trap, steal",mean,,,,bully
+punch wall,punch,furious,,,,
+nudge awake,"wake, sleep",,,,morning,"parent, child"
+argue and sneak in,"avoid, fight",,,,divorce,"child, friend, couple"
+unsure,hesitate,unsure,,,," visitor, homeowner"
+save and hug,"rescue, hug",,,,, hero
+jealous dance,compete,"envious, jealous",,,competition,
+involved with argument,"intervene, argue",,,,,
+rescue child,rescue,,,,," hero, child"
+date night,love,romantic,,"restaurant, theater",date,
+push and chase,"chase, betray",,,,," police, friend "
+sneak out,rebel,,,house,curfew, teenager
+recoil,recoil,,,,,
+run behind house,hide,,,,,
+polite,,polite,,,,gentleman
+like,like,,+2,,,"friend, lover"
+save,rescue,nice,,,,
+bump and run,collide,blind,,,,
+bored and meandering,meander,bored,-1,,,
+passerby,walk,,0,,,
+sad dance,mope,"sad, lonely",-2,,,
+accelerate,run,"late, fast",0,,,
+a beautiful day,enjoy,"beautiful, pleasant, happy",+2,,,
+following,"guide, lead, follow",,0,,,"parent, child"
+tickle attack,tickle,,1,,game,child
+run away,flee,dangerous,-1,,,"police, criminal"
+simple knock,knock,,0,,door,"visitor, homeowner"
+antisocial,,"antisocial, lonely",-1,,,wallflower

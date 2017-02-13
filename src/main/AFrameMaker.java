@@ -10,10 +10,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.opencsv.CSVReader;
 
 import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
@@ -27,27 +28,30 @@ import frameComponents.ACharacter;
 import frameComponents.AFrameComponent;
 import frameComponents.ASetting;
 import frameComponents.AnAction;
+import frameComponents.AnAnimal;
+import frameComponents.AnObject;
 import frameComponents.FrameComponent;
 
 //TODO: relationships between characters and objects?
 public class AFrameMaker implements FrameMaker {
 
-	protected StanfordCoreNLP pipeline;
+	private StanfordCoreNLP pipeline;
 
 	private enum WordType {
 		VERB, NOUN, PERSONAL_NOUN, DESCRIPTOR, OTHER
 	}
 
-	public AFrameMaker() {
-		Properties props = new Properties();
-		props.put("annotators", "tokenize, ssplit, pos, lemma");
-		this.pipeline = new StanfordCoreNLP(props);
+	public AFrameMaker(StanfordCoreNLP newPipeline) {
+		pipeline = newPipeline;
 	}
 
 	public Frame makeFrame(String textSegment) {
+		Frame frame = new AFrame();
 		ArrayList<FrameComponent> characters = new ArrayList<FrameComponent>();
 		ArrayList<FrameComponent> actions = new ArrayList<FrameComponent>();
 		ArrayList<FrameComponent> settings = new ArrayList<FrameComponent>();
+		ArrayList<FrameComponent> animals = new ArrayList<FrameComponent>();
+		ArrayList<FrameComponent> objects = new ArrayList<FrameComponent>();
 		ArrayList<String> tags = tagPOS(textSegment);
 		ArrayList<String> words = lemmatize(textSegment);
 		// Get rid of punctuation in words list
@@ -87,17 +91,26 @@ public class AFrameMaker implements FrameMaker {
 						AnAction action = new AnAction(word);
 						parseFrameComponent(action);
 						actions.add(action);
+						frame.setAnimation(findAnimation(action));
 					} else if (type.equals(WordType.NOUN)) {
-						if (isSetting(word)) {
+						String nounType = getNounType(word);
+						// System.out.println(word + ": " + nounType);
+						if (nounType.equals("setting")) {
 							ASetting setting = new ASetting(word);
 							parseFrameComponent(setting);
 							settings.add(setting);
-						} else {
-							// assume all other nouns are characters
-							// TODO: differentiate between entities and objects
+						} else if (nounType.equals("person")) {
 							ACharacter character = new ACharacter(word);
 							parseFrameComponent(character);
 							characters.add(character);
+						} else if (nounType.equals("animal")) {
+							AnAnimal animal = new AnAnimal(word);
+							parseFrameComponent(animal);
+							animals.add(animal);
+						} else if (nounType.equals("object")) {
+							AnObject object = new AnObject(word);
+							parseFrameComponent(object);
+							objects.add(object);
 						}
 					}
 				} catch (Exception e) {
@@ -106,14 +119,16 @@ public class AFrameMaker implements FrameMaker {
 				}
 			}
 		}
-		Frame frame = new AFrame(characters, actions, settings);
+		frame.setActions(actions);
+		frame.setCharacters(characters);
+		frame.setSettings(settings);
 		return frame;
 	}
 
 	private ArrayList<String> lemmatize(String documentText) {
 		ArrayList<String> lemmas = new ArrayList<String>();
 		Annotation document = new Annotation(documentText);
-		this.pipeline.annotate(document);
+		pipeline.annotate(document);
 		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
 		for (CoreMap sentence : sentences) {
 			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
@@ -126,7 +141,7 @@ public class AFrameMaker implements FrameMaker {
 	private ArrayList<String> tagPOS(String documentText) {
 		ArrayList<String> tags = new ArrayList<String>();
 		Annotation document = new Annotation(documentText);
-		this.pipeline.annotate(document);
+		pipeline.annotate(document);
 		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
 		for (CoreMap sentence : sentences) {
 			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
@@ -163,9 +178,9 @@ public class AFrameMaker implements FrameMaker {
 		JSONArray edges = obj.getJSONArray("edges");
 		for (int i = 0; i < edges.length(); i++) {
 			JSONObject edge = edges.getJSONObject(i);
-			// TODO: traverse one level higher in the IsA tree (maybe not necessary?)
-			if (edge.getDouble("weight") >= 1.15
-					) {
+			// TODO: traverse one level higher in the IsA tree (maybe not
+			// necessary?)
+			if (edge.getDouble("weight") >= 1.15) {
 				String word = edge.getJSONObject(node).getString("label");
 				if (word.startsWith("a ")) {
 					word = word.substring(2, word.length());
@@ -188,7 +203,7 @@ public class AFrameMaker implements FrameMaker {
 		return relatedArray;
 	}
 
-	private ArrayList<String> getLocatedAt(String word) {
+	private ArrayList<String> getLocationLinks(String word) {
 		String locatedAt = httpGet("http://api.conceptnet.io/query?end=/c/en/" + word + "&rel=/r/AtLocation");
 		ArrayList<String> arr = new ArrayList<String>();
 		JSONObject obj = new JSONObject(locatedAt);
@@ -196,6 +211,54 @@ public class AFrameMaker implements FrameMaker {
 		for (int i = 0; i < edges.length(); i++) {
 			JSONObject edge = edges.getJSONObject(i);
 			arr.add(edge.getJSONObject("start").getString("label"));
+		}
+		return arr;
+	}
+
+	private ArrayList<String> getAnimalLinks(String word) {
+		String animalLinks = httpGet("http://api.conceptnet.io/query?node=/c/en/" + word + "&other=/c/en/animal");
+		ArrayList<String> arr = new ArrayList<String>();
+		JSONObject obj = new JSONObject(animalLinks);
+		JSONArray edges = obj.getJSONArray("edges");
+		for (int i = 0; i < edges.length(); i++) {
+			JSONObject edge = edges.getJSONObject(i);
+			if (edge.getJSONObject("rel").getString("label").equals("RelatedTo")) {
+				if (edge.getJSONObject("start").getString("label").equals("animal")) {
+					arr.add(edge.getJSONObject("start").getString("label"));
+				} else {
+					arr.add(edge.getJSONObject("end").getString("label"));
+				}
+			} else if (edge.getJSONObject("rel").getString("label").equals("IsA")) {
+				if (edge.getJSONObject("start").getString("label").equals("animal")) {
+					arr.add(edge.getJSONObject("start").getString("label"));
+				} else {
+					arr.add(edge.getJSONObject("end").getString("label"));
+				}
+			}
+		}
+		return arr;
+	}
+
+	private ArrayList<String> getPersonLinks(String word) {
+		String personLinks = httpGet("http://api.conceptnet.io/query?node=/c/en/" + word + "&other=/c/en/person");
+		ArrayList<String> arr = new ArrayList<String>();
+		JSONObject obj = new JSONObject(personLinks);
+		JSONArray edges = obj.getJSONArray("edges");
+		for (int i = 0; i < edges.length(); i++) {
+			JSONObject edge = edges.getJSONObject(i);
+			if (edge.getJSONObject("rel").getString("label").equals("RelatedTo")) {
+				if (edge.getJSONObject("start").getString("label").equals("person")) {
+					arr.add(edge.getJSONObject("start").getString("label"));
+				} else {
+					arr.add(edge.getJSONObject("end").getString("label"));
+				}
+			} else if (edge.getJSONObject("rel").getString("label").equals("IsA")) {
+				if (edge.getJSONObject("start").getString("label").equals("person")) {
+					arr.add(edge.getJSONObject("start").getString("label"));
+				} else {
+					arr.add(edge.getJSONObject("end").getString("label"));
+				}
+			}
 		}
 		return arr;
 	}
@@ -220,12 +283,25 @@ public class AFrameMaker implements FrameMaker {
 		frameComponent.setGenericTypes(getRelatedWords(frameComponent.getOriginalWord(), frameComponent));
 	}
 
-	private boolean isSetting(String word) {
-		ArrayList<String> locatedAt = getLocatedAt(word);
-		if (locatedAt.size() > 2) {
-			return true;
+	private String getNounType(String word) {
+		// TODO: add NER here
+		// TODO: how to differentiate between settings and locations?
+		ArrayList<String> locationLinks = getLocationLinks(word);
+		ArrayList<String> personLinks = getPersonLinks(word);
+		ArrayList<String> animalLinks = getAnimalLinks(word);
+		// return the noun type with the most links
+		if (locationLinks.size() > 2 && locationLinks.size() > personLinks.size()
+				&& locationLinks.size() > animalLinks.size()) {
+			return "location";
+		} else if (personLinks.size() > 0 && personLinks.size() >= locationLinks.size()
+				&& personLinks.size() >= animalLinks.size()) {
+			return "person";
+		} else if (animalLinks.size() > 0 && animalLinks.size() > personLinks.size()
+				&& animalLinks.size() >= locationLinks.size()) {
+			return "animal";
+		} else {
+			return "object";
 		}
-		return false;
 	}
 
 	private static String httpGet(String urlString) {
@@ -254,7 +330,7 @@ public class AFrameMaker implements FrameMaker {
 	}
 
 	private double findConcretenessValue(String word) {
-		try (BufferedReader br = new BufferedReader(new FileReader("concreteness_ratings.txt"))) {
+		try (BufferedReader br = new BufferedReader(new FileReader("res/concreteness_ratings.txt"))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (line.startsWith(word + "\t")) {
@@ -270,5 +346,54 @@ public class AFrameMaker implements FrameMaker {
 			e.printStackTrace();
 		}
 		return 0;
+	}
+
+	private String findAnimation(FrameComponent frameComponent) {
+		CSVReader reader;
+		try {
+			reader = new CSVReader(new FileReader("res/triCOPA_word_list.csv"));
+			String[] nextLine;
+			while ((nextLine = reader.readNext()) != null) {
+				// nextLine[] is an array of values from the line
+				String[] actions = nextLine[1].split(", ");
+				for (int i = 0; i < actions.length; i++) {
+					 if (frameComponent.getOriginalWord().equals(actions[i])) {
+//						 System.out.println(frameComponent.getOriginalWord() + ": " + actions[i]);
+						 reader.close();
+						 return nextLine[0];
+					 }
+					 for (int j = 0; j < frameComponent.getRelatedWords().size(); j++) {
+						 if (frameComponent.getRelatedWords().get(j).equals(actions[i])) {
+//							 System.out.println(frameComponent.getOriginalWord() + ": " + actions[i]);
+							 reader.close();
+							 return nextLine[0];
+						 }
+					 }
+					 for (int j = 0; j < frameComponent.getGenericTypes().size(); j++) {
+						 if (frameComponent.getGenericTypes().get(j).equals(actions[i])) {
+//							 System.out.println(frameComponent.getOriginalWord() + ": " + actions[i]);
+							 reader.close();
+							 return nextLine[0];
+						 }
+					 }
+//					String relation = httpGet(
+//							"http://api.conceptnet.io/query?node=/c/en/" + word + "&other=/c/en/" + actions[i]);
+//					JSONObject obj = new JSONObject(relation);
+//					JSONArray edges = obj.getJSONArray("edges");
+//					for (int j = 0; j < edges.length(); j++) {
+//						JSONObject edge = edges.getJSONObject(j);
+//						System.out.println(word + ": " + actions[i] + " " + edge.getDouble("weight"));
+//					}
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 }
