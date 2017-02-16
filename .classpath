@@ -24,5 +24,16 @@
 	<classpathentry kind="lib" path="lib/xom-1.2.10-src.jar"/>
 	<classpathentry kind="lib" path="lib/xom.jar"/>
 	<classpathentry kind="lib" path="lib/opencsv-3.9.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-http-9.2.15.v20160210.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-io-9.2.15.v20160210.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-server-9.2.15.v20160210.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-servlets-9.2.15.v20160210.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-util-9.2.15.v20160210.jar"/>
+	<classpathentry kind="lib" path="lib/servlet-api-3.1.jar"/>
+	<classpathentry kind="lib" path="lib/websocket-api-9.2.15.v20160210.jar"/>
+	<classpathentry kind="lib" path="lib/websocket-client-9.2.15.v20160210.jar"/>
+	<classpathentry kind="lib" path="lib/websocket-common-9.2.15.v20160210.jar"/>
+	<classpathentry kind="lib" path="lib/websocket-server-9.2.15.v20160210.jar"/>
+	<classpathentry kind="lib" path="lib/websocket-servlet-9.2.15.v20160210.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
