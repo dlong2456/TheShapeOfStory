@@ -7,6 +7,10 @@ public class AnActionFrame extends AFrame {
 	private String animation;
 	private FrameComponent action;
 	
+	public AnActionFrame() {
+		this.setFrameType(FrameType.ACTION);
+	}
+	
 	public FrameComponent getAction() {
 		return action;
 	}

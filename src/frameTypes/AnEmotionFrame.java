@@ -7,6 +7,10 @@ public class AnEmotionFrame extends AFrame {
 	private FrameComponent emotion;
 	private FrameComponent entity;
 	
+	public AnEmotionFrame() {
+		this.setFrameType(FrameType.CLOSEUP);
+	}
+	
 	public FrameComponent getEntity() {
 		return entity;
 	}

@@ -6,6 +6,10 @@ public class AnObjectFrame extends AFrame {
 	
 	private FrameComponent object; 
 	
+	public AnObjectFrame() {
+		this.setFrameType(FrameType.OBJECT);
+	}
+	
 	public FrameComponent getObject() {
 		return object;
 	}

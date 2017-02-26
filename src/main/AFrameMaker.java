@@ -147,7 +147,9 @@ public class AFrameMaker implements FrameMaker {
 						frame = new AnActionFrame();
 						((AnActionFrame) frame).setAnimation(findAnimation(action));
 					}
-					frames.add(frame);
+					if (frame != null) {
+						frames.add(frame);
+					}
 				}
 			}
 			Iterable<SemanticGraphEdge> edge_set1 = dependencies.edgeIterable();
@@ -174,7 +176,7 @@ public class AFrameMaker implements FrameMaker {
 				} else if (edge.getRelation().toString().equals("nsubj")) {
 					// agent frame
 					frame = new AnAgentFrame();
-					//match to entities - double check arraylist
+					// match to entities - double check arraylist
 					ArrayList<FrameComponent> shortEntitiesList = new ArrayList<FrameComponent>();
 					for (int i = 0; i < entities.size(); i++) {
 						List<CorefMention> referenceChain = ((AnEntity) entities.get(i)).getReferences()
@@ -183,14 +185,16 @@ public class AFrameMaker implements FrameMaker {
 							if (referenceChain.get(j).position.get(0) == token.sentIndex() + 1
 									&& token.index() <= referenceChain.get(j).endIndex
 									&& token.index() >= referenceChain.get(j).startIndex) {
-								shortEntitiesList.add(entities.get(i));
+								if (entities.get(i).getClass() == frameComponents.AnAgent.class) {
+									shortEntitiesList.add(entities.get(i));
+								}
 							}
 						}
 					}
 					((AnAgentFrame) frame).setEntities(shortEntitiesList);
 				} else if (edge.getRelation().toString().equals("nmod")) {
 					// nmod = indirect object. Something following a preposition
-					//match entity
+					// match entity
 					FrameComponent ambiguousEntity = null;
 					for (int i = 0; i < entities.size(); i++) {
 						List<CorefMention> referenceChain = ((AnEntity) entities.get(i)).getReferences()
@@ -203,9 +207,10 @@ public class AFrameMaker implements FrameMaker {
 							}
 						}
 					}
-					//figure out if the entity is a person, setting, or object
-					//TODO: I don't think this is exactly right. can object frames contain agents or objects?
-					//can an agent frame be a direct object?
+					// figure out if the entity is a person, setting, or object
+					// TODO: I don't think this is exactly right. can object
+					// frames contain agents or objects?
+					// can an agent frame be a direct object?
 					if (ambiguousEntity != null) {
 						if (ambiguousEntity.getClass() == frameComponents.ASetting.class) {
 							frame = new ALocationFrame();
@@ -218,10 +223,13 @@ public class AFrameMaker implements FrameMaker {
 					// object or setting frame
 					frame = new AnObjectFrame();
 				}
-				frames.add(frame);
+				//check for null properties as well 
+				if (frame != null) {
+					frames.add(frame);
+				}
 			}
 			// TODO: Sort frames at end according to their sentence position.
-//			frames.sort();
+			// frames.sort();
 		}
 		return frames;
 	}

@@ -40,6 +40,7 @@ public class AMyWebSocket implements MyWebSocket {
 
 	@OnWebSocketConnect
 	public void onConnect(Session session) {
+		
 		this.session = session;
 		// Make NLP pipeline here because it takes awhile
 		Properties props = new Properties();

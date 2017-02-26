@@ -8,6 +8,10 @@ public class AnAgentFrame extends AFrame {
 	
 	private ArrayList<FrameComponent> entities;
 	
+	public AnAgentFrame() {
+		this.setFrameType(FrameType.AGENT);
+	}
+	
 	public ArrayList<FrameComponent> getEntities() {
 		return entities;
 	}
