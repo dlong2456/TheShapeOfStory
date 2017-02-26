@@ -8,6 +8,7 @@ public abstract class AFrameComponent implements FrameComponent {
 	private ArrayList<String> genericTypes;
 	private ArrayList<String> relatedWords;
 	private String lemma;
+	private double position;
 
 	public ArrayList<String> getRelatedWords() {
 		return relatedWords;
@@ -23,6 +24,14 @@ public abstract class AFrameComponent implements FrameComponent {
 
 	public void setLemma(String newLemma) {
 		lemma = newLemma;
+	}
+	
+	public double getPosition() {
+		return position;
+	}
+	
+	public void setPosition(double newPosition) {
+		position = newPosition;
 	}
 
 	public ArrayList<String> getGenericTypes() {

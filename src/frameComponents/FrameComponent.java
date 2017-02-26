@@ -20,4 +20,9 @@ public interface FrameComponent {
 
 	public void setLemma(String newLemma);
 
+	public double getPosition();
+	
+	public void setPosition(double newPosition);
+
+
 }

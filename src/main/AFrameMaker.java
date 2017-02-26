@@ -41,6 +41,7 @@ import frameComponents.AnEntity;
 import frameComponents.AnObject;
 import frameComponents.FrameComponent;
 import frameTypes.AConversationFrame;
+import frameTypes.ALocationFrame;
 import frameTypes.AnActionFrame;
 import frameTypes.AnAgentFrame;
 import frameTypes.AnObjectFrame;
@@ -55,7 +56,7 @@ public class AFrameMaker implements FrameMaker {
 		pipeline = newPipeline;
 	}
 
-	public void makeFrame(Annotation document) {
+	public ArrayList<Frame> makeFrame(Annotation document) {
 		ArrayList<FrameComponent> actions = new ArrayList<FrameComponent>();
 		ArrayList<FrameComponent> entities = new ArrayList<FrameComponent>();
 		ArrayList<Frame> frames = new ArrayList<Frame>();
@@ -112,12 +113,13 @@ public class AFrameMaker implements FrameMaker {
 				}
 				if (entity != null) {
 					((AnEntity) entity).setReferences(cc);
+					// entity.setPosition(token.beginPosition());
 					entity.setLemma(token.lemma());
 					entities.add(entity);
 					// System.out.println(((AnEntity)
 					// entity).getReferences().getRepresentativeMention().toString()
 					// + " "
-					// + " " + entity.getLemma());
+					// + " " + entity.getPosition());
 				}
 			}
 		}
@@ -129,62 +131,99 @@ public class AFrameMaker implements FrameMaker {
 				// new frame, new action
 				AnAction action = new AnAction();
 				action.setOriginalWord(verb.originalText());
+				action.setPosition(verb.pseudoPosition());
 				action.setLemma(verb.lemma());
 				actions.add(action);
 				// System.out.println(action.getOriginalWord() + ": " +
-				// findAnimation(action))
+				// verb.pseudoPosition());
 				// create a new action frame for each action
 				String animation = findAnimation(action);
 				Frame frame = null;
-				//All speak actions are conversation frames
-				if (animation.equals("speak")) {
-					frame = new AConversationFrame();
-				} else {
-					frame = new AnActionFrame();
+				// All speak actions are conversation frames
+				if (animation != null) {
+					if (animation.equals("speak")) {
+						frame = new AConversationFrame();
+					} else {
+						frame = new AnActionFrame();
+						((AnActionFrame) frame).setAnimation(findAnimation(action));
+					}
+					frames.add(frame);
 				}
-				((AnActionFrame) frame).setAnimation(findAnimation(action));
-				frames.add(frame);
 			}
 			Iterable<SemanticGraphEdge> edge_set1 = dependencies.edgeIterable();
 			for (SemanticGraphEdge edge : edge_set1) {
 				Frame frame = null;
+				IndexedWord token = edge.getTarget();
 				if (edge.getRelation().toString().equals("dobj")) {
 					// object frame
 					frame = new AnObjectFrame();
-					IndexedWord token = edge.getTarget();
+					// match to an entity
 					for (int i = 0; i < entities.size(); i++) {
-						// System.out.println(entities.get(i).getReferences().getRepresentativeMention()
-						// + " "
-						// +
-						// entities.get(i).getReferences().getRepresentativeMention().position.get(1));
-						System.out.println(token.originalText() + " " + token.pseudoPosition());
-						// for (int j = 0; j < entities.get(i).getReferences().;
-						// j++) {
-						// entities.get(i).getReferences().getMentionsInTextualOrder()
-						// }
+						List<CorefMention> referenceChain = ((AnEntity) entities.get(i)).getReferences()
+								.getMentionsInTextualOrder();
+						for (int j = 0; j < referenceChain.size(); j++) {
+							if (referenceChain.get(j).position.get(0) == token.sentIndex() + 1
+									&& token.index() <= referenceChain.get(j).endIndex
+									&& token.index() >= referenceChain.get(j).startIndex) {
+								((AnObjectFrame) frame).setObject(entities.get(i));
+								break;
+							}
+						}
 					}
-					//TODO: match entity to frame
+					// TODO: match entity to frame
 				} else if (edge.getRelation().toString().equals("nsubj")) {
-					System.out.println("nsubj " + edge.getTarget());
 					// agent frame
 					frame = new AnAgentFrame();
-					//TODO: match entity to frame
-				//nmod = indirect object. Something following a preposition
+					//match to entities - double check arraylist
+					ArrayList<FrameComponent> shortEntitiesList = new ArrayList<FrameComponent>();
+					for (int i = 0; i < entities.size(); i++) {
+						List<CorefMention> referenceChain = ((AnEntity) entities.get(i)).getReferences()
+								.getMentionsInTextualOrder();
+						for (int j = 0; j < referenceChain.size(); j++) {
+							if (referenceChain.get(j).position.get(0) == token.sentIndex() + 1
+									&& token.index() <= referenceChain.get(j).endIndex
+									&& token.index() >= referenceChain.get(j).startIndex) {
+								shortEntitiesList.add(entities.get(i));
+							}
+						}
+					}
+					((AnAgentFrame) frame).setEntities(shortEntitiesList);
 				} else if (edge.getRelation().toString().equals("nmod")) {
+					// nmod = indirect object. Something following a preposition
+					//match entity
+					FrameComponent ambiguousEntity = null;
+					for (int i = 0; i < entities.size(); i++) {
+						List<CorefMention> referenceChain = ((AnEntity) entities.get(i)).getReferences()
+								.getMentionsInTextualOrder();
+						for (int j = 0; j < referenceChain.size(); j++) {
+							if (referenceChain.get(j).position.get(0) == token.sentIndex() + 1
+									&& token.index() <= referenceChain.get(j).endIndex
+									&& token.index() >= referenceChain.get(j).startIndex) {
+								ambiguousEntity = entities.get(i);
+							}
+						}
+					}
+					//figure out if the entity is a person, setting, or object
+					//TODO: I don't think this is exactly right. can object frames contain agents or objects?
+					//can an agent frame be a direct object?
+					if (ambiguousEntity != null) {
+						if (ambiguousEntity.getClass() == frameComponents.ASetting.class) {
+							frame = new ALocationFrame();
+						} else if (ambiguousEntity.getClass() == frameComponents.AnObject.class) {
+							frame = new AnObjectFrame();
+						} else if (ambiguousEntity.getClass() == frameComponents.AnAgent.class) {
+							frame = new AnAgentFrame();
+						}
+					}
 					// object or setting frame
-					//TODO: match entity, then choose frame type
-//					if () {
 					frame = new AnObjectFrame();
-//					} else {
-//					frame = new ASettingFrame();
-//					}
-					System.out.println("nmod " + edge.getTarget());
-					//TODO: match entity to frame
 				}
+				frames.add(frame);
 			}
 			// TODO: Sort frames at end according to their sentence position.
-			// Should probably save token to do this.
+//			frames.sort();
 		}
+		return frames;
 	}
 
 	private ArrayList<String> lemmatize(String documentText) {
