@@ -10,7 +10,7 @@ function Action( action ,  i, agents, name)
 	this.frame = createSprite(i*250,100,20,20);
     this.frame.addAnimation("frame",img);
    
-	this.animation = loadAnimation("assets/action/"+this.action.name+"_0001.png","assets/action/"+this.action.name+"_0003.png");
+	this.animation = loadAnimation("assets/action/"+this.action.name+"/"+this.action.name+"_0001.png","assets/action/"+this.action.name+"/"+this.action.name+"_0003.png");
 	this.panel = createSprite(i*250,100,20,20);
 	this.panel.addAnimation(this.action.name,this.animation);
 
