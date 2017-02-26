@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -16,113 +16,175 @@ import org.json.JSONObject;
 
 import com.opencsv.CSVReader;
 
+import edu.stanford.nlp.coref.CorefCoreAnnotations;
+import edu.stanford.nlp.coref.data.CorefChain;
+import edu.stanford.nlp.coref.data.CorefChain.CorefMention;
+import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
-import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.semgraph.SemanticGraph;
+import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations.BasicDependenciesAnnotation;
+import edu.stanford.nlp.semgraph.SemanticGraphEdge;
 import edu.stanford.nlp.util.CoreMap;
-import frameComponents.ACharacter;
 import frameComponents.AFrameComponent;
 import frameComponents.ASetting;
 import frameComponents.AnAction;
-import frameComponents.AnAnimal;
+import frameComponents.AnAgent;
+import frameComponents.AnAgent.AgentType;
+import frameComponents.AnAgent.Gender;
+import frameComponents.AnEntity;
 import frameComponents.AnObject;
 import frameComponents.FrameComponent;
+import frameTypes.AConversationFrame;
+import frameTypes.AnActionFrame;
+import frameTypes.AnAgentFrame;
+import frameTypes.AnObjectFrame;
+import frameTypes.Frame;
 
-//TODO: relationships between characters and objects?
+//TODO: Recognize emotional states
 public class AFrameMaker implements FrameMaker {
 
 	private StanfordCoreNLP pipeline;
-
-	private enum WordType {
-		VERB, NOUN, PERSONAL_NOUN, DESCRIPTOR, OTHER
-	}
 
 	public AFrameMaker(StanfordCoreNLP newPipeline) {
 		pipeline = newPipeline;
 	}
 
-	public Frame makeFrame(String textSegment) {
-		Frame frame = new AFrame();
-		ArrayList<FrameComponent> characters = new ArrayList<FrameComponent>();
+	public void makeFrame(Annotation document) {
 		ArrayList<FrameComponent> actions = new ArrayList<FrameComponent>();
-		ArrayList<FrameComponent> settings = new ArrayList<FrameComponent>();
-		ArrayList<FrameComponent> animals = new ArrayList<FrameComponent>();
-		ArrayList<FrameComponent> objects = new ArrayList<FrameComponent>();
-		ArrayList<String> tags = tagPOS(textSegment);
-		ArrayList<String> words = lemmatize(textSegment);
-		// Get rid of punctuation in words list
-		for (int i = 0; i < words.size(); i++) {
-			words.set(i, words.get(i).replaceAll("[^\\w]", ""));
-		}
-		for (int i = 0; i < words.size(); i++) {
-			String word = words.get(i);
-			WordType type;
-			// codes:
-			// https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
-			if (tags.get(i).equals("NN") || tags.get(i).equals("NNS") || tags.get(i).equals("NNP")
-					|| tags.get(i).equals("NNPS")) {
-				type = WordType.NOUN;
-			} else if (tags.get(i).equals("PRP") || tags.get(i).equals("PRP$")) {
-				type = WordType.PERSONAL_NOUN;
-				// TODO: Personalize this based on gender of the writer
-				ACharacter character = new ACharacter(word);
-				character.setGenericTypes(new ArrayList<String>(Arrays.asList("woman", "man", "person", "human")));
-				characters.add(character);
-			} else if (tags.get(i).equals("VB") || tags.get(i).equals("VBD") || tags.get(i).equals("VBG")
-					|| tags.get(i).equals("VBN") || tags.get(i).equals("VBP") || tags.get(i).equals("VBZ")) {
-				type = WordType.VERB;
-			} else if (tags.get(i).equals("JJ") || tags.get(i).equals("JJR") || tags.get(i).equals("JJS")
-					|| tags.get(i).equals("RBR") || tags.get(i).equals("RB") || tags.get(i).equals("RBS")) {
-				// TODO: not doing anything with these right now
-				type = WordType.DESCRIPTOR;
-			} else {
-				type = WordType.OTHER;
-			}
-			// filter out words that can't easily become nouns
-			if (!type.equals(WordType.OTHER) && !type.equals(WordType.DESCRIPTOR)
-					&& !type.equals(WordType.PERSONAL_NOUN)) {
-				try {
-					if (type.equals(WordType.VERB)) {
-						// all verbs are actions
-						AnAction action = new AnAction(word);
-						parseFrameComponent(action);
-						actions.add(action);
-						frame.setAnimation(findAnimation(action));
-					} else if (type.equals(WordType.NOUN)) {
-						String nounType = getNounType(word);
-						// System.out.println(word + ": " + nounType);
-						if (nounType.equals("setting")) {
-							ASetting setting = new ASetting(word);
-							parseFrameComponent(setting);
-							settings.add(setting);
-						} else if (nounType.equals("person")) {
-							ACharacter character = new ACharacter(word);
-							parseFrameComponent(character);
-							characters.add(character);
+		ArrayList<FrameComponent> entities = new ArrayList<FrameComponent>();
+		ArrayList<Frame> frames = new ArrayList<Frame>();
+		FrameComponent entity = null;
+		// Create an entity for each reference chain in the story
+		for (CorefChain cc : document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values()) {
+			// TODO: if mention contains more than one noun, ignore it
+			CorefMention mention = cc.getRepresentativeMention();
+			CoreMap sentence = document.get(CoreAnnotations.SentencesAnnotation.class).get(mention.sentNum - 1);
+			for (int i = mention.startIndex - 1; i < mention.endIndex - 1; i++) {
+				CoreLabel token = sentence.get(TokensAnnotation.class).get(i);
+				String pos = token.tag();
+				if (pos.equals("PRP") || pos.equals("PRP$")) {
+					// assume narrator is a human
+					entity = new AnAgent();
+				} else if (pos.equals("NN") || pos.equals("NNS") || pos.equals("NNP") || pos.equals("NNPS")) {
+					String ner = token.ner();
+					if (ner.equals("PERSON")) {
+						entity = new AnAgent();
+						((AnAgent) entity).setAgentType(AgentType.HUMAN);
+					} else if (ner.equals("LOCATION")) {
+						entity = new ASetting();
+					} else if (ner.equals("ORGANIZATION")) {
+						entity = new AnObject();
+					}
+				}
+				if (entity == null) {
+					String nounType = getNounType(token.lemma());
+					if (mention.animacy.toString().equals("ANIMATE")) {
+						if (nounType.equals("person")) {
+							System.out.println("PERSON");
+							entity = new AnAgent();
+							((AnAgent) entity).setAgentType(AgentType.HUMAN);
 						} else if (nounType.equals("animal")) {
-							AnAnimal animal = new AnAnimal(word);
-							parseFrameComponent(animal);
-							animals.add(animal);
+							entity = new AnAgent();
+							((AnAgent) entity).setAgentType(AgentType.ANIMAL);
+						}
+						if (entity != null) {
+							if (mention.gender.toString().equals("MALE")) {
+								((AnAgent) entity).setGender(Gender.MALE);
+							} else if (mention.gender.toString().equals("FEMALE")) {
+								((AnAgent) entity).setGender(Gender.FEMALE);
+							} else {
+								((AnAgent) entity).setGender(Gender.NEUTRAL);
+							}
+						}
+					} else {
+						if (nounType.equals("location")) {
+							entity = new ASetting();
 						} else if (nounType.equals("object")) {
-							AnObject object = new AnObject(word);
-							parseFrameComponent(object);
-							objects.add(object);
+							entity = new AnObject();
 						}
 					}
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				}
+				if (entity != null) {
+					((AnEntity) entity).setReferences(cc);
+					entity.setLemma(token.lemma());
+					entities.add(entity);
+					// System.out.println(((AnEntity)
+					// entity).getReferences().getRepresentativeMention().toString()
+					// + " "
+					// + " " + entity.getLemma());
 				}
 			}
 		}
-		frame.setActions(actions);
-		frame.setCharacters(characters);
-		frame.setSettings(settings);
-		return frame;
+
+		for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
+			SemanticGraph dependencies = sentence.get(BasicDependenciesAnnotation.class);
+			Collection<IndexedWord> rootVerbs = dependencies.getRoots();
+			for (IndexedWord verb : rootVerbs) {
+				// new frame, new action
+				AnAction action = new AnAction();
+				action.setOriginalWord(verb.originalText());
+				action.setLemma(verb.lemma());
+				actions.add(action);
+				// System.out.println(action.getOriginalWord() + ": " +
+				// findAnimation(action))
+				// create a new action frame for each action
+				String animation = findAnimation(action);
+				Frame frame = null;
+				//All speak actions are conversation frames
+				if (animation.equals("speak")) {
+					frame = new AConversationFrame();
+				} else {
+					frame = new AnActionFrame();
+				}
+				((AnActionFrame) frame).setAnimation(findAnimation(action));
+				frames.add(frame);
+			}
+			Iterable<SemanticGraphEdge> edge_set1 = dependencies.edgeIterable();
+			for (SemanticGraphEdge edge : edge_set1) {
+				Frame frame = null;
+				if (edge.getRelation().toString().equals("dobj")) {
+					// object frame
+					frame = new AnObjectFrame();
+					IndexedWord token = edge.getTarget();
+					for (int i = 0; i < entities.size(); i++) {
+						// System.out.println(entities.get(i).getReferences().getRepresentativeMention()
+						// + " "
+						// +
+						// entities.get(i).getReferences().getRepresentativeMention().position.get(1));
+						System.out.println(token.originalText() + " " + token.pseudoPosition());
+						// for (int j = 0; j < entities.get(i).getReferences().;
+						// j++) {
+						// entities.get(i).getReferences().getMentionsInTextualOrder()
+						// }
+					}
+					//TODO: match entity to frame
+				} else if (edge.getRelation().toString().equals("nsubj")) {
+					System.out.println("nsubj " + edge.getTarget());
+					// agent frame
+					frame = new AnAgentFrame();
+					//TODO: match entity to frame
+				//nmod = indirect object. Something following a preposition
+				} else if (edge.getRelation().toString().equals("nmod")) {
+					// object or setting frame
+					//TODO: match entity, then choose frame type
+//					if () {
+					frame = new AnObjectFrame();
+//					} else {
+//					frame = new ASettingFrame();
+//					}
+					System.out.println("nmod " + edge.getTarget());
+					//TODO: match entity to frame
+				}
+			}
+			// TODO: Sort frames at end according to their sentence position.
+			// Should probably save token to do this.
+		}
 	}
 
 	private ArrayList<String> lemmatize(String documentText) {
@@ -136,19 +198,6 @@ public class AFrameMaker implements FrameMaker {
 			}
 		}
 		return lemmas;
-	}
-
-	private ArrayList<String> tagPOS(String documentText) {
-		ArrayList<String> tags = new ArrayList<String>();
-		Annotation document = new Annotation(documentText);
-		pipeline.annotate(document);
-		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
-		for (CoreMap sentence : sentences) {
-			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
-				tags.add(token.get(PartOfSpeechAnnotation.class));
-			}
-		}
-		return tags;
 	}
 
 	private ArrayList<String> getGenericTypes(String word, AFrameComponent frameComponent) {
@@ -178,8 +227,6 @@ public class AFrameMaker implements FrameMaker {
 		JSONArray edges = obj.getJSONArray("edges");
 		for (int i = 0; i < edges.length(); i++) {
 			JSONObject edge = edges.getJSONObject(i);
-			// TODO: traverse one level higher in the IsA tree (maybe not
-			// necessary?)
 			if (edge.getDouble("weight") >= 1.15) {
 				String word = edge.getJSONObject(node).getString("label");
 				if (word.startsWith("a ")) {
@@ -189,9 +236,11 @@ public class AFrameMaker implements FrameMaker {
 				if (words.size() == 1) {
 					word = words.get(0);
 				}
-				if (findConcretenessValue(word) > 4) {
-					arr.add(word);
-				}
+				// Use concreteness value as a filter if we need to find
+				// specific images from words
+				// if (findConcretenessValue(word) > 4) {
+				arr.add(word);
+				// }
 			}
 		}
 		return arr;
@@ -278,13 +327,13 @@ public class AFrameMaker implements FrameMaker {
 		return relatedWords;
 	}
 
+	// Use this if we need to find specific images of words
 	private void parseFrameComponent(AFrameComponent frameComponent) {
 		frameComponent.setRelatedWords(getGenericTypes(frameComponent.getOriginalWord(), frameComponent));
 		frameComponent.setGenericTypes(getRelatedWords(frameComponent.getOriginalWord(), frameComponent));
 	}
 
 	private String getNounType(String word) {
-		// TODO: add NER here
 		// TODO: how to differentiate between settings and locations?
 		ArrayList<String> locationLinks = getLocationLinks(word);
 		ArrayList<String> personLinks = getPersonLinks(word);
@@ -329,6 +378,7 @@ public class AFrameMaker implements FrameMaker {
 		}
 	}
 
+	// Use this if we need to find specific images of words
 	private double findConcretenessValue(String word) {
 		try (BufferedReader br = new BufferedReader(new FileReader("res/concreteness_ratings.txt"))) {
 			String line;
@@ -351,42 +401,67 @@ public class AFrameMaker implements FrameMaker {
 	private String findAnimation(FrameComponent frameComponent) {
 		CSVReader reader;
 		try {
-			reader = new CSVReader(new FileReader("res/triCOPA_word_list.csv"));
+			reader = new CSVReader(new FileReader("res/canonical_verbs.csv"));
 			String[] nextLine;
+			ArrayList<String> actionArray = new ArrayList<String>();
+			ArrayList<Double> weights = new ArrayList<Double>();
 			while ((nextLine = reader.readNext()) != null) {
 				// nextLine[] is an array of values from the line
 				String[] actions = nextLine[1].split(", ");
 				for (int i = 0; i < actions.length; i++) {
-					 if (frameComponent.getOriginalWord().equals(actions[i])) {
-//						 System.out.println(frameComponent.getOriginalWord() + ": " + actions[i]);
-						 reader.close();
-						 return nextLine[0];
-					 }
-					 for (int j = 0; j < frameComponent.getRelatedWords().size(); j++) {
-						 if (frameComponent.getRelatedWords().get(j).equals(actions[i])) {
-//							 System.out.println(frameComponent.getOriginalWord() + ": " + actions[i]);
-							 reader.close();
-							 return nextLine[0];
-						 }
-					 }
-					 for (int j = 0; j < frameComponent.getGenericTypes().size(); j++) {
-						 if (frameComponent.getGenericTypes().get(j).equals(actions[i])) {
-//							 System.out.println(frameComponent.getOriginalWord() + ": " + actions[i]);
-							 reader.close();
-							 return nextLine[0];
-						 }
-					 }
-//					String relation = httpGet(
-//							"http://api.conceptnet.io/query?node=/c/en/" + word + "&other=/c/en/" + actions[i]);
-//					JSONObject obj = new JSONObject(relation);
-//					JSONArray edges = obj.getJSONArray("edges");
-//					for (int j = 0; j < edges.length(); j++) {
-//						JSONObject edge = edges.getJSONObject(j);
-//						System.out.println(word + ": " + actions[i] + " " + edge.getDouble("weight"));
-//					}
+					if (frameComponent.getOriginalWord().equals(actions[i])) {
+						System.out.println(frameComponent.getOriginalWord() + ": " + actions[i]);
+						reader.close();
+						return nextLine[0];
+					}
+					// Commented code is faster but less accurate
+					// for (int j = 0; j <
+					// frameComponent.getRelatedWords().size(); j++) {
+					// if
+					// (frameComponent.getRelatedWords().get(j).equals(actions[i]))
+					// {
+					// System.out.println(frameComponent.getOriginalWord() + ":
+					// " + actions[i]);
+					// reader.close();
+					// return nextLine[0];
+					// }
+					// }
+					// for (int j = 0; j <
+					// frameComponent.getGenericTypes().size(); j++) {
+					// if
+					// (frameComponent.getGenericTypes().get(j).equals(actions[i]))
+					// {
+					// System.out.println(frameComponent.getOriginalWord() + ":
+					// " + actions[i]);
+					// reader.close();
+					// return nextLine[0];
+					// }
+					// }
+					String relation = httpGet("http://api.conceptnet.io/query?node=/c/en/"
+							+ frameComponent.getOriginalWord() + "&other=/c/en/" + actions[i]);
+					JSONObject obj = new JSONObject(relation);
+					JSONArray edges = obj.getJSONArray("edges");
+					for (int j = 0; j < edges.length(); j++) {
+						JSONObject edge = edges.getJSONObject(j);
+						actionArray.add(actions[i]);
+						weights.add(edge.getDouble("weight"));
+					}
 				}
 			}
 			reader.close();
+			double max = 0;
+			String primitiveAction = null;
+			for (int j = 0; j < actionArray.size(); j++) {
+				if (weights.get(j) > max) {
+					max = weights.get(j);
+					primitiveAction = actionArray.get(j);
+				}
+			}
+			if (max >= 2) {
+				return primitiveAction;
+				// System.out.println(frameComponent.getOriginalWord() + " " +
+				// primitiveAction + " " + max);
+			}
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

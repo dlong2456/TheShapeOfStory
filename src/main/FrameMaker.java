@@ -1,6 +1,8 @@
 package main;
 
+import edu.stanford.nlp.pipeline.Annotation;
+
 public interface FrameMaker {
-	public Frame makeFrame(String textSegment);
+	public void makeFrame(Annotation document);
 
 }

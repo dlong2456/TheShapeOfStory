@@ -1,9 +1,7 @@
 package frameComponents;
 
-public class AnObject extends AFrameComponent {
+public class AnObject extends AnEntity {
 
-	public AnObject(String newOriginalWord) {
-		this.setOriginalWord(newOriginalWord);
-	}
+	// possible future addition: affordances - what is object capable of?
 
 }

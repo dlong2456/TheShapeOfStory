@@ -16,4 +16,8 @@ public interface FrameComponent {
 
 	public void setRelatedWords(ArrayList<String> newRelatedWords);
 
+	public String getLemma();
+
+	public void setLemma(String newLemma);
+
 }

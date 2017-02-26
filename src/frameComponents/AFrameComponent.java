@@ -7,6 +7,7 @@ public abstract class AFrameComponent implements FrameComponent {
 	private String originalWord;
 	private ArrayList<String> genericTypes;
 	private ArrayList<String> relatedWords;
+	private String lemma;
 
 	public ArrayList<String> getRelatedWords() {
 		return relatedWords;
@@ -14,6 +15,14 @@ public abstract class AFrameComponent implements FrameComponent {
 
 	public String getOriginalWord() {
 		return originalWord;
+	}
+
+	public String getLemma() {
+		return lemma;
+	}
+
+	public void setLemma(String newLemma) {
+		lemma = newLemma;
 	}
 
 	public ArrayList<String> getGenericTypes() {
