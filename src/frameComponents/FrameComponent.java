@@ -2,6 +2,8 @@ package frameComponents;
 
 import java.util.ArrayList;
 
+import edu.stanford.nlp.util.IntTuple;
+
 public interface FrameComponent {
 
 	public ArrayList<String> getRelatedWords();
@@ -20,9 +22,8 @@ public interface FrameComponent {
 
 	public void setLemma(String newLemma);
 
-	public double getPosition();
-	
-	public void setPosition(double newPosition);
+	public IntTuple getPosition();
 
+	public void setPosition(IntTuple newPosition);
 
 }

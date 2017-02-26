@@ -39,6 +39,7 @@ function parseResult() {
     	console.log("sending");
 		//ws.send(recordedText);
 		ws.send(recorder.resultString);
+		//recordedText = "";
 	//}
 }
 var comicStrip = [];

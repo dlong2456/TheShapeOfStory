@@ -7,11 +7,12 @@ public class AnAgent extends AnEntity {
 	}
 	
 	public enum Gender {
-		MALE, FEMALE, NEUTRAL
+		MALE, FEMALE
 	}
-
-	private AgentType agentType;
-	private Gender gender;
+	
+	//default to male humans
+	private AgentType agentType = AgentType.HUMAN;
+	private Gender gender = Gender.MALE;
 	
 	public AgentType getAgentType() {
 		return agentType;
@@ -28,6 +29,8 @@ public class AnAgent extends AnEntity {
 	public void setGender(Gender newGender) {
 		gender = newGender;
 	}
+	
+	//TODO: add agent name and number
 
 
 }

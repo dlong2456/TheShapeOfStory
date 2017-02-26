@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -31,6 +32,7 @@ import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations.BasicDependenciesAnnotation;
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
 import edu.stanford.nlp.util.CoreMap;
+import edu.stanford.nlp.util.IntTuple;
 import frameComponents.AFrameComponent;
 import frameComponents.ASetting;
 import frameComponents.AnAction;
@@ -72,6 +74,7 @@ public class AFrameMaker implements FrameMaker {
 				if (pos.equals("PRP") || pos.equals("PRP$")) {
 					// assume narrator is a human
 					entity = new AnAgent();
+					((AnAgent) entity).setAgentType(AgentType.HUMAN);
 				} else if (pos.equals("NN") || pos.equals("NNS") || pos.equals("NNP") || pos.equals("NNPS")) {
 					String ner = token.ner();
 					if (ner.equals("PERSON")) {
@@ -99,8 +102,6 @@ public class AFrameMaker implements FrameMaker {
 								((AnAgent) entity).setGender(Gender.MALE);
 							} else if (mention.gender.toString().equals("FEMALE")) {
 								((AnAgent) entity).setGender(Gender.FEMALE);
-							} else {
-								((AnAgent) entity).setGender(Gender.NEUTRAL);
 							}
 						}
 					} else {
@@ -113,13 +114,11 @@ public class AFrameMaker implements FrameMaker {
 				}
 				if (entity != null) {
 					((AnEntity) entity).setReferences(cc);
-					// entity.setPosition(token.beginPosition());
+					int[] positionArr = { token.sentIndex(), token.index() };
+					entity.setPosition(new IntTuple(positionArr));
+					entity.setOriginalWord(token.originalText());
 					entity.setLemma(token.lemma());
 					entities.add(entity);
-					// System.out.println(((AnEntity)
-					// entity).getReferences().getRepresentativeMention().toString()
-					// + " "
-					// + " " + entity.getPosition());
 				}
 			}
 		}
@@ -131,11 +130,10 @@ public class AFrameMaker implements FrameMaker {
 				// new frame, new action
 				AnAction action = new AnAction();
 				action.setOriginalWord(verb.originalText());
-				action.setPosition(verb.pseudoPosition());
+				int[] positionArr = { verb.sentIndex(), verb.index() };
+				action.setPosition(new IntTuple(positionArr));
 				action.setLemma(verb.lemma());
 				actions.add(action);
-				// System.out.println(action.getOriginalWord() + ": " +
-				// verb.pseudoPosition());
 				// create a new action frame for each action
 				String animation = findAnimation(action);
 				Frame frame = null;
@@ -143,9 +141,11 @@ public class AFrameMaker implements FrameMaker {
 				if (animation != null) {
 					if (animation.equals("speak")) {
 						frame = new AConversationFrame();
+						// TODO: Need to set entities
 					} else {
 						frame = new AnActionFrame();
 						((AnActionFrame) frame).setAnimation(findAnimation(action));
+						((AnActionFrame) frame).setAction(action);
 					}
 					if (frame != null) {
 						frames.add(frame);
@@ -172,11 +172,13 @@ public class AFrameMaker implements FrameMaker {
 							}
 						}
 					}
-					// TODO: match entity to frame
+					if (((AnObjectFrame) frame).getObject() == null) {
+						frame = null;
+					}
 				} else if (edge.getRelation().toString().equals("nsubj")) {
 					// agent frame
 					frame = new AnAgentFrame();
-					// match to entities - double check arraylist
+					// match to entities
 					ArrayList<FrameComponent> shortEntitiesList = new ArrayList<FrameComponent>();
 					for (int i = 0; i < entities.size(); i++) {
 						List<CorefMention> referenceChain = ((AnEntity) entities.get(i)).getReferences()
@@ -187,11 +189,16 @@ public class AFrameMaker implements FrameMaker {
 									&& token.index() >= referenceChain.get(j).startIndex) {
 								if (entities.get(i).getClass() == frameComponents.AnAgent.class) {
 									shortEntitiesList.add(entities.get(i));
+									break;
 								}
 							}
 						}
 					}
-					((AnAgentFrame) frame).setEntities(shortEntitiesList);
+					if (shortEntitiesList.size() == 0) {
+						frame = null;
+					} else {
+						((AnAgentFrame) frame).setEntities(shortEntitiesList);
+					}
 				} else if (edge.getRelation().toString().equals("nmod")) {
 					// nmod = indirect object. Something following a preposition
 					// match entity
@@ -204,6 +211,7 @@ public class AFrameMaker implements FrameMaker {
 									&& token.index() <= referenceChain.get(j).endIndex
 									&& token.index() >= referenceChain.get(j).startIndex) {
 								ambiguousEntity = entities.get(i);
+								break;
 							}
 						}
 					}
@@ -214,16 +222,19 @@ public class AFrameMaker implements FrameMaker {
 					if (ambiguousEntity != null) {
 						if (ambiguousEntity.getClass() == frameComponents.ASetting.class) {
 							frame = new ALocationFrame();
+							((ALocationFrame) frame).setLocation(ambiguousEntity);
 						} else if (ambiguousEntity.getClass() == frameComponents.AnObject.class) {
 							frame = new AnObjectFrame();
+							((AnObjectFrame) frame).setObject(ambiguousEntity);
 						} else if (ambiguousEntity.getClass() == frameComponents.AnAgent.class) {
 							frame = new AnAgentFrame();
+							ArrayList<FrameComponent> agents = new ArrayList<FrameComponent>();
+							agents.add(ambiguousEntity);
+							((AnAgentFrame) frame).setEntities(agents);
 						}
 					}
-					// object or setting frame
-					frame = new AnObjectFrame();
 				}
-				//check for null properties as well 
+				// check for null properties as well
 				if (frame != null) {
 					frames.add(frame);
 				}
@@ -451,39 +462,16 @@ public class AFrameMaker implements FrameMaker {
 			reader = new CSVReader(new FileReader("res/canonical_verbs.csv"));
 			String[] nextLine;
 			ArrayList<String> actionArray = new ArrayList<String>();
+			ArrayList<String> primitiveActionArr = new ArrayList<String>();
 			ArrayList<Double> weights = new ArrayList<Double>();
 			while ((nextLine = reader.readNext()) != null) {
 				// nextLine[] is an array of values from the line
 				String[] actions = nextLine[1].split(", ");
 				for (int i = 0; i < actions.length; i++) {
 					if (frameComponent.getOriginalWord().equals(actions[i])) {
-						System.out.println(frameComponent.getOriginalWord() + ": " + actions[i]);
 						reader.close();
 						return nextLine[0];
 					}
-					// Commented code is faster but less accurate
-					// for (int j = 0; j <
-					// frameComponent.getRelatedWords().size(); j++) {
-					// if
-					// (frameComponent.getRelatedWords().get(j).equals(actions[i]))
-					// {
-					// System.out.println(frameComponent.getOriginalWord() + ":
-					// " + actions[i]);
-					// reader.close();
-					// return nextLine[0];
-					// }
-					// }
-					// for (int j = 0; j <
-					// frameComponent.getGenericTypes().size(); j++) {
-					// if
-					// (frameComponent.getGenericTypes().get(j).equals(actions[i]))
-					// {
-					// System.out.println(frameComponent.getOriginalWord() + ":
-					// " + actions[i]);
-					// reader.close();
-					// return nextLine[0];
-					// }
-					// }
 					String relation = httpGet("http://api.conceptnet.io/query?node=/c/en/"
 							+ frameComponent.getOriginalWord() + "&other=/c/en/" + actions[i]);
 					JSONObject obj = new JSONObject(relation);
@@ -491,6 +479,7 @@ public class AFrameMaker implements FrameMaker {
 					for (int j = 0; j < edges.length(); j++) {
 						JSONObject edge = edges.getJSONObject(j);
 						actionArray.add(actions[i]);
+						primitiveActionArr.add(nextLine[0]);
 						weights.add(edge.getDouble("weight"));
 					}
 				}
@@ -501,13 +490,11 @@ public class AFrameMaker implements FrameMaker {
 			for (int j = 0; j < actionArray.size(); j++) {
 				if (weights.get(j) > max) {
 					max = weights.get(j);
-					primitiveAction = actionArray.get(j);
+					primitiveAction = primitiveActionArr.get(j);
 				}
 			}
 			if (max >= 2) {
 				return primitiveAction;
-				// System.out.println(frameComponent.getOriginalWord() + " " +
-				// primitiveAction + " " + max);
 			}
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block

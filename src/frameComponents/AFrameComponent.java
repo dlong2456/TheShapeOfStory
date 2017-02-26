@@ -2,13 +2,15 @@ package frameComponents;
 
 import java.util.ArrayList;
 
+import edu.stanford.nlp.util.IntTuple;
+
 public abstract class AFrameComponent implements FrameComponent {
 
 	private String originalWord;
 	private ArrayList<String> genericTypes;
 	private ArrayList<String> relatedWords;
 	private String lemma;
-	private double position;
+	private IntTuple position;
 
 	public ArrayList<String> getRelatedWords() {
 		return relatedWords;
@@ -26,11 +28,11 @@ public abstract class AFrameComponent implements FrameComponent {
 		lemma = newLemma;
 	}
 	
-	public double getPosition() {
+	public IntTuple getPosition() {
 		return position;
 	}
 	
-	public void setPosition(double newPosition) {
+	public void setPosition(IntTuple newPosition) {
 		position = newPosition;
 	}
 

@@ -88,9 +88,9 @@ public class AMyWebSocket implements MyWebSocket {
 				currentFrameJSON = "{ \"frameType\": \"agent\", \"agents\": [";
 				for (int j = 0; j < ((AnAgentFrame) currentFrame).getEntities().size(); j++) {
 					currentFrameJSON += "{ \"agentType\": \""
-							+ ((AnAgent) ((AnAgentFrame) currentFrame).getEntities().get(i)).getAgentType()
+							+ ((AnAgent) ((AnAgentFrame) currentFrame).getEntities().get(j)).getAgentType().toString()
 							+ "\", \"gender\": \""
-							+ ((AnAgent) ((AnAgentFrame) currentFrame).getEntities().get(i)).getGender() + "\" }";
+							+ ((AnAgent) ((AnAgentFrame) currentFrame).getEntities().get(j)).getGender().toString() + "\" }";
 					if (j < ((AnAgentFrame) currentFrame).getEntities().size() - 1) {
 						currentFrameJSON += ", ";
 					}
@@ -100,9 +100,9 @@ public class AMyWebSocket implements MyWebSocket {
 				currentFrameJSON = "{ \"frameType\": \"conversation\", \"agents\": [";
 				for (int j = 0; j < ((AConversationFrame) currentFrame).getEntities().size(); j++) {
 					currentFrameJSON += "{ \"agentType\": \""
-							+ ((AnAgent) ((AConversationFrame) currentFrame).getEntities().get(i)).getAgentType()
+							+ ((AnAgent) ((AConversationFrame) currentFrame).getEntities().get(j)).getAgentType().toString()
 							+ "\", \"gender\": \""
-							+ ((AnAgent) ((AConversationFrame) currentFrame).getEntities().get(i)).getGender() + "\" }";
+							+ ((AnAgent) ((AConversationFrame) currentFrame).getEntities().get(j)).getGender().toString() + "\" }";
 					if (j < ((AConversationFrame) currentFrame).getEntities().size() - 1) {
 						currentFrameJSON += ", ";
 					}
@@ -111,15 +111,15 @@ public class AMyWebSocket implements MyWebSocket {
 						+ "\" }";
 			} else if (currentFrame.getFrameType().equals(FrameType.LOCATION)) {
 				currentFrameJSON = "{\"frameType\": \"location\", \"setting\": \""
-						+ ((ALocationFrame) currentFrame).getLocation() + "\"}";
+						+ ((ALocationFrame) currentFrame).getLocation().getLemma() + "\"}";
 			} else if (currentFrame.getFrameType().equals(FrameType.OBJECT)) {
 				currentFrameJSON = "{\"frameType\": \"object\", \"object\": \""
-						+ ((AnObjectFrame) currentFrame).getObject() + "\"}";
+						+ ((AnObjectFrame) currentFrame).getObject().getLemma() + "\"}";
 			} else {
 				// closeup frames
 				currentFrameJSON = "{ \"frameType\": \"closeup\", \"agent\": { \"agentType\": \""
-						+ ((AnAgent) ((AnEmotionFrame) currentFrame).getEntity()).getAgentType() + "\", \"gender\": \""
-						+ ((AnAgent) ((AnEmotionFrame) currentFrame).getEntity()).getGender()
+						+ ((AnAgent) ((AnEmotionFrame) currentFrame).getEntity()).getAgentType().toString() + "\", \"gender\": \""
+						+ ((AnAgent) ((AnEmotionFrame) currentFrame).getEntity()).getGender().toString()
 						+ "\" }, \"animation\": \"" + ((AnEmotionFrame) currentFrame).getAnimation() + "\" }";
 			}
 			// append new frame to JSON frame list
