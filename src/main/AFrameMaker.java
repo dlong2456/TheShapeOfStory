@@ -48,7 +48,7 @@ import frameTypes.AnActionFrame;
 import frameTypes.AnAgentFrame;
 import frameTypes.AnObjectFrame;
 import frameTypes.Frame;
-
+//TODO: issue with past tense of "walk"
 //TODO: Recognize emotional states
 public class AFrameMaker implements FrameMaker {
 
@@ -187,6 +187,7 @@ public class AFrameMaker implements FrameMaker {
 							if (referenceChain.get(j).position.get(0) == token.sentIndex() + 1
 									&& token.index() <= referenceChain.get(j).endIndex
 									&& token.index() >= referenceChain.get(j).startIndex) {
+//								System.out.println("MATCH: " + );
 								if (entities.get(i).getClass() == frameComponents.AnAgent.class) {
 									shortEntitiesList.add(entities.get(i));
 									break;
@@ -468,12 +469,12 @@ public class AFrameMaker implements FrameMaker {
 				// nextLine[] is an array of values from the line
 				String[] actions = nextLine[1].split(", ");
 				for (int i = 0; i < actions.length; i++) {
-					if (frameComponent.getOriginalWord().equals(actions[i])) {
+					if (frameComponent.getLemma().equals(actions[i])) {
 						reader.close();
 						return nextLine[0];
 					}
 					String relation = httpGet("http://api.conceptnet.io/query?node=/c/en/"
-							+ frameComponent.getOriginalWord() + "&other=/c/en/" + actions[i]);
+							+ frameComponent.getLemma() + "&other=/c/en/" + actions[i]);
 					JSONObject obj = new JSONObject(relation);
 					JSONArray edges = obj.getJSONArray("edges");
 					for (int j = 0; j < edges.length(); j++) {
