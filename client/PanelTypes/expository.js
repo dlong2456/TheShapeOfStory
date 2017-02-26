@@ -1,11 +1,13 @@
-function Expository(setting , name)  
+function Expository(setting , i , name)  
 {
 	this.type = "expository";
 	this.name = name || ""; //name extracted from the text.
 	this.setting = setting || "";//url for image.
 	this.width = 50;
 	this.height =  40;
-	this.frame = loadImage("assets/expository.png");
+	var img =loadAnimation("assets/conversation_frame.png") ;
+	this.frame = createSprite(i*270,200,100,100);
+    this.frame.addAnimation("frame",img);
 
 }
 Expository.prototype.dispay = function(){

@@ -5,7 +5,6 @@
 	<classpathentry kind="lib" path="lib/controlP5.jar"/>
 	<classpathentry kind="lib" path="lib/core.jar"/>
 	<classpathentry kind="lib" path="lib/ejml-0.23.jar"/>
-	<classpathentry kind="lib" path="lib/eliza.jar"/>
 	<classpathentry kind="lib" path="lib/javax.json-api-1.0-sources.jar"/>
 	<classpathentry kind="lib" path="lib/javax.json.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-2.9-sources.jar"/>

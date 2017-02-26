@@ -1,4 +1,4 @@
-function Action( action , agents , i,name)  
+function Action( action ,  i, agents, name)  
 {
 	this.type = "action";
 	this.name = name || ""; //action name extracted from the text.
@@ -9,8 +9,8 @@ function Action( action , agents , i,name)
 	var img =loadAnimation("assets/closeUp_Frame.png") ;
 	this.frame = createSprite(i*250,100,20,20);
     this.frame.addAnimation("frame",img);
-    var path = String("assets/action/"+this.action.name+"/"+this.agents[0].sex+"/");
-	this.animation = loadAnimation(path+this.action.name+"_0001.png",path+this.action.name+"_0003.png");
+   
+	this.animation = loadAnimation("assets/action/"+this.action.name+"_0001.png","assets/action/"+this.action.name+"_0003.png");
 	this.panel = createSprite(i*250,100,20,20);
 	this.panel.addAnimation(this.action.name,this.animation);
 

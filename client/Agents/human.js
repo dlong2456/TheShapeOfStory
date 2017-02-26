@@ -1,5 +1,5 @@
 function human (sex){
-	this.type2 = "human";
+	this.type = "human";
 	this.sex = sex;
     if(this.sex === "female") 
     {

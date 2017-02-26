@@ -1,12 +1,6 @@
 
 
-var p1,p2,p3;
-var comicS = [];
-var agent1;
-var agent2;
-var agent3;
-var agents = [];
-var a1;
+
 var recordedText = "";
 
 //Web socket functionality 
@@ -22,6 +16,8 @@ function start(websocketServerLocation) {
 	ws.onmessage = function (evt) {
 		console.log("message received");
 		//These are the JSON messages with the frame data
+		//console.log(evt.data);
+		createComic(evt.data);
 	};
 
 	ws.onclose = function() {
@@ -39,10 +35,46 @@ recorder.continuous = true; // do continuous recognition
 function parseResult() {
 	console.log("parsing");
 	recordedText += recorder.resultString + ". ";
-    if (recordedText.length > 200) {
+   // if (recordedText.length > 200) {
     	console.log("sending");
-		ws.send(recordedText);
+		//ws.send(recordedText);
+		ws.send(recorder.resultString);
+	//}
+}
+var comicStrip = [];
+function createComic(data)
+{
+	console.log(JSON.parse(data));
+	var jsonData = JSON.parse(data);
+	var framesArray = jsonData["frames"];
+	for(var p = 0 ; p < framesArray.length ; p++)
+	{
+		if(framesArray[p]["frameType"] === "agent")
+			comicStrip.push(new agentFrame(framesArray[p]["agents"]),p);
+		if(framesArray[p]["frameType"] === "action")
+		{
+			var act = new action(framesArray[p]["animation"]);
+			comicStrip.push(new Action(act,p));
+		}
+		if(framesArray[p]["frameType"] === "closeup")
+		{
+			var a;
+			if(framesArray[p]["agent"]["agentType"]==="HUMAN")
+				a = new human(framesArray[p]["agent"]["gender"]);
+			if(framesArray[p]["agent"]["agentType"]==="ANIMAL")
+				a = new nonHuman(framesArray[p]["agent"]["gender"]);
+			comicStrip.push(new CLoseUp(framesArray[p]["animation"],a,p));
+
+		}
+		if(framesArray[p]["frameType"] === "setting")
+			comicStrip.push(new Expository(framesArray[p]["setting"],p));
+		if(framesArray[p]["frameType"] === "object")
+			comicStrip.push(new ObjectFrame(framesArray[p]["object"],p));
+		if(framesArray[p]["frameType"] === "conversation")
+			comicStrip.push(new agentFrame(framesArray[p]["agents"]),p);	
+		
 	}
+   redraw();
 }
 
 function setup() {
@@ -50,14 +82,7 @@ function setup() {
  recorder.start();
  bg = loadImage("assets/scrollBackground.jpg");
   createCanvas(720, 400);
-  a1 = new action("Walk",[agent2]);
-  agent1 = new Agent("primary","human","female","me","happy");
-   agent2 = new Agent("co","human","male","boyfriend","angry");
-   agent3 = new Agent("co","nonHuman","","box","sad");
-   agents.push(agent2);
-  p1 = new CloseUp("angry",agent2,1);
- p2 = new CloseUp("happy",agent1,0);
- p3 = new Action(a1,agents,2);
+  
 
 
 }

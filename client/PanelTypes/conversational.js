@@ -1,10 +1,21 @@
-function Conversation( agents , conversation , name)  
+function Conversation( agentList , conversation , i, name)  
 {
+	this.agentList = agentList;
+	this.agents;
+	for(var i = 0 ; i< this.agentLists;i++)
+	{
+           if(agentLists[i].agentType === "HUMAN")
+           	agents.push(new  human(agentLists[i].gender));
+           if(agentLists[i].agentType === "ANIMAL")
+           	agents.push(new nonHuman(agentLists[i].gender));
+
+
+	}
 	this.type = "conversational";
 	this.name = name || ""; //emotional state name extracted from the text.
 	this.width = 40;
 	this.height =  40;
-	this.agents = agents || [];
+	//this.agents = agents || [];
 	this.conversation = conversation || [];
 	var img =loadAnimation("assets/conversation_frame.png") ;
 	this.frame = createSprite(i*270,200,100,100);
