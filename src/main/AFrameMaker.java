@@ -9,10 +9,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.opencsv.CSVReader;
@@ -39,6 +39,7 @@ import frameComponents.AnAction;
 import frameComponents.AnAgent;
 import frameComponents.AnAgent.AgentType;
 import frameComponents.AnAgent.Gender;
+import frameComponents.AnEmotion;
 import frameComponents.AnEntity;
 import frameComponents.AnObject;
 import frameComponents.FrameComponent;
@@ -46,10 +47,12 @@ import frameTypes.AConversationFrame;
 import frameTypes.ALocationFrame;
 import frameTypes.AnActionFrame;
 import frameTypes.AnAgentFrame;
+import frameTypes.AnEmotionFrame;
 import frameTypes.AnObjectFrame;
 import frameTypes.Frame;
-//TODO: issue with past tense of "walk"
+
 //TODO: Recognize emotional states
+//TODO: spawning extra agents somewhere
 public class AFrameMaker implements FrameMaker {
 
 	private StanfordCoreNLP pipeline;
@@ -62,6 +65,23 @@ public class AFrameMaker implements FrameMaker {
 		ArrayList<FrameComponent> actions = new ArrayList<FrameComponent>();
 		ArrayList<FrameComponent> entities = new ArrayList<FrameComponent>();
 		ArrayList<Frame> frames = new ArrayList<Frame>();
+		for (CoreMap sentence : document.get(SentencesAnnotation.class)) {
+			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
+				if (token.tag().equals("JJ") || token.tag().equals("JJR") || token.tag().equals("JJS")
+						|| token.tag().equals("RBR") || token.tag().equals("RB") || token.tag().equals("RBS")) {
+					String emotion = findEmotion(token.lemma());
+					if (emotion != null) {
+						FrameComponent emotionObj = new AnEmotion();
+						Frame frame = new AnEmotionFrame();
+						((AnEmotionFrame) frame).setAnimation(emotion);
+						((AnEmotionFrame) frame).setEmotion(emotionObj);
+						// TODO: How to add entities? just doing a default male for now
+						((AnEmotionFrame) frame).setEntity(new AnAgent());
+						frames.add(frame);
+					}
+				}
+			}
+		}
 		FrameComponent entity = null;
 		// Create an entity for each reference chain in the story
 		for (CorefChain cc : document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values()) {
@@ -90,7 +110,6 @@ public class AFrameMaker implements FrameMaker {
 					String nounType = getNounType(token.lemma());
 					if (mention.animacy.toString().equals("ANIMATE")) {
 						if (nounType.equals("person")) {
-							System.out.println("PERSON");
 							entity = new AnAgent();
 							((AnAgent) entity).setAgentType(AgentType.HUMAN);
 						} else if (nounType.equals("animal")) {
@@ -127,6 +146,7 @@ public class AFrameMaker implements FrameMaker {
 			SemanticGraph dependencies = sentence.get(BasicDependenciesAnnotation.class);
 			Collection<IndexedWord> rootVerbs = dependencies.getRoots();
 			for (IndexedWord verb : rootVerbs) {
+				// TODO: Leave out copulas (i.e. to be)
 				// new frame, new action
 				AnAction action = new AnAction();
 				action.setOriginalWord(verb.originalText());
@@ -187,7 +207,6 @@ public class AFrameMaker implements FrameMaker {
 							if (referenceChain.get(j).position.get(0) == token.sentIndex() + 1
 									&& token.index() <= referenceChain.get(j).endIndex
 									&& token.index() >= referenceChain.get(j).startIndex) {
-//								System.out.println("MATCH: " + );
 								if (entities.get(i).getClass() == frameComponents.AnAgent.class) {
 									shortEntitiesList.add(entities.get(i));
 									break;
@@ -457,6 +476,45 @@ public class AFrameMaker implements FrameMaker {
 		return 0;
 	}
 
+	private String findEmotion(String adj) {
+		CSVReader reader;
+		String[] nextLine;
+		try {
+			reader = new CSVReader(new FileReader("res/emotions.csv"));
+			while ((nextLine = reader.readNext()) != null) {
+				// nextLine[] is an array of values from the line
+				String[] emotionArr = nextLine[1].split(", ");
+				if (adj.equals(nextLine[0])) {
+					reader.close();
+					return nextLine[0];
+				}
+				for (String emotion : emotionArr) {
+					String relation = httpGet(
+							"http://api.conceptnet.io/query?node=/c/en/" + adj + "&other=/c/en/" + emotion);
+					JSONObject obj = new JSONObject(relation);
+					JSONArray edges = obj.getJSONArray("edges");
+					for (int j = 0; j < edges.length(); j++) {
+						JSONObject edge = edges.getJSONObject(j);
+						if (edge.getDouble("weight") >= 1) {
+							reader.close();
+							return nextLine[0];
+						}
+					}
+				}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	private String findAnimation(FrameComponent frameComponent) {
 		CSVReader reader;
 		try {
@@ -473,8 +531,8 @@ public class AFrameMaker implements FrameMaker {
 						reader.close();
 						return nextLine[0];
 					}
-					String relation = httpGet("http://api.conceptnet.io/query?node=/c/en/"
-							+ frameComponent.getLemma() + "&other=/c/en/" + actions[i]);
+					String relation = httpGet("http://api.conceptnet.io/query?node=/c/en/" + frameComponent.getLemma()
+							+ "&other=/c/en/" + actions[i]);
 					JSONObject obj = new JSONObject(relation);
 					JSONArray edges = obj.getJSONArray("edges");
 					for (int j = 0; j < edges.length(); j++) {
