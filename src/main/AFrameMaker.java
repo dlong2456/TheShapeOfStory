@@ -51,8 +51,6 @@ import frameTypes.AnEmotionFrame;
 import frameTypes.AnObjectFrame;
 import frameTypes.Frame;
 
-//TODO: Recognize emotional states
-//TODO: spawning extra agents somewhere
 public class AFrameMaker implements FrameMaker {
 
 	private StanfordCoreNLP pipeline;
@@ -75,7 +73,8 @@ public class AFrameMaker implements FrameMaker {
 						Frame frame = new AnEmotionFrame();
 						((AnEmotionFrame) frame).setAnimation(emotion);
 						((AnEmotionFrame) frame).setEmotion(emotionObj);
-						// TODO: How to add entities? just doing a default male for now
+						// TODO: How to add entities? just doing a default male
+						// for now
 						((AnEmotionFrame) frame).setEntity(new AnAgent());
 						frames.add(frame);
 					}
@@ -84,8 +83,10 @@ public class AFrameMaker implements FrameMaker {
 		}
 		FrameComponent entity = null;
 		// Create an entity for each reference chain in the story
+		document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values();
 		for (CorefChain cc : document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values()) {
 			// TODO: if mention contains more than one noun, ignore it
+			ArrayList<FrameComponent> mentionEntities = new ArrayList<FrameComponent>();
 			CorefMention mention = cc.getRepresentativeMention();
 			CoreMap sentence = document.get(CoreAnnotations.SentencesAnnotation.class).get(mention.sentNum - 1);
 			for (int i = mention.startIndex - 1; i < mention.endIndex - 1; i++) {
@@ -137,8 +138,11 @@ public class AFrameMaker implements FrameMaker {
 					entity.setPosition(new IntTuple(positionArr));
 					entity.setOriginalWord(token.originalText());
 					entity.setLemma(token.lemma());
-					entities.add(entity);
+					mentionEntities.add(entity);
 				}
+			}
+			if (mentionEntities.size() == 1) {
+				entities.add(mentionEntities.get(0));
 			}
 		}
 
@@ -146,29 +150,31 @@ public class AFrameMaker implements FrameMaker {
 			SemanticGraph dependencies = sentence.get(BasicDependenciesAnnotation.class);
 			Collection<IndexedWord> rootVerbs = dependencies.getRoots();
 			for (IndexedWord verb : rootVerbs) {
-				// TODO: Leave out copulas (i.e. to be)
-				// new frame, new action
-				AnAction action = new AnAction();
-				action.setOriginalWord(verb.originalText());
-				int[] positionArr = { verb.sentIndex(), verb.index() };
-				action.setPosition(new IntTuple(positionArr));
-				action.setLemma(verb.lemma());
-				actions.add(action);
-				// create a new action frame for each action
-				String animation = findAnimation(action);
-				Frame frame = null;
-				// All speak actions are conversation frames
-				if (animation != null) {
-					if (animation.equals("speak")) {
-						frame = new AConversationFrame();
-						// TODO: Need to set entities
-					} else {
-						frame = new AnActionFrame();
-						((AnActionFrame) frame).setAnimation(findAnimation(action));
-						((AnActionFrame) frame).setAction(action);
-					}
-					if (frame != null) {
-						frames.add(frame);
+				// TODO: Leave out copulas (i.e. to be). This  method is not working currently 
+				if (!verb.lemma().equals("am")) {
+					// new frame, new action
+					AnAction action = new AnAction();
+					action.setOriginalWord(verb.originalText());
+					int[] positionArr = { verb.sentIndex(), verb.index() };
+					action.setPosition(new IntTuple(positionArr));
+					action.setLemma(verb.lemma());
+					actions.add(action);
+					// create a new action frame for each action
+					String animation = findAnimation(action);
+					Frame frame = null;
+					// All speak actions are conversation frames
+					if (animation != null) {
+						if (animation.equals("speak")) {
+							frame = new AConversationFrame();
+							// TODO: Need to set entities
+						} else {
+							frame = new AnActionFrame();
+							((AnActionFrame) frame).setAnimation(findAnimation(action));
+							((AnActionFrame) frame).setAction(action);
+						}
+						if (frame != null) {
+							frames.add(frame);
+						}
 					}
 				}
 			}
@@ -176,6 +182,8 @@ public class AFrameMaker implements FrameMaker {
 			for (SemanticGraphEdge edge : edge_set1) {
 				Frame frame = null;
 				IndexedWord token = edge.getTarget();
+				//And I makes I a conj.....need to do more thinking in this area.
+//				System.out.println(edge.getTarget() + " " + edge.getRelation());
 				if (edge.getRelation().toString().equals("dobj")) {
 					// object frame
 					frame = new AnObjectFrame();
@@ -235,7 +243,6 @@ public class AFrameMaker implements FrameMaker {
 							}
 						}
 					}
-					// figure out if the entity is a person, setting, or object
 					// TODO: I don't think this is exactly right. can object
 					// frames contain agents or objects?
 					// can an agent frame be a direct object?
