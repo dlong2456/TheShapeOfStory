@@ -6,8 +6,9 @@ function Expository(setting , i , name)
 	this.width = 50;
 	this.height =  40;
 	var img =loadAnimation("assets/conversation_frame.png") ;
-	this.frame = createSprite(i*270,200,20,20);
+	this.frame = createSprite(i*250,200,20,20);
     this.frame.addAnimation("frame",img);
+    
 
 }
 Expository.prototype.dispay = function(){

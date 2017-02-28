@@ -6,12 +6,12 @@ function CloseUp(EmoState , agent ,i,name)
 	this.height =  40;
 	this.agent = agent || {};
 	this.emoState = EmoState || "";
-	var img =loadAnimation("assets/conversation_frame.png") ;
-	this.frame = createSprite(i*250,200,20,20);
-    this.frame.addAnimation("frame",img);
+	var img =loadAnimation("assets/closeUp_Frame.png") ;
+	//this.frame = createSprite(i*250,200,20,20);
+   // this.frame.addAnimation("frame",img);
     //this.spriteSheet = loadSpriteSheet('assets/explode_sprite_sheet.png', 171, 158, 11);
     //this.animation = loadAnimation(this.spriteSheet);
-    
+     
 	if(this.agent.type == "human")
 	{
 		this.animation = loadAnimation("assets/emoState/"+this.emoState+"/"+this.agent.sex+"/"+this.emoState+"_0001.png", "assets/emoState/"+this.emoState+"/"+this.agent.sex+"/"+this.emoState+"_0010.png");
