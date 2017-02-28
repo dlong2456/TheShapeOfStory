@@ -51,11 +51,11 @@ function createComic(data)
 	for(var p = 0 ; p < framesArray.length ; p++)
 	{
 		if(framesArray[p]["frameType"] === "agent")
-			comicStrip.push(new agentFrame(framesArray[p]["agents"]),p);
+			comicStrip.push(new agentFrame(framesArray[p]["agents"]),p+1);
 		if(framesArray[p]["frameType"] === "action")
 		{
 			var act = new action(framesArray[p]["animation"]);
-			comicStrip.push(new Action(act,p));
+			comicStrip.push(new Action(act,p+1));
 		}
 		if(framesArray[p]["frameType"] === "closeup")
 		{
@@ -64,15 +64,15 @@ function createComic(data)
 				a = new human(framesArray[p]["agent"]["gender"]);
 			if(framesArray[p]["agent"]["agentType"]==="ANIMAL")
 				a = new nonHuman(framesArray[p]["agent"]["gender"]);
-			comicStrip.push(new CloseUp(framesArray[p]["animation"],a,p));
+			comicStrip.push(new CloseUp(framesArray[p]["animation"],a,p+1));
 
 		}
 		if(framesArray[p]["frameType"] === "setting")
-			comicStrip.push(new Expository(framesArray[p]["setting"],p));
+			comicStrip.push(new Expository(framesArray[p]["setting"],p+1));
 		if(framesArray[p]["frameType"] === "object")
-			comicStrip.push(new ObjectFrame(framesArray[p]["object"],p));
+			comicStrip.push(new ObjectFrame(framesArray[p]["object"],p+1));
 		if(framesArray[p]["frameType"] === "conversation")
-			comicStrip.push(new agentFrame(framesArray[p]["agents"]),p);	
+			comicStrip.push(new agentFrame(framesArray[p]["agents"]),p+1);	
 		
 	}
 	clear();
