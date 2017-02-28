@@ -75,6 +75,7 @@ function createComic(data)
 			comicStrip.push(new agentFrame(framesArray[p]["agents"]),p);	
 		
 	}
+	clear();
    redraw();
 }
 
