@@ -64,7 +64,7 @@ function createComic(data)
 				a = new human(framesArray[p]["agent"]["gender"]);
 			if(framesArray[p]["agent"]["agentType"]==="ANIMAL")
 				a = new nonHuman(framesArray[p]["agent"]["gender"]);
-			comicStrip.push(new CLoseUp(framesArray[p]["animation"],a,p));
+			comicStrip.push(new CloseUp(framesArray[p]["animation"],a,p));
 
 		}
 		if(framesArray[p]["frameType"] === "setting")

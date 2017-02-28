@@ -12,7 +12,7 @@ function CloseUp(EmoState , agent ,i,name)
     //this.spriteSheet = loadSpriteSheet('assets/explode_sprite_sheet.png', 171, 158, 11);
     //this.animation = loadAnimation(this.spriteSheet);
     
-	if(this.agent.type2 == "human")
+	if(this.agent.type == "human")
 	{
 		this.animation = loadAnimation("assets/emoState/"+this.emoState+"/"+this.agent.sex+"/"+this.emoState+"_0001.png", "assets/emoState/"+this.emoState+"/"+this.agent.sex+"/"+this.emoState+"_0010.png");
 	}

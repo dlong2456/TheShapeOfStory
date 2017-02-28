@@ -9,17 +9,17 @@ function Action( action ,  i, agents, name)
 	var img =loadAnimation("assets/closeUp_Frame.png") ;
 	this.frame = createSprite(i*250,100,20,20);
     this.frame.addAnimation("frame",img);
-     if(this.action.name === "propel" || this.action.name === "moveobject" || this.action.name === "movepossesion")
+     if(this.action.name === "propel" || this.action.name === "move-object" || this.action.name === "move-possesion")
      {
      	this.animation = loadAnimation("assets/action/"+"propel"+"/"+"propel"+"_0001.png","assets/action/"+"propel"+"/"+"propel"+"_0007.png");
      }
-     if(this.action.name === "movebodypart" )
+     if(this.action.name === "move-body-part" )
      {
-     	this.animation = loadAnimation("assets/action/"+"movebodypart"+"/"+"movebodypart"+"_0001.png","assets/action/"+"movebodypart"+"/"+"movebodypart"+"_0006.png");
+     	this.animation = loadAnimation("assets/action/"+"move-body-part"+"/"+"move-body-part"+"_0001.png","assets/action/"+"move-body-part"+"/"+"move-body-part"+"_0006.png");
      }
-     if(this.action.name === "thinkabout" )
+     if(this.action.name === "think-about" )
      {
-     	this.animation = loadAnimation("assets/action/"+"thinkabout"+"/"+"thinkabout"+"_0001.png","assets/action/"+"thinkabout"+"/"+"thinkabout"+"_0003.png");
+     	this.animation = loadAnimation("assets/action/"+"think-about"+"/"+"think-about"+"_0001.png","assets/action/"+"think-about"+"/"+"think-about"+"_0003.png");
      }
      if(this.action.name === "hear" )
      {
