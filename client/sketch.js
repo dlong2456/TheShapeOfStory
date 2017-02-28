@@ -91,7 +91,7 @@ function setup() {
 
 function draw() {
   clear();
-  background(0);  
+  background(255);  
   camera.zoom = .5;
 
   drawSprites();
