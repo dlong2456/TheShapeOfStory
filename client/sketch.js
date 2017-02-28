@@ -83,7 +83,7 @@ function setup() {
  recorder.onResult = parseResult;
  recorder.start();
  bg = loadImage("assets/scrollBackground.jpg");
-  createCanvas(720, 400);
+  createCanvas(1028, 800);
   
 
 
@@ -91,7 +91,7 @@ function setup() {
 
 function draw() {
   clear();
-  background(255);  
+  background(0);  
   camera.zoom = .5;
 
   drawSprites();

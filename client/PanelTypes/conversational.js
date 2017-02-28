@@ -18,7 +18,7 @@ function Conversation( agentList , conversation , i, name)
 	//this.agents = agents || [];
 	this.conversation = conversation || [];
 	var img =loadAnimation("assets/conversation_frame.png") ;
-	this.frame = createSprite(i*270,200,100,100);
+	this.frame = createSprite(i*270,200,20,20);
     this.frame.addAnimation("frame",img);
 	//this.animation = loadAnimation();
 	//this.panel = createSprite();

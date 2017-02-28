@@ -7,7 +7,7 @@ function CloseUp(EmoState , agent ,i,name)
 	this.agent = agent || {};
 	this.emoState = EmoState || "";
 	var img =loadAnimation("assets/conversation_frame.png") ;
-	this.frame = createSprite(i*250,200,10,10);
+	this.frame = createSprite(i*250,200,20,20);
     this.frame.addAnimation("frame",img);
     //this.spriteSheet = loadSpriteSheet('assets/explode_sprite_sheet.png', 171, 158, 11);
     //this.animation = loadAnimation(this.spriteSheet);
@@ -20,7 +20,7 @@ function CloseUp(EmoState , agent ,i,name)
 	{
 		this.animation = loadAnimation("assets/emoState/"+this.emoState+"/nonHuman/"+this.emoState+"_0001.png","assets/emoState/"+this.emoState+"/nonHuman/"+this.emoState+"_0010.png");
 	}
-	this.panel = createSprite(i*250,100, 10, 10);
+	this.panel = createSprite(i*250,100, 20, 20);
     this.panel.addAnimation(this.emoState, this.animation);
 
 }
