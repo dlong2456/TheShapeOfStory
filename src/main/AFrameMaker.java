@@ -85,7 +85,6 @@ public class AFrameMaker implements FrameMaker {
 		// Create an entity for each reference chain in the story
 		document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values();
 		for (CorefChain cc : document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values()) {
-			// TODO: if mention contains more than one noun, ignore it
 			ArrayList<FrameComponent> mentionEntities = new ArrayList<FrameComponent>();
 			CorefMention mention = cc.getRepresentativeMention();
 			CoreMap sentence = document.get(CoreAnnotations.SentencesAnnotation.class).get(mention.sentNum - 1);
@@ -141,6 +140,8 @@ public class AFrameMaker implements FrameMaker {
 					mentionEntities.add(entity);
 				}
 			}
+			// If mention contains more than one noun, ignore it. This prevents
+			// duplicates.
 			if (mentionEntities.size() == 1) {
 				entities.add(mentionEntities.get(0));
 			}
@@ -150,8 +151,8 @@ public class AFrameMaker implements FrameMaker {
 			SemanticGraph dependencies = sentence.get(BasicDependenciesAnnotation.class);
 			Collection<IndexedWord> rootVerbs = dependencies.getRoots();
 			for (IndexedWord verb : rootVerbs) {
-				// TODO: Leave out copulas (i.e. to be). This  method is not working currently 
-				if (!verb.lemma().equals("am")) {
+				if (verb.tag().equals("VB") || verb.tag().equals("VBD") || verb.tag().equals("VBG")
+						|| verb.tag().equals("VBN") || verb.tag().equals("VBP") || verb.tag().equals("VBZ")) {
 					// new frame, new action
 					AnAction action = new AnAction();
 					action.setOriginalWord(verb.originalText());
@@ -182,8 +183,11 @@ public class AFrameMaker implements FrameMaker {
 			for (SemanticGraphEdge edge : edge_set1) {
 				Frame frame = null;
 				IndexedWord token = edge.getTarget();
-				//And I makes I a conj.....need to do more thinking in this area.
-//				System.out.println(edge.getTarget() + " " + edge.getRelation());
+				// TODO: "...and I" makes I a conj.....need to do more thinking
+				// in this area.Agents may appear in may different parts of
+				// speech
+				// System.out.println(edge.getTarget() + " " +
+				// edge.getRelation());
 				if (edge.getRelation().toString().equals("dobj")) {
 					// object frame
 					frame = new AnObjectFrame();
@@ -267,6 +271,7 @@ public class AFrameMaker implements FrameMaker {
 				}
 			}
 			// TODO: Sort frames at end according to their sentence position.
+			// (task for next milestone)
 			// frames.sort();
 		}
 		return frames;
