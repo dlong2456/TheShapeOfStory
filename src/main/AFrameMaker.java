@@ -151,6 +151,7 @@ public class AFrameMaker implements FrameMaker {
 			SemanticGraph dependencies = sentence.get(BasicDependenciesAnnotation.class);
 			Collection<IndexedWord> rootVerbs = dependencies.getRoots();
 			for (IndexedWord verb : rootVerbs) {
+				//TODO: move emoiton code here because "I am happy" maps happy to the root verb.
 				if (verb.tag().equals("VB") || verb.tag().equals("VBD") || verb.tag().equals("VBG")
 						|| verb.tag().equals("VBN") || verb.tag().equals("VBP") || verb.tag().equals("VBZ")) {
 					// new frame, new action
@@ -185,7 +186,7 @@ public class AFrameMaker implements FrameMaker {
 				IndexedWord token = edge.getTarget();
 				// TODO: "...and I" makes I a conj.....need to do more thinking
 				// in this area.Agents may appear in may different parts of
-				// speech
+				// speech. Possibly look at conjunction edge connected to nsubj edge
 				// System.out.println(edge.getTarget() + " " +
 				// edge.getRelation());
 				if (edge.getRelation().toString().equals("dobj")) {
@@ -493,6 +494,8 @@ public class AFrameMaker implements FrameMaker {
 		String[] nextLine;
 		try {
 			reader = new CSVReader(new FileReader("res/emotions.csv"));
+			ArrayList<String> basicEmotions = new ArrayList<String>();
+			ArrayList<Double> weights = new ArrayList<Double>();
 			while ((nextLine = reader.readNext()) != null) {
 				// nextLine[] is an array of values from the line
 				String[] emotionArr = nextLine[1].split(", ");
@@ -507,12 +510,22 @@ public class AFrameMaker implements FrameMaker {
 					JSONArray edges = obj.getJSONArray("edges");
 					for (int j = 0; j < edges.length(); j++) {
 						JSONObject edge = edges.getJSONObject(j);
-						if (edge.getDouble("weight") >= 1) {
-							reader.close();
-							return nextLine[0];
-						}
+						weights.add(edge.getDouble("weight"));
+						basicEmotions.add(emotion);
 					}
 				}
+			}
+			reader.close();
+			double max = 0;
+			String basicEmotion = null;
+			for (int j = 0; j < basicEmotions.size(); j++) {
+				if (weights.get(j) > max) {
+					max = weights.get(j);
+					basicEmotion = basicEmotions.get(j);
+				}
+			}
+			if (max >= 2) {
+				return basicEmotion;
 			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
