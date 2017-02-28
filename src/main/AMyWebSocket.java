@@ -90,7 +90,7 @@ public class AMyWebSocket implements MyWebSocket {
 					currentFrameJSON += "{ \"agentType\": \""
 							+ ((AnAgent) ((AnAgentFrame) currentFrame).getEntities().get(j)).getAgentType().toString()
 							+ "\", \"gender\": \""
-							+ ((AnAgent) ((AnAgentFrame) currentFrame).getEntities().get(j)).getGender().toString() + "\" }";
+							+ ((AnAgent) ((AnAgentFrame) currentFrame).getEntities().get(j)).getGender().toString().toLowerCase() + "\" }";
 					if (j < ((AnAgentFrame) currentFrame).getEntities().size() - 1) {
 						currentFrameJSON += ", ";
 					}
@@ -102,7 +102,7 @@ public class AMyWebSocket implements MyWebSocket {
 					currentFrameJSON += "{ \"agentType\": \""
 							+ ((AnAgent) ((AConversationFrame) currentFrame).getEntities().get(j)).getAgentType().toString()
 							+ "\", \"gender\": \""
-							+ ((AnAgent) ((AConversationFrame) currentFrame).getEntities().get(j)).getGender().toString() + "\" }";
+							+ ((AnAgent) ((AConversationFrame) currentFrame).getEntities().get(j)).getGender().toString().toLowerCase() + "\" }";
 					if (j < ((AConversationFrame) currentFrame).getEntities().size() - 1) {
 						currentFrameJSON += ", ";
 					}
@@ -119,7 +119,7 @@ public class AMyWebSocket implements MyWebSocket {
 				// closeup frames
 				currentFrameJSON = "{ \"frameType\": \"closeup\", \"agent\": { \"agentType\": \""
 						+ ((AnAgent) ((AnEmotionFrame) currentFrame).getEntity()).getAgentType().toString() + "\", \"gender\": \""
-						+ ((AnAgent) ((AnEmotionFrame) currentFrame).getEntity()).getGender().toString()
+						+ ((AnAgent) ((AnEmotionFrame) currentFrame).getEntity()).getGender().toString().toLowerCase()
 						+ "\" }, \"animation\": \"" + ((AnEmotionFrame) currentFrame).getAnimation() + "\" }";
 			}
 			// append new frame to JSON frame list
