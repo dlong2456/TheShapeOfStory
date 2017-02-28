@@ -83,7 +83,7 @@ function setup() {
  recorder.onResult = parseResult;
  recorder.start();
  bg = loadImage("assets/scrollBackground.jpg");
-  createCanvas(1028, 800);
+  createCanvas(720, 400);
   
 
 
