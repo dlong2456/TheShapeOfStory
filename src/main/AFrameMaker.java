@@ -511,7 +511,7 @@ public class AFrameMaker implements FrameMaker {
 					for (int j = 0; j < edges.length(); j++) {
 						JSONObject edge = edges.getJSONObject(j);
 						weights.add(edge.getDouble("weight"));
-						basicEmotions.add(emotion);
+						basicEmotions.add(nextLine[0]);
 					}
 				}
 			}
