@@ -40,7 +40,7 @@ public class AMyWebSocket implements MyWebSocket {
 
 	@OnWebSocketConnect
 	public void onConnect(Session session) {
-		
+
 		this.session = session;
 		// Make NLP pipeline here because it takes awhile
 		Properties props = new Properties();
@@ -52,13 +52,15 @@ public class AMyWebSocket implements MyWebSocket {
 	@OnWebSocketMessage
 	public void onMessage(String message) {
 		System.out.println("received message: " + message);
-		//TODO: Check message before processing it
+		// TODO: Check message before processing it
 		Annotation document = new Annotation(message);
 		pipeline.annotate(document);
 		FrameMaker frameMaker = new AFrameMaker(pipeline);
 		ArrayList<Frame> frames = frameMaker.makeFrame(document);
-		String jsonString = convertToJSON(frames);
-		sendMessage(jsonString);
+		if (frames != null) {
+			String jsonString = convertToJSON(frames);
+			sendMessage(jsonString);
+		}
 	}
 
 	public Session getSession() {
@@ -75,7 +77,7 @@ public class AMyWebSocket implements MyWebSocket {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private static String convertToJSON(ArrayList<Frame> frames) {
 		String json = "{\"frames\": [";
 		for (int i = 0; i < frames.size(); i++) {
@@ -89,8 +91,9 @@ public class AMyWebSocket implements MyWebSocket {
 				for (int j = 0; j < ((AnAgentFrame) currentFrame).getEntities().size(); j++) {
 					currentFrameJSON += "{ \"agentType\": \""
 							+ ((AnAgent) ((AnAgentFrame) currentFrame).getEntities().get(j)).getAgentType().toString()
-							+ "\", \"gender\": \""
-							+ ((AnAgent) ((AnAgentFrame) currentFrame).getEntities().get(j)).getGender().toString().toLowerCase() + "\" }";
+							+ "\", \"gender\": \"" + ((AnAgent) ((AnAgentFrame) currentFrame).getEntities().get(j))
+									.getGender().toString().toLowerCase()
+							+ "\" }";
 					if (j < ((AnAgentFrame) currentFrame).getEntities().size() - 1) {
 						currentFrameJSON += ", ";
 					}
@@ -100,9 +103,12 @@ public class AMyWebSocket implements MyWebSocket {
 				currentFrameJSON = "{ \"frameType\": \"conversation\", \"agents\": [";
 				for (int j = 0; j < ((AConversationFrame) currentFrame).getEntities().size(); j++) {
 					currentFrameJSON += "{ \"agentType\": \""
-							+ ((AnAgent) ((AConversationFrame) currentFrame).getEntities().get(j)).getAgentType().toString()
+							+ ((AnAgent) ((AConversationFrame) currentFrame).getEntities().get(j)).getAgentType()
+									.toString()
 							+ "\", \"gender\": \""
-							+ ((AnAgent) ((AConversationFrame) currentFrame).getEntities().get(j)).getGender().toString().toLowerCase() + "\" }";
+							+ ((AnAgent) ((AConversationFrame) currentFrame).getEntities().get(j)).getGender()
+									.toString().toLowerCase()
+							+ "\" }";
 					if (j < ((AConversationFrame) currentFrame).getEntities().size() - 1) {
 						currentFrameJSON += ", ";
 					}
@@ -118,7 +124,8 @@ public class AMyWebSocket implements MyWebSocket {
 			} else {
 				// closeup frames
 				currentFrameJSON = "{ \"frameType\": \"closeup\", \"agent\": { \"agentType\": \""
-						+ ((AnAgent) ((AnEmotionFrame) currentFrame).getEntity()).getAgentType().toString() + "\", \"gender\": \""
+						+ ((AnAgent) ((AnEmotionFrame) currentFrame).getEntity()).getAgentType().toString()
+						+ "\", \"gender\": \""
 						+ ((AnAgent) ((AnEmotionFrame) currentFrame).getEntity()).getGender().toString().toLowerCase()
 						+ "\" }, \"animation\": \"" + ((AnEmotionFrame) currentFrame).getAnimation() + "\" }";
 			}
