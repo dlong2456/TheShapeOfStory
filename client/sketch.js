@@ -35,12 +35,12 @@ recorder.continuous = true; // do continuous recognition
 function parseResult() {
 	console.log("parsing");
 	recordedText += recorder.resultString + ". ";
-   // if (recordedText.length > 200) {
+    if (recordedText.length > 100) {
     	console.log("sending");
 		//ws.send(recordedText);
 		ws.send(recorder.resultString);
 		//recordedText = "";
-	//}
+	}
 }
 var comicStrip = [];
 function createComic(data)
