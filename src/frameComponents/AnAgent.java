@@ -29,8 +29,5 @@ public class AnAgent extends AnEntity {
 	public void setGender(Gender newGender) {
 		gender = newGender;
 	}
-	
-	//TODO: add agent name and number
-
 
 }

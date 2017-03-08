@@ -5,6 +5,7 @@ import edu.stanford.nlp.coref.data.CorefChain;
 public abstract class AnEntity extends AFrameComponent {
 	
 	private CorefChain referenceChain;
+	private int id;
 
 	public CorefChain getReferences() {
 		return referenceChain;
@@ -13,9 +14,9 @@ public abstract class AnEntity extends AFrameComponent {
 	public void setReferences(CorefChain newReferenceChain) {
 		referenceChain = newReferenceChain;
 	}
+	
+	//use this in the future to track the same entity appearing throughout a story
+	public int getId() {
+		return id;
+	}
 }
-//possible future additions: 
-	//possessions
-	//appearance
-	//behavior/personality?
-	//human vs non human
