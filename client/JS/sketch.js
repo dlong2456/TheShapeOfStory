@@ -50,7 +50,7 @@ function createComic(data)
          var act = panelData["action"];
          var subs = panelData["subjects"];
          var predis = panelData["predicates"];
-         var relates = panelData["relationships"];
+         //var relates = panelData["relationships"];
          var emoColor = panelData["color"];
          var set = panelData["setting_preposition"];
          var subjectArray = [];
@@ -85,7 +85,7 @@ function createComic(data)
                 }
                }
         });
-
+/*
        relates.forEach(function(rel){
             var pr = rel["primary_agent"];
             var sec = rel["secondary_agent"];
@@ -111,7 +111,8 @@ function createComic(data)
                relationsArray.push(new Relation(rel["type"],rel["intimacy"],rel["positivity"],primaryA,secondaryA));
 
        });
-       actionPanel = new Comic.Action(subjectArray,predArray,act,emoColor,relationsArray[0],set);
+*/
+       actionPanel = new Comic.Action(subjectArray,predArray,act,emoColor,{},set);
        comicStrip.push(actionPanel);
   });
 }
