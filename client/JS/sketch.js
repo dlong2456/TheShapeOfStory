@@ -1,3 +1,4 @@
+
 var recordedText = "";
 
 //Web socket functionality 
@@ -12,8 +13,6 @@ function start(websocketServerLocation) {
 
   ws.onmessage = function (evt) {
     console.log("message received");
-    //These are the JSON messages with the frame data
-    //console.log(evt.data);
     createComic(evt.data);
   };
 
@@ -117,20 +116,81 @@ function createComic(data)
   });
 }
 
+var G;
+var t = 0;
+var P = [];
+var Q = [];
+
+var comic = new Comic.Holder(comicStrip);
+
+function preload()
+{
+  recorder.onResult = parseResult;
+recorder.start();
+  createCanvas(1200,800);
+ // background('#DAA45E');
+ background('#DAA45E');
+  G = new pv.pt(width/2,height/2);
+P = pv.drawSpiral1(G);
+ Q = pv.drawSpiral2(G);
+
+}
+function setup()
+{
+  
+// pv.spiral1(G,20,12.5);
+// pv.spiral2(G,12,16);
+
+//pv.questionMarkInverted(G);
+
+  
+}
+
+function draw()
+{
+   comic.display(P,Q,G);
+  // pv.show(G);
+  // pv.show(pv.spiral(G,t));
+  // t+=0.5;
+ 
+
+ //pv.circleSpaceBetweenTwoArcs(G);
+ 
+ //  for(var i = 1 ; i < P.length ; i++)
+   // line(P[i-1].x,P[i-1].y,P[i].x,P[i].y);
+
+}
+
+
+
+
+/*
+
+
+function setup() {
+ //recorder.onResult = parseResult;
+// recorder.start();
+ createCanvas(2000, 800);
+  
+
+
+}*/
+
+
+
 /*
 var testAgent = new Agent.Human("green","FEMALE");
 var testAgent2 = new Agent.Human("blue","MALE");
-var r = new Relation("dominant",1,-2,[testAgent],[testAgent2]);
+var r = new Relation("dominant",1,2,[testAgent],[testAgent2]);
 
-var p1 = new Comic.Action([testAgent],[testAgent2],"speak","blue",r,"on");
+var p1 = new Comic.Action([testAgent2],[testAgent2],"think-about","blue",r,"on");
 //subjects,predicates , action,emotionColor,relation,setting ,bgColor,name
-var p2 = new Comic.Action([testAgent],[testAgent2],"move-body-part","blue",r,"from");
+var p2 = new Comic.Action([testAgent2],[testAgent2],"move-body-part","blue",r,"from");
 var strip = new Comic.ComicStrip([p1,p2]);
 var strip2 = new Comic.ComicStrip([p1,p2]);
 var comic = new Comic.Holder([strip,strip2]);
 var testColor = "red";
-//obj.position = new pv.P(50,50);
-///var justAtest = Renderer.testFunction;
+
 function setup()
 {
   createCanvas(400,400);
@@ -146,24 +206,58 @@ function draw()
 }
 
 */
+/*
+//TESTING and animating the FERMAT'S SPIRAL FOR HOLDING THE COMIC STRIPS
+var G;
+var t = 0;
+var P = [];
+var Q = [];
+var testAgent = new Agent.Human("green","FEMALE");
+var testAgent2 = new Agent.Human("blue","MALE");
+var r = new Relation("dominant",1,-2,[testAgent],[testAgent2]);
 
-function setup() {
- recorder.onResult = parseResult;
- recorder.start();
- createCanvas(2000, 800);
+var p1 = new Comic.Action([testAgent],[testAgent2],"expel","blue",r,"from");
+//subjects,predicates , action,emotionColor,relation,setting ,bgColor,name
+var p2 = new Comic.Action([testAgent2],[testAgent],"expel","blue",r,"in");
+var comic = new Comic.Holder([p1,p2,p2,p2]);
+function preload()
+{
+  createCanvas(1200,800);
+ // background('#DAA45E');
+ background('#DAA45E');
+  G = new pv.pt(width/2,height/2);
+P = pv.drawSpiral1(G);
+ Q = pv.drawSpiral2(G);
+
+}
+function setup()
+{
   
+// pv.spiral1(G,20,12.5);
+// pv.spiral2(G,12,16);
 
+//pv.questionMarkInverted(G);
+
+  
+}
+
+function draw()
+{
+   comic.display(P,Q,G);
+  // pv.show(G);
+  // pv.show(pv.spiral(G,t));
+  // t+=0.5;
+ 
+
+ //pv.circleSpaceBetweenTwoArcs(G);
+ 
+ //  for(var i = 1 ; i < P.length ; i++)
+   // line(P[i-1].x,P[i-1].y,P[i].x,P[i].y);
 
 }
 
-function draw() {
-  clear();
-  background(255);  
-
-  
-}
 
 
 
 
-    
+    */

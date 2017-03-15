@@ -344,7 +344,7 @@ var triangleMoment=function( A,  B,  C)
 //**** INTERPOLATING PAREMETRIC MOTION
 //************************************************************************
 // Linear
-var L=function( A,  B,  t) {return P(A.x+t*(B.x-A.x),A.y+t*(B.y-A.y));}
+var L=function( A,  B,  t) {var point = P(A.x+t*(B.x-A.x),A.y+t*(B.y-A.y));return point;}
 
 
 //************************************************************************
@@ -418,8 +418,203 @@ var curvature=function( A,  B,  C) // computes 1 / radius of circumcircle to (A,
   var k = Math.sqrt(d)*4/(a*b*c); // curvature
   return k;
   } // radius of circumcenter
+var drawSpiral1 = function(G)
+{
+   var b = 100;
+   var t = 0;
+   var r1 = b*sqrt(t);
+   var r2 = b*sqrt(t);
+   var Pt = [];
+   var Qt = [];
+   for(t = 0 ; t < 50 ; t+=0.05)
+   {
+    Pt.push(pv.P(G.x+r1*cos(t),G.y+r1*sin(t)));
+    Qt.push(pv.P(G.x+r2*cos(t),G.y+r2*sin(t)))
+    r1 = b*sqrt(t);
+    r2 = -b*sqrt(t);
+   }
+
+  for(var i = 1 ; i < Pt.length ; i++)
+    line(Pt[i-1].x,Pt[i-1].y,Pt[i].x,Pt[i].y);
+   return Pt;
+
+}
+
+var drawSpiral2 = function(G)
+{
+   var b = 100;
+   var t = 0;
+   var r1 = b*sqrt(t);
+   var r2 = b*sqrt(t);
+   var Pt = [];
+   var Qt = [];
+   for(t = 0 ; t < 50 ; t+=0.05)
+   {
+    Pt.push(pv.P(G.x+r1*cos(t),G.y+r1*sin(t)));
+    Qt.push(pv.P(G.x+r2*cos(t),G.y+r2*sin(t)))
+    r1 = b*sqrt(t);
+    r2 = -b*sqrt(t);
+   }
+     for(var i = 1 ; i < Qt.length ; i++)
+    line(Qt[i-1].x,Qt[i-1].y,Qt[i].x,Qt[i].y);
+  return Qt;
+
+}
+var spiral = function(G,t)
+{
+   
+   var b = 100
+   var r1 = b*sqrt(t);
+   return P(G.x+r1*cos(t),G.y+r1*sin(t));
+}
+var spiral1 = function(G,b,t1)
+{
+      var t = 0;
+      var r = b*sqrt(t);
+      for(t = 0 ; t < t1 ; t+=0.05)
+  {
+    
+   beginShape();
+
+   
+      show(P(G.y-r*sin(t),G.x+r*cos(t)-28),1);
+     endShape();
+ r = b*pow(t,1/2.3);
+}
+
+}
+var spiral2 = function(G,b,t2)
+{
+      var t = 0;
+      var r = b*sqrt(t);
+      for(t = 0 ; t < t2 ; t+=0.05)
+       
+  {
+    
+   beginShape();
+ 
+  
+      show(P(G.y-r*sin(t),G.x+r*cos(t)),1);
+     endShape();
+ r = b*pow(t,1/2.3);
+}
+
+}
+
+var questionMark = function(G)
+{
+  //v.questionMark(G,20,12,12.5,16);
+  push();
+scale(1/4);
+   spiral1(G,5,12.5);
+   spiral2(G,3.2,16);
+   pop();
+
+  
+}
+var questionMarkInverted = function(G)
+{
+   push();
+scale(1/4);
+   spiral2(G,5,16);
+   spiral1(G,4,12.5);
+pop();
+ }
+
+var circleHeadGear = function(G,V)
+{
+  fill(0);
+   ellipse(G.x,G.y,3,3);
+   ellipse(G.x+4*V.x,G.y+4*V.y,3,3);
+   ellipse(G.x+8*V.x,G.y+8*V.y,3,3);
+noFill();
+}
+var emotionCircle = function(G,dia)
+{
+  noFill();
+  arc(G.x,G.y,dia,dia, PI, PI+QUARTER_PI);
+
+  arc(G.x,G.y,dia,dia, 3*PI/2, 3*PI/2+QUARTER_PI);
+  arc(G.x,G.y,dia,dia, 0, QUARTER_PI);
+  arc(G.x,G.y,dia,dia, PI/2, PI/2+QUARTER_PI);
+  fill(255,0,0);
+  triangle(G.x-5,G.y-dia/2,G.x-11,G.y-5-dia/2,G.x-1,G.y-5-dia/2);
+  fill(0,255,0);
+  triangle(G.x-5,G.y+dia/2,G.x-11,G.y+5+dia/2,G.x-1,G.y+5+dia/2);
+  fill(0,0,255);
+  triangle(G.x+dia/2,G.y-5,G.x+5+dia/2,G.y-11,G.x+5+dia/2,G.y-1);
+  fill(0,0,255);
+  triangle(G.x-dia/2,G.y-5,G.x-5-dia/2,G.y-11,G.x-5-dia/2,G.y-1);
+  noFill()
+}
+var circleSpaceBetweenTwoArcs = function(G)
+{
+var Pt = drawSpiral1(G);
+var Qt = drawSpiral2(G);
+var circlePoints = [];
+var circlePoints2 = [];
+var i = 1;
+var j = 5;
+var size =100;
+//console.log(Qt[length/2]);
+//console.log(closest(Pt[200],Qt));
+
+
+
+//for(i = 0 ; i < Pt.length-1 ; i+=2){
+  while(i<Pt.length){
+    //show(P(P.G[i],0.3,V(P.closest(Q.G[i]),P.G[i])));
+   // show(L(P.G[i],Q.closest(P.G[i]),0.5));
+   noFill();
+   circlePoints.push({"pt":P(L(Pt[i],closest(Pt[i],Qt),0.5).x,L(Pt[i],closest(Pt[i],Qt),0.5).y),"length":d(Pt[i],closest(Pt[i],Q))/2});
+   //circlePoints.push({"pt":P(L(Qt[i],closest(Qt[i],Pt),0.5).x,L(Qt[i],closest(Qt[i],Pt),0.5).y),"length":d(Pt[i],closest(Pt[i],Q))/2});
    
 
+    ellipse(L(Pt[i],closest(Pt[i],Qt),0.5).x,L(Pt[i],closest(Pt[i],Qt),0.5).y,d(Pt[i],closest(Pt[i],Q)),d(Pt[i],closest(Pt[i],Q)));
+   
+
+   // ellipse(L(Qt[i],closest(Qt[i],Pt),0.5).x,L(Qt[i],closest(Qt[i],Pt),0.5).y,d(Pt[i],closest(Pt[i],Q)),d(Pt[i],closest(Pt[i],Q)));
+ // console.log(Pt.length);
+ // console.log(i);
+ // console.log(Pt[i].x);
+  //closest(Qt[i],Pt);
+
+  if(i<Pt.length*.15)
+   i+=8;
+  if(i<Pt.length*0.3)
+  i+=3;
+    else
+      i+=2;
+ 
+  }
+while(j<Qt.length)
+{
+fill(0);
+textSize(32);
+text("t",L(Qt[j],closest(Qt[j],Pt),0.5).x,L(Qt[j],closest(Qt[j],Pt),0.5).y);
+noFill();
+if(j<Qt.length*0.05)
+size = 0.5*size;
+
+j+=8;
+}
+
+  return circlePoints;
+  
+}
+
+var closest = function(M,PS)
+{
+ // var j = floor(PS.length/2);
+  
+//  console.log(j);
+//  console.log(PS[j]);
+  var v = 0;
+   for(var j = 0 ; j < PS.length ; j++)
+      if(d(PS[j],M)<d(PS[v],M)) v = floor(j);
+ 
+  return PS[v];
+}
 
     return {
       pt : pt,
@@ -474,8 +669,18 @@ var curvature=function( A,  B,  C) // computes 1 / radius of circumcircle to (A,
       showArcThrough : showArcThrough,
       pointOnArcThrough : pointOnArcThrough,
       curvature : curvature,
+      drawSpiral2:drawSpiral2,
+      spiral:spiral,
+      drawSpiral1:drawSpiral1,
+      circleSpaceBetweenTwoArcs:circleSpaceBetweenTwoArcs,
+      spiral1 : spiral1,
+      spiral2:spiral2,
+      questionMark:questionMark,
+      questionMarkInverted:questionMarkInverted,
+      circleHeadGear:circleHeadGear,
+      emotionCircle:emotionCircle,
 
-
+ 
 
 
 

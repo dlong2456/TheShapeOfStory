@@ -62,6 +62,61 @@ var Comic = (function()
     	this.capacity = capacity || 5; // Number of panels per strip.
     }
 
+     ComicStrip.prototype =
+   {
+   	 constructor : ComicStrip,
+///
+   	 display : function(pt)
+   	 {
+   	 
+   	 	
+   	 	this.panels.forEach(function(panel)
+   	 	{     
+              
+              panel.background.draw(i,j);
+              panel.agentLayer.draw(i,j);  
+              i+=120; 
+             
+   	 	});
+   	 },
+   }
+
+
+ var Holder = function(panels , capacity)
+   {
+         this.panels = panels || [];
+         this.capacity = capacity || 5; // Number of strips to display on the screen.
+
+   }
+
+   Holder.prototype =
+   {
+   	constructor : Holder,
+   	display : function(P,Q,G)
+   	{
+
+     var i = 1;
+     var positions = pv.circleSpaceBetweenTwoArcs(G);
+     // console.log(positions[0]);
+     this.panels.forEach(function(panel)
+     {
+     	
+     	panel.background.draw(positions[i]);
+     	panel.agentLayer.draw(positions[i]);
+     	i+=1;
+     });
+   	  // var i = 10;
+      // this.strips.forEach(function(strip){
+       	// rect(10,i,(width-10),120);
+        // strip.display(i+10);
+        
+        // i+=130;
+
+       //});
+   	},
+   }
+
+/*
    ComicStrip.prototype =
    {
    	 constructor : ComicStrip,
@@ -80,8 +135,8 @@ var Comic = (function()
    	 	});
    	 },
    }
-
-   var Holder = function(ComicStrips , capacity)
+*/
+  /* var Holder = function(ComicStrips , capacity)
    {
          this.strips = ComicStrips || [];
          this.capacity = capacity || 5; // Number of strips to display on the screen.
@@ -91,19 +146,30 @@ var Comic = (function()
    Holder.prototype =
    {
    	constructor : Holder,
-   	display : function()
+   	display : function(P,Q,G)
    	{
-   	   var i = 10;
-       this.strips.forEach(function(strip){
-       	 rect(10,i,(width-10),120);
-         strip.display(i+10);
-        
-         i+=130;
 
-       });
+      P = pv.drawSpiral1(G);
+      Q = pv.drawSpiral2(G);
+      var positions = pv.circleSpaceBetweenTwoArcs(G);
+     // console.log(positions[0]);
+      positions.forEach(function(pt){
+      	fill(255,0,0);
+         ellipse(pt.x,pt.y,10,10);
+         noFill();
+      //  strip.display(pt);
+      });
+   	  // var i = 10;
+      // this.strips.forEach(function(strip){
+       	// rect(10,i,(width-10),120);
+        // strip.display(i+10);
+        
+        // i+=130;
+
+       //});
    	},
    }
-
+*/
 return {
 	Action : Action,
 	
