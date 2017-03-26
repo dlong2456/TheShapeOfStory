@@ -1,5 +1,104 @@
 var Renderer = (function()
 {
+var settingUtility = 
+{
+  "" : drawOn,
+  "in" : drawIn,
+  "from" : drawFrom,
+  "to" : drawTo,
+  "at" : drawOn,
+  "on" : drawOn,
+}
+
+var shapeUtility={
+   "" : drawSquare,
+  "circle" : drawCircle,
+  "triangle" : drawTriangle,
+  "square" : drawSquare,
+  "rectangle" : drawRectangle,
+
+
+};
+var colorUtility = 
+{
+
+//  "red" : Array(255,0,0),
+   "" : '#000000',
+  "red" : '#ff0000', //fear, disgust , 
+  "green" :'#00ff00', //
+  "blue" :'#0000ff', //sadness
+  "black" : '#000000', //anger
+  "white" : '#ffffff',
+ 
+  //anger
+"dark_red" : '#CC0000',
+"red_orange" : '#FF4500',
+"dark_green" : '#336600',
+
+//disgust
+"dull_yellow" : '#cccc00',
+"grey_black" : '#606060',
+"maroon" : '#660000',
+
+//fear
+"dark_orange" : '#FF8C00',
+"yellow_green" : '#CCCC00',
+"dull_yellow" : '#999900',
+
+//happiness
+"orange" : '#FFA500',
+"yellow" : '#ffff00',
+"olive_green" : '#00cc00',
+"gold" : '#FFDF00',
+"aqua" : '#00cccc',
+"light_blue" : '#99ffff',
+
+//sadness
+"dull_green" : '#666600',
+"dark_purple" : '#330066',
+"grey" : '#c0c0c0',
+
+//surprise
+"orange" : '#ff8000',
+"bright_yellow" : '#ffff00',
+"bright_blue" : '#002366',
+"bright_green" : '#80ff00',
+"magenta" : '#FF007F',
+
+
+};
+
+
+var actionUtility = 
+{
+  "" : drawMoveBodyPart,
+  "expel" : drawExpel,
+  "propel" : drawPropel,
+  "see" : drawSee,
+  "smell" : drawSmell,
+  "move-object" : drawMoveObject,
+  "think-about" : drawThinkAbout,
+  "ingest" : drawIngest,
+  "speak" : drawSpeak,
+  "hear" :drawHear,
+ "feel" : drawFeel,
+  "have" :drawHave,
+  "conclude" : drawConclude,
+  "move-body-part": drawMoveBodyPart,
+};
+var feelingUtility = 
+{
+  //red is a very emotionally intense color.
+  //orange combines the energy of red and happiness of yellow
+  //
+  "anger" : ["dark_red","black","red_orange","dark_green"], //red orange for aggression
+  "disgust" : ["red","dull_yellow","grey_black","maroon"], //dull yellow for sickness
+  "fear" : ["red","dark_orange","yellow_green","dull_yellow"], //erd for danger, yellow_green for cowardice,//dark_orange for distrust
+  "happiness" : ["orange","yellow","olive_green","gold","aqua","light_blue"],
+  "sadness" : ["dull_green","blue"," dark_purple","grey"],
+  "surprise" : ["orange","bright_yellow","bright_blue","bright_green","magenta"],
+}
+
 
 //Public stuff
 	//the layer class 
@@ -277,8 +376,8 @@ AgentLayer.prototype=
  //var c1 = random(feelingUtility[color]);
 
  //console.log(feelingUtility[color]+": "+c1);
- //var c = "red";
- shapeUtility[shape](i,j,w,h,scaleSize,c1,scribble);
+ var c = "red";
+ shapeUtility[shape](i,j,w,h,scaleSize,c,scribble);
  
   
  
@@ -417,99 +516,6 @@ function drawTo(i,j,length,scribble)
     scribble.scribbleEllipse(i,j,0.6*length*2,0.8*length*2);
     strokeWeight(1);
 }
-var shapeUtility={
-  "circle" : drawCircle,
-  "triangle" : drawTriangle,
-  "square" : drawSquare,
-  "rectangle" : drawRectangle,
-
-
-};
-var colorUtility = 
-{
-
-//  "red" : Array(255,0,0),
-  "red" : '#ff0000', //fear, disgust , 
-  "green" :'#00ff00', //
-  "blue" :'#0000ff', //sadness
-  "black" : '#000000', //anger
-  "white" : '#ffffff',
- 
-  //anger
-"dark_red" : '#CC0000',
-"red_orange" : '#FF4500',
-"dark_green" : '#336600',
-
-//disgust
-"dull_yellow" : '#cccc00',
-"grey_black" : '#606060',
-"maroon" : '#660000',
-
-//fear
-"dark_orange" : '#FF8C00',
-"yellow_green" : '#CCCC00',
-"dull_yellow" : '#999900',
-
-//happiness
-"orange" : '#FFA500',
-"yellow" : '#ffff00',
-"olive_green" : '#00cc00',
-"gold" : '#FFDF00',
-"aqua" : '#00cccc',
-"light_blue" : '#99ffff',
-
-//sadness
-"dull_green" : '#666600',
-"dark_purple" : '#330066',
-"grey" : '#c0c0c0',
-
-//surprise
-"orange" : '#ff8000',
-"bright_yellow" : '#ffff00',
-"bright_blue" : '#002366',
-"bright_green" : '#80ff00',
-"magenta" : '#FF007F',
-
-
-};
-
-var settingUtility = 
-{
-  "in" : drawIn,
-  "from" : drawFrom,
-  "to" : drawTo,
-  "at" : drawOn,
-  "on" : drawOn,
-}
-var actionUtility = 
-{
-  "expel" : drawExpel,
-  "propel" : drawPropel,
-  "see" : drawSee,
-  "smell" : drawSmell,
-  "move-object" : drawMoveObject,
-  "think-about" : drawThinkAbout,
-  "ingest" : drawIngest,
-  "speak" : drawSpeak,
-  "hear" :drawHear,
- "feel" : drawFeel,
-  "have" :drawHave,
-  "conclude" : drawConclude,
-  "move-body-part": drawMoveBodyPart,
-};
-var feelingUtility = 
-{
-  //red is a very emotionally intense color.
-  //orange combines the energy of red and happiness of yellow
-  //
-  "anger" : ["dark_red","black","red_orange","dark_green"], //red orange for aggression
-  "disgust" : ["red","dull_yellow","grey_black","maroon"], //dull yellow for sickness
-  "fear" : ["red","dark_orange","yellow_green","dull_yellow"], //erd for danger, yellow_green for cowardice,//dark_orange for distrust
-  "happiness" : ["orange","yellow","olive_green","gold","aqua","light_blue"],
-  "sadness" : ["dull_green","blue"," dark_purple","grey"],
-  "surprise" : ["orange","bright_yellow","bright_blue","bright_green","magenta"],
-}
-
 
 function drawSmell(i,j,w,h,s,scribble)
 {

@@ -90,7 +90,7 @@ function createComic(data)
                    subjectArray.push(new Agent.object(emotion));
 
 
-        });*/
+        });
 /*
        relates.forEach(function(rel){
             var pr = rel["primary_agent"];
@@ -116,14 +116,14 @@ function createComic(data)
                 }
                relationsArray.push(new Relation(rel["type"],rel["intimacy"],rel["positivity"],primaryA,secondaryA));
 
-       });
+       });*/
 
        var emptyRelation = new Relation("equal",0,0);
        actionPanel = new Comic.Action(subjectArray,predArray,act,emotion,emptyRelation,set);
        comicStrip.push(actionPanel);
   });
 }
-/*
+
 var G;
 var t = 0;
 var P = [];
@@ -137,7 +137,7 @@ function preload()
 recorder.start();
   createCanvas(1200,800);
  // background('#DAA45E');
- background('#DAA45E');
+ background(255);
   G = new pv.pt(width/2,height/2);
 P = pv.drawSpiral1(G);
  Q = pv.drawSpiral2(G);
@@ -170,7 +170,7 @@ function draw()
 }
 
 
-*/
+
 
 /*
 
