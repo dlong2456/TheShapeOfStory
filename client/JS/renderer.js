@@ -91,6 +91,7 @@ var feelingUtility =
   //red is a very emotionally intense color.
   //orange combines the energy of red and happiness of yellow
   //
+  "" : ["orange","yellow","olive_green","gold","aqua","light_blue"],
   "anger" : ["dark_red","black","red_orange","dark_green"], //red orange for aggression
   "disgust" : ["red","dull_yellow","grey_black","maroon"], //dull yellow for sickness
   "fear" : ["red","dark_orange","yellow_green","dull_yellow"], //erd for danger, yellow_green for cowardice,//dark_orange for distrust
@@ -373,11 +374,12 @@ AgentLayer.prototype=
   //var c = colorUtility[color];//.concat([alpha]);
  
  var c1 = colorUtility[random(feelingUtility[color])];
- //var c1 = random(feelingUtility[color]);
+ var c1 = random(feelingUtility[color]);
 
  //console.log(feelingUtility[color]+": "+c1);
- var c = "red";
- shapeUtility[shape](i,j,w,h,scaleSize,c,scribble);
+ //var c = "red";
+ console.log(color);
+ shapeUtility[shape](i,j,w,h,scaleSize,c1,scribble);
  
   
  
