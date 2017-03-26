@@ -1,14 +1,16 @@
 
 var recordedText = "";
-
+var tex = "The first time I ever had sushi was when I was about ten years old.I was visiting my now late grandmother (or Khun Yai, as I called her in Thai) in Bangkok, where she and my mother's family lived.I was visiting my now late grandmother (or Khun Yai, as I called her in Thai) in Bangkok, where she and my mother's family lived. I picked at it, unsure of whether or not I wanted to eat this decidedly raw fish in its spongy sleeve of rice. I was, after all, American, and was used to food served through a car window. All of a sudden, I spotted something familiar on my plate: a small but appetizing lump of green guacamole. I scraped all of it up and plopped it in my mouth, noticing an amused glint in my grandmother's eyes far too late. Fire swept my mouth in a painful, sinus-clearing swell. As I wailed, experiencing the zing of wasabi for the first time, my grandmother laughed the heartiest, most earnest laugh I've ever heard to this day."
+//I was visiting my now late grandmother (or Khun Yai, as I called her in Thai) in Bangkok, where she and my mother's family lived. I picked at it, unsure of whether or not I wanted to eat this decidedly raw fish in its spongy sleeve of rice. I was, after all, American, and was used to food served through a car window. All of a sudden, I spotted something familiar on my plate: a small but appetizing lump of green guacamole. I scraped all of it up and plopped it in my mouth, noticing an amused glint in my grandmother's eyes far too late. Fire swept my mouth in a painful, sinus-clearing swell. As I wailed, experiencing the zing of wasabi for the first time, my grandmother laughed the heartiest, most earnest laugh I've ever heard to this day."
 //Web socket functionality 
 start("ws://127.0.0.1:8000/");
 function start(websocketServerLocation) {
 
   ws = new WebSocket(websocketServerLocation);
-
+ 
   ws.onopen = function() {
     console.log("open");
+    ws.send(tex);
   };
 
   ws.onmessage = function (evt) {
@@ -23,12 +25,16 @@ function start(websocketServerLocation) {
   ws.onerror = function(err) {
     console.log(err);
   };
+
+
 }
 
 var recorder = new p5.SpeechRec();
 recorder.continuous = true; // do continuous recognition 
 
 function parseResult() {
+
+/*
   console.log("parsing");
   recordedText += recorder.resultString + ". ";
     //if (recordedText.length > 100) {
@@ -37,11 +43,12 @@ function parseResult() {
     ws.send(recorder.resultString);
     //recordedText = "";
   //}
+*/
 }
 var comicStrip = [];
 function createComic(data)
 {
-  //console.log(JSON.parse(data));
+  console.log(JSON.parse(data));
   var jsonData = JSON.parse(data);
   var framesArray = jsonData["frames"];
   
@@ -51,7 +58,7 @@ function createComic(data)
          var predis = panelData["predicates"];
          //var relates = panelData["relationships"];
         // var emoColor = panelData["color"];
-        var emotion = panelData["emotion"];
+        var emotion = panelData["color"];
          var set = panelData["setting_preposition"];
          var subjectArray = [];
          var predArray = [];
@@ -71,7 +78,7 @@ function createComic(data)
                 }
                }
                else if(currentSubject["subjectType"] == "object")
-                   subjectArray.push(new Agent.object(emotion));
+                   subjectArray.push(new Agent.Object(emotion));
         });
          predis.forEach(function(currentSubject)
         {
@@ -157,6 +164,7 @@ function setup()
 function draw()
 {
    comic.display(P,Q,G);
+   //noLoop();
   // pv.show(G);
   // pv.show(pv.spiral(G,t));
   // t+=0.5;

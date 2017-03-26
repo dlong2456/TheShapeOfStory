@@ -71,7 +71,7 @@ var colorUtility =
 
 var actionUtility = 
 {
-  "" : drawMoveBodyPart,
+  "" : drawExpel,
   "expel" : drawExpel,
   "propel" : drawPropel,
   "see" : drawSee,
@@ -98,6 +98,7 @@ var feelingUtility =
   "happiness" : ["orange","yellow","olive_green","gold","aqua","light_blue"],
   "sadness" : ["dull_green","blue"," dark_purple","grey"],
   "surprise" : ["orange","bright_yellow","bright_blue","bright_green","magenta"],
+
 }
 
 
@@ -378,7 +379,7 @@ AgentLayer.prototype=
 
  //console.log(feelingUtility[color]+": "+c1);
  //var c = "red";
- console.log(color);
+ 
  shapeUtility[shape](i,j,w,h,scaleSize,c1,scribble);
  
   

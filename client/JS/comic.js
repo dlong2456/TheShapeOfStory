@@ -23,8 +23,8 @@ var Comic = (function()
     var Expository = function(setting,emotionColor,bgColor,name)
     {
           this.type = "expository",
-          this.color = emotionColor || "green";
-          this.bgColor = bgColor || "baige";
+          this.color = emotionColor || "";
+          this.bgColor = bgColor || "";
 		this.background = new Renderer.BackgroundLayer(this.bgColor);
 		this.name = name || "";
     }

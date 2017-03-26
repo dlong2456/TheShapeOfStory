@@ -11,7 +11,7 @@ var Agent = (function(){
 			this.shape = "circle";
 		else
 			this.shape = "triangle";
-		this.color = emotionColor || "green";
+		this.color = emotionColor || "";
 	};
 	var NonHuman = function(emotionColor,gender,name)
 	{
@@ -19,7 +19,7 @@ var Agent = (function(){
 		this.name = name || "";
 		this.gender = gender || "MALE";
 		this.shape = "rectangle";
-		this.color = emotionColor || "green";
+		this.color = emotionColor || "";
 
 	};
 
@@ -29,7 +29,7 @@ var Agent = (function(){
 		this.name = name || "";
 		this.shape = "square";
 		this.position = new pv.P(50,50);
-		this.color = emotionColor || "green";
+		this.color = emotionColor || "";
 	};
 
 //private stuff
