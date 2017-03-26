@@ -16,37 +16,10 @@ var Comic = (function()
 		this.agentLayer = new Renderer.AgentLayer(this.subjects,this.predicates,this.action,this.relation,this.setting);
 		this.textLayer = new Renderer.TextLayer();
 
-		//subject and predicates mapped to size of te aents
+		//subject and predicates mapped to size of the agents
 		//
 	}
-/*
-	var CloseUp = function(primary,secondary ,action,emotionColor,bgColor,name)
-	{
-		this.type = "closeUp",
-		this.name = name || "";
-		this.primary = primary ;
-		this.secondary = secondary ;
-		this.action = action || "";
-		this.color = emotionColor || "green";
-		this.bgColor = bgColor || "baige";
-		this.background = new Renderer.BackgroundLayer(this.bgColor);
-		this.agentLayer = new Renderer.AgentLayer(this.agentList,action);
-		this.textLayer = new Renderer.TextLayer();
-	}
-	*/
-/*
-	var Conversation = function(agentList,action,emotionColor,name)
-	{
-		this.type = "conversation",
-		this.name = name || "";
-		this.agentList = agentList || [];
-		this.action = action || "";
-		this.color = emotionColor || "green";
-		this.background = new Renderer.BackgroundLayer(this.color);
-		this.agentLayer = new Renderer.AgentLayer(this.agentList,action);
-		this.textLayer = new Renderer.TextLayer();
-	}
-	*/
+
     var Expository = function(setting,emotionColor,bgColor,name)
     {
           this.type = "expository",
@@ -101,7 +74,7 @@ var Comic = (function()
      this.panels.forEach(function(panel)
      {
      	
-     	panel.background.draw(positions[i]);
+     //	panel.background.draw(positions[i]);
      	panel.agentLayer.draw(positions[i]);
      	i+=1;
      });

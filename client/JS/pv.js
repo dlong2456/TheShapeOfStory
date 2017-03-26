@@ -43,8 +43,8 @@ pt.prototype.setTo = function(x,y){
       {
         this.x +=P.x;
       this.y += P.y;
-      console.log(this.x);
-      console.log(this.y);
+      //console.log(this.x);
+      //console.log(this.y);
       return this;
       }
       
@@ -435,7 +435,12 @@ var drawSpiral1 = function(G)
    }
 
   for(var i = 1 ; i < Pt.length ; i++)
+  {
+    stroke(150);
     line(Pt[i-1].x,Pt[i-1].y,Pt[i].x,Pt[i].y);
+    stroke(0);
+  }
+    
    return Pt;
 
 }
@@ -471,13 +476,14 @@ var spiral1 = function(G,b,t1)
 {
       var t = 0;
       var r = b*sqrt(t);
-      for(t = 0 ; t < t1 ; t+=0.05)
+      var scribble = new Scribble();
+      for(t = 0 ; t < t1 ; t+=0.1)
   {
     
    beginShape();
 
-   
-      show(P(G.y-r*sin(t),G.x+r*cos(t)-28),1);
+     scribble.scribbleLine(P(G.y-r*sin(t),G.x+r*cos(t)-28).x,P(G.y-r*sin(t),G.x+r*cos(t)-28).y,P(G.y-r*sin(t+0.05),G.x+r*cos(t+0.05)-28).x,P(G.y-r*sin(t+0.05),G.x+r*cos(t+0.05)-28).y);
+     // show(P(G.y-r*sin(t),G.x+r*cos(t)-28),1);
      endShape();
  r = b*pow(t,1/2.3);
 }
@@ -487,14 +493,15 @@ var spiral2 = function(G,b,t2)
 {
       var t = 0;
       var r = b*sqrt(t);
+       var scribble = new Scribble();
       for(t = 0 ; t < t2 ; t+=0.05)
        
   {
     
    beginShape();
  
-  
-      show(P(G.y-r*sin(t),G.x+r*cos(t)),1);
+  scribble.scribbleLine(P(G.y-r*sin(t),G.x+r*cos(t)).x,P(G.y-r*sin(t),G.x+r*cos(t)).y,P(G.y-r*sin(t+0.05),G.x+r*cos(t+0.05)).x,P(G.y-r*sin(t+0.05),G.x+r*cos(t+0.05)).y);
+   //   show(P(G.y-r*sin(t),G.x+r*cos(t)),1);
      endShape();
  r = b*pow(t,1/2.3);
 }
@@ -505,7 +512,7 @@ var questionMark = function(G)
 {
   //v.questionMark(G,20,12,12.5,16);
   push();
-scale(1/4);
+scale(0.8);
    spiral1(G,5,12.5);
    spiral2(G,3.2,16);
    pop();
@@ -515,7 +522,7 @@ scale(1/4);
 var questionMarkInverted = function(G)
 {
    push();
-scale(1/4);
+scale(0.8);
    spiral2(G,5,16);
    spiral1(G,4,12.5);
 pop();
@@ -570,14 +577,11 @@ var size =100;
    //circlePoints.push({"pt":P(L(Qt[i],closest(Qt[i],Pt),0.5).x,L(Qt[i],closest(Qt[i],Pt),0.5).y),"length":d(Pt[i],closest(Pt[i],Q))/2});
    
 
-    ellipse(L(Pt[i],closest(Pt[i],Qt),0.5).x,L(Pt[i],closest(Pt[i],Qt),0.5).y,d(Pt[i],closest(Pt[i],Q)),d(Pt[i],closest(Pt[i],Q)));
+   // ellipse(L(Pt[i],closest(Pt[i],Qt),0.5).x,L(Pt[i],closest(Pt[i],Qt),0.5).y,d(Pt[i],closest(Pt[i],Q)),d(Pt[i],closest(Pt[i],Q)));
    
 
    // ellipse(L(Qt[i],closest(Qt[i],Pt),0.5).x,L(Qt[i],closest(Qt[i],Pt),0.5).y,d(Pt[i],closest(Pt[i],Q)),d(Pt[i],closest(Pt[i],Q)));
- // console.log(Pt.length);
- // console.log(i);
- // console.log(Pt[i].x);
-  //closest(Qt[i],Pt);
+ 
 
   if(i<Pt.length*.15)
    i+=8;
@@ -589,10 +593,7 @@ var size =100;
   }
 while(j<Qt.length)
 {
-fill(0);
-textSize(32);
-text("t",L(Qt[j],closest(Qt[j],Pt),0.5).x,L(Qt[j],closest(Qt[j],Pt),0.5).y);
-noFill();
+
 if(j<Qt.length*0.05)
 size = 0.5*size;
 
