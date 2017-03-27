@@ -44,6 +44,7 @@ function parseResult() {
     //recordedText = "";
   //}
 */
+
 }
 var comicStrip = [];
 function createComic(data)
@@ -135,20 +136,23 @@ var G;
 var t = 0;
 var P = [];
 var Q = [];
-
+var sentimentColor = false;
 var comic = new Comic.Holder(comicStrip);
-
+var fillColor = '#'
 function preload()
 {
   recorder.onResult = parseResult;
 recorder.start();
-  createCanvas(1200,800);
+  createCanvas(800,800);
  // background('#DAA45E');
- background(255);
+//background(255);
   G = new pv.pt(width/2,height/2);
-P = pv.drawSpiral1(G);
- Q = pv.drawSpiral2(G);
+  P = pv.drawSpiral1(G);
+  Q = pv.drawSpiral2(G);
 
+
+//sentiment analysis stuff
+Sentiment.initialise();
 }
 function setup()
 {
@@ -163,12 +167,27 @@ function setup()
 
 function draw()
 {
+    background(255);
+   if(sentimentColor === true)
+  {
+    //console.log("true");
+    for(var k = 0; k< 5 ; k++)
+   {
+     Sentiment.reactionDiffusion();
+   }
+   Sentiment.drawCells(fillColor);
+  
+  }
+
+ 
+   P = pv.drawSpiral1(G);
+   Q = pv.drawSpiral2(G); 
    comic.display(P,Q,G);
    //noLoop();
   // pv.show(G);
   // pv.show(pv.spiral(G,t));
   // t+=0.5;
- 
+  
 
  //pv.circleSpaceBetweenTwoArcs(G);
  
@@ -232,8 +251,8 @@ Happiness
 Sadness
 Surprise
 */
-/*
 
+/*
 var G;
 var t = 0;
 var P = [];
@@ -244,9 +263,9 @@ var object = new Agent.Object("happiness");
 var testAgent3 = new Agent.NonHuman("surprise","MALE");
 var r = new Relation("dominant",1,2,[testAgent],[testAgent2]);
 var emptyRelation = {};
-var p1 = new Comic.Action([object],[testAgent],"expel","happiness",emptyRelation,"on");
+var p1 = new Comic.Action([object],[testAgent],"ingest","happiness",emptyRelation,"on");
 //subjects,predicates , action,emotionColor,relation,setting ,bgColor,name
-var p2 = new Comic.Action([testAgent2],[testAgent3],"ingest","surprise",r,"to");
+var p2 = new Comic.Action([testAgent2],[testAgent3],"see","surprise",r,"to");
 var comic = new Comic.Holder([p1,p2]);
 function preload()
 {
@@ -326,7 +345,8 @@ function setup()
 }
 function draw()
 {
-  for(var k = 0; k< 10 ; k++)
+  background(255);
+  for(var k = 0; k< 5 ; k++)
    {
      Sentiment.reactionDiffusion();
    }

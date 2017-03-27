@@ -2,7 +2,7 @@ var Renderer = (function()
 {
 var settingUtility = 
 {
-  "" : drawOn,
+  "" : emptyFunction,
   "in" : drawIn,
   "from" : drawFrom,
   "to" : drawTo,
@@ -85,6 +85,7 @@ var actionUtility =
   "have" :drawHave,
   "conclude" : drawConclude,
   "move-body-part": drawMoveBodyPart,
+  "be" : drawBe,
 };
 var feelingUtility = 
 {
@@ -450,7 +451,7 @@ function drawRectangle(i,j,w,h,s,color,scribble)
    var angle = 180;
    scribble.scribbleFilling(xCoords,yCoords,gap,angle);
 
-   noStroke();
+   stroke(0);
   pop();
 }
 
@@ -481,7 +482,10 @@ noFill();
   pop();
  
 }
-
+function emptyFunction()
+{
+  
+}
 
 function drawOn(i,j,length,scribble)
 {
@@ -519,19 +523,108 @@ function drawTo(i,j,length,scribble)
     scribble.scribbleEllipse(i,j,0.6*length*2,0.8*length*2);
     strokeWeight(1);
 }
-
+function drawBe(i,j,w,h,s,scribble)
+{
+   push();
+  translate(i,j);
+  scale(s);
+  //using a sin wave.
+  
+  pop();
+}
 function drawSmell(i,j,w,h,s,scribble)
 {
+   push();
+  translate(i,j);
+  scale(s);
+  //using a sin wave.
+  fill(0);
+ scribble.scribbleEllipse(-9,-8,5,5);
+  scribble.scribbleEllipse(9,-8,5,5);
+    noFill();
+  scribble.scribbleCurve(-9,-8,-3,-7,-7,-12,-5,-12);
+  scribble.scribbleCurve(9,-8,3,-7,7,-12,5,-12);
+  scribble.scribbleCurve(-3,-7,0,8,-7,0,-3,5);
+  scribble.scribbleCurve(3,-7,0,8,7,0,3,5);
+  
+  for(var t = 3*PI ; t < 8*PI ; t+=0.1)
+   // scribble.scribbleLine(t,8*sin(-t),t+0.1,-8*sin(t+0.1));
+ {
+  scribble.scribbleLine(3*sin(-t)-4,t,-3*sin(t+0.1)-4,t+0.1);
+  scribble.scribbleLine(3*sin(-t)+4,t,-3*sin(t+0.1)+4,t+0.1);
+}
+  fill(random(255),random(255),random(255));
+  noStroke();
+  scribble.scribbleEllipse(3*sin(-3*PI)-4,3*PI,4,4);
 
+   fill(random(255),random(255),random(255));
+  scribble.scribbleEllipse(3*sin(-3*PI)+4,3*PI,4,4);
+  stroke(0);
+  noFill();
+
+  pop();
+  
 }
 function drawMoveObject(i,j,w,h,s,scribble)
 {
-     
+     push();
+  translate(i,j);
+  scale(s);
+  scribble.scribbleLine(-5,-5,0,0);
+  scribble.scribbleLine(-5,5,0,0);
+  scribble.scribbleLine(-5+4,-5,4,0);
+  scribble.scribbleLine(-5+4,5,4,0);
+  scribble.scribbleLine(-15,0,15,0);
+  fill(random(255),random(255),random(255));
+  noStroke()
+  scribble.scribbleEllipse(15,0,5,5);
+  noFill();
+  stroke(random(255),random(255),random(255));
+  
+  scribble.scribbleFilling([-20,-10,-10,-20],[-5,-5,5,5],2,180)
+  scribble.scribbleRect(-15,0,10,10);
+  
+  stroke(0);
+  pop();
 }
 function drawHave(i,j,w,h,s,scribble)
 {
-    
+    push();
+  translate(i,j);
+  scale(s);
+  //using a sin wave.
+  
+  pop();
 }
+function drawIngest(i,j,w,h,s,scribble)
+{
+    push();
+  translate(i,j);
+  scale(s);
+
+  //using a sin wave.
+  stroke(0);
+   //strokeWeight(3);
+  // scribble.scribbleEllipse(0,0,10,10);
+  scribble.scribbleLine(0,-10,0,10);
+  scribble.scribbleLine(0,10,-3,3);
+ scribble.scribbleLine(0,10,3,3);
+  strokeWeight(2);
+ scribble.scribbleLine(0,20,5,10);
+  scribble.scribbleLine(0,20,-5,10);
+  strokeWeight(1);
+  stroke('#cccc00');
+   var xCoords = [5,0,-5];
+   var yCoords = [10,20,10];
+   var gap = 2;
+   var angle = 90;
+   //scribble.scribbleFilling(xCoords,yCoords,gap,angle);
+   stroke(0);
+
+
+  pop();
+}
+
 function drawExpel(i,j,w,h,s,scribble)
 {
   push();
@@ -625,21 +718,7 @@ function drawFeel(i,j,w,h,s,scribble)
   //pv.emotionCircle(pv.P(0,0),h);
   pop();
 }
-function drawIngest(i,j,w,h,s,scribble)
-{
-  push();
-  scale(s);
-  translate(i,j);
-  scribble.scribbleCurve(15,15,3,3,3,3,0,0);
-  /*
- pv.circleHeadGear(pv.P(0+4,0-14),pv.V(1/sqrt(3),-sqrt(3)/2));
- pv.circleHeadGear(pv.P(0,0-14),pv.V(0,-1));
-  pv.circleHeadGear(pv.P(0-4,0-14),pv.V(-1/sqrt(3),-sqrt(3)/2));
-  */
-  //pv.circleHeadGear(pv.P(w/2,h/2+5),pv.V(-1/sqrt(2),-1/sqrt(2)));
-  pop();
 
-}
 function drawSee(i,j,w,h,s,scribble)
 {
   push();
