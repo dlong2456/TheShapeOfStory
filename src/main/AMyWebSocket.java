@@ -149,7 +149,7 @@ public class AMyWebSocket implements MyWebSocket {
 				frame.put("color", "");
 			}
 			if (setting != null) {
-				frame.put("setting_preposition", setting.getPreposition());
+				frame.put("setting_preposition", setting.getPreposition().toLowerCase());
 			} else {
 				frame.put("setting_preposition", "");
 			}

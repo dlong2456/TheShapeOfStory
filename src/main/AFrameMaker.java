@@ -265,7 +265,7 @@ public class AFrameMaker implements FrameMaker {
 									for (IndexedWord grandchild : grandchildren) {
 										SemanticGraphEdge nextEdge = dependencies.getEdge(child, grandchild);
 										if (nextEdge.getRelation().toString().equals("case")) {
-											((Setting) ambiguousEntity).setPreposition(grandchild.toString());
+											((Setting) ambiguousEntity).setPreposition(grandchild.lemma().toString());
 										}
 									}
 									frame.setSetting((Setting) ambiguousEntity);
