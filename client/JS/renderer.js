@@ -173,7 +173,8 @@ var AgentLayer = function(subjects,predicates,action,relation,setting)
   this.predicates = predicates || [] ;
 	this.action = action || "";
   this.relation = relation || {};
-  this.setting = setting || "in";
+//  this.setting = setting || random(["in","to","on","from"]);
+this.setting = setting || "in";
  // console.log(this.relation);
   
 }
@@ -219,6 +220,25 @@ AgentLayer.prototype=
    
      }
      if(this.setting == "in")
+     {
+     // posSettingx = i+0.1*pt["length"]*2;
+     // posSettingy = j+0.1*pt["length"]*2;
+     posSettingx = i;
+     posSettingy = j;
+     settingBoundx = 0.8*pt["length"]*2;
+     settingBoundy = 0.8*pt["length"]*2;
+      agentspacex = 0.7*pt["length"]*2;
+      agentspacey = 0.7*pt["length"]*2;
+     
+      posSx =  i-0.7*pt["length"];
+      posSy = j-0.7*pt["length"];
+      posPx = posSx+agentspacex/2;
+      posPy = posSy;
+      posx = posSx+agentspacex/2;
+      posy = posSy+agentspacey/2;
+       
+     }
+      if(this.setting == "")
      {
      // posSettingx = i+0.1*pt["length"]*2;
      // posSettingy = j+0.1*pt["length"]*2;
@@ -484,7 +504,7 @@ noFill();
 }
 function emptyFunction()
 {
-  
+  return -1;
 }
 
 function drawOn(i,j,length,scribble)
@@ -606,19 +626,24 @@ function drawIngest(i,j,w,h,s,scribble)
   stroke(0);
    //strokeWeight(3);
   // scribble.scribbleEllipse(0,0,10,10);
-  scribble.scribbleLine(0,-10,0,10);
-  scribble.scribbleLine(0,10,-3,3);
- scribble.scribbleLine(0,10,3,3);
-  strokeWeight(2);
- scribble.scribbleLine(0,20,5,10);
-  scribble.scribbleLine(0,20,-5,10);
-  strokeWeight(1);
-  stroke('#cccc00');
-   var xCoords = [5,0,-5];
-   var yCoords = [10,20,10];
-   var gap = 2;
-   var angle = 90;
-   //scribble.scribbleFilling(xCoords,yCoords,gap,angle);
+  
+  stroke(random(255),random(255),random(255));
+  var gap = 2;
+  var angle = 90;
+  var xCoords = [0,10,-10];
+  var yCoords = [25,5,5];
+  scribble.scribbleFilling(xCoords,yCoords, gap , angle);
+  stroke(0);
+  scribble.scribbleCurve(0,-20,10,-20,5,-16,5,-16);
+  scribble.scribbleLine(0,-20,0,15);
+  scribble.scribbleLine(-8,0,8,0);
+  scribble.scribbleLine(0,15,5,5);
+  scribble.scribbleLine(0,15,-5,5);
+  scribble.scribbleLine(0,25,10,5);
+  scribble.scribbleLine(0,25,-10,5);
+  noStroke();
+  fill(random(200,255),random(200,255),0);
+  scribble.scribbleEllipse(0,0,5,5)
    stroke(0);
 
 

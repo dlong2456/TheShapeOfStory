@@ -1,4 +1,4 @@
-
+var display;
 var recordedText = "";
 var tex = "The first time I ever had sushi was when I was about ten years old.I was visiting my now late grandmother (or Khun Yai, as I called her in Thai) in Bangkok, where she and my mother's family lived.I was visiting my now late grandmother (or Khun Yai, as I called her in Thai) in Bangkok, where she and my mother's family lived. I picked at it, unsure of whether or not I wanted to eat this decidedly raw fish in its spongy sleeve of rice. I was, after all, American, and was used to food served through a car window. All of a sudden, I spotted something familiar on my plate: a small but appetizing lump of green guacamole. I scraped all of it up and plopped it in my mouth, noticing an amused glint in my grandmother's eyes far too late. Fire swept my mouth in a painful, sinus-clearing swell. As I wailed, experiencing the zing of wasabi for the first time, my grandmother laughed the heartiest, most earnest laugh I've ever heard to this day."
 //I was visiting my now late grandmother (or Khun Yai, as I called her in Thai) in Bangkok, where she and my mother's family lived. I picked at it, unsure of whether or not I wanted to eat this decidedly raw fish in its spongy sleeve of rice. I was, after all, American, and was used to food served through a car window. All of a sudden, I spotted something familiar on my plate: a small but appetizing lump of green guacamole. I scraped all of it up and plopped it in my mouth, noticing an amused glint in my grandmother's eyes far too late. Fire swept my mouth in a painful, sinus-clearing swell. As I wailed, experiencing the zing of wasabi for the first time, my grandmother laughed the heartiest, most earnest laugh I've ever heard to this day."
@@ -15,7 +15,9 @@ function start(websocketServerLocation) {
 
   ws.onmessage = function (evt) {
     console.log("message received");
+
     createComic(evt.data);
+    display = true;
   };
 
   ws.onclose = function() {
@@ -128,6 +130,7 @@ function createComic(data)
 
        var emptyRelation = new Relation("equal",0,0);
        actionPanel = new Comic.Action(subjectArray,predArray,act,emotion,emptyRelation,set);
+       console.log(actionPanel);
        comicStrip.push(actionPanel);
   });
 }
@@ -139,10 +142,11 @@ var Q = [];
 var sentimentColor = false;
 var comic = new Comic.Holder(comicStrip);
 var fillColor = '#'
+
 function preload()
 {
   recorder.onResult = parseResult;
-recorder.start();
+  recorder.start();
   createCanvas(800,800);
  // background('#DAA45E');
 //background(255);
@@ -156,7 +160,7 @@ Sentiment.initialise();
 }
 function setup()
 {
-  
+  background(255);
 // pv.spiral1(G,20,12.5);
 // pv.spiral2(G,12,16);
 
@@ -167,23 +171,36 @@ function setup()
 
 function draw()
 {
-    background(255);
+    
    if(sentimentColor === true)
   {
+    background(random(200,255),random(200,255),random(200,255));
+    /*
     //console.log("true");
     for(var k = 0; k< 5 ; k++)
    {
      Sentiment.reactionDiffusion();
    }
    Sentiment.drawCells(fillColor);
-  
+  */
   }
 
  
    P = pv.drawSpiral1(G);
    Q = pv.drawSpiral2(G); 
-   comic.display(P,Q,G);
-   //noLoop();
+
+  
+  if(display === true)
+  {
+    console.log("Displaying now..");
+    background(255);
+    comic.display(P,Q,G);
+   noLoop();
+    display = false;
+  }
+  
+  
+  // noLoop();
   // pv.show(G);
   // pv.show(pv.spiral(G,t));
   // t+=0.5;
@@ -196,8 +213,20 @@ function draw()
 
 }
 
-
-
+function mouseClicked()
+{
+  display = true;
+  redraw();
+}
+function mouseWheel(event)
+{
+  console.log(event.delta);
+  background((event.delta+255)%255, random(200,255),random(200,255));
+  P = pv.drawSpiral1(G);
+   Q = pv.drawSpiral2(G); 
+  comic.display(P,Q,G);
+  
+}
 
 /*
 
