@@ -2,53 +2,56 @@ package story;
 
 import java.util.ArrayList;
 
-import frameComponents.FrameComponent;
+import frameComponents.Action;
+import frameComponents.Emotion;
+import frameComponents.Entity;
+import frameComponents.Setting;
 
 public class AFrame implements Frame {
 	
-	private FrameComponent action;
-	private FrameComponent emotion;
-	private FrameComponent setting;
-	private ArrayList<FrameComponent> predicates;
-	private ArrayList<FrameComponent> subjects;
+	private Action action;
+	private Emotion emotion;
+	private Setting setting;
+	private ArrayList<Entity> predicates;
+	private ArrayList<Entity> subjects;
 
-	public FrameComponent getAction() {
+	public Action getAction() {
 		return action;
 	}
 	
-	public void setAction(FrameComponent newAction) {
+	public void setAction(Action newAction) {
 		action = newAction;
 	}
 	
-	public FrameComponent getEmotion() {
+	public Emotion getEmotion() {
 		return emotion;
 	}
 	
-	public void setEmotion(FrameComponent newEmotion) {
+	public void setEmotion(Emotion newEmotion) {
 		emotion = newEmotion;
 	}
 	
-	public FrameComponent getSetting() {
+	public Setting getSetting() {
 		return setting;
 	}
 	
-	public void setSetting(FrameComponent newSetting) {
+	public void setSetting(Setting newSetting) {
 		setting = newSetting;
 	}
 	
-	public ArrayList<FrameComponent> getPredicates() {
+	public ArrayList<Entity> getPredicates() {
 		return predicates;
 	}
 	
-	public void setPredicates(ArrayList<FrameComponent> newPredicates) {
+	public void setPredicates(ArrayList<Entity> newPredicates) {
 		predicates = newPredicates;
 	}
 	
-	public ArrayList<FrameComponent> getSubjects() {
+	public ArrayList<Entity> getSubjects() {
 		return subjects;
 	}
 	
-	public void setSubjects(ArrayList<FrameComponent> newSubjects) {
+	public void setSubjects(ArrayList<Entity> newSubjects) {
 		subjects = newSubjects;
 	}
 

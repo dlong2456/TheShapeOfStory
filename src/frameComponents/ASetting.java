@@ -1,8 +1,8 @@
 package frameComponents;
 
-public class ASetting extends AnEntity {
+public class ASetting extends AnEntity implements Setting {
 
-	String preposition;
+	private String preposition;
 
 	public void setPreposition(String newPreposition) {
 		preposition = newPreposition;

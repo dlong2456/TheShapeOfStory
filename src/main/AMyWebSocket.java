@@ -57,6 +57,7 @@ public class AMyWebSocket implements MyWebSocket {
 	}
 
 	// Receives messages from the web client(s)
+	@SuppressWarnings("unchecked")
 	@OnWebSocketMessage
 	public void onMessage(String message) {
 		// For debugging
@@ -146,7 +147,10 @@ public class AMyWebSocket implements MyWebSocket {
 			}
 			if (setting != null) {
 				frame.put("setting_preposition", setting.getPreposition());
+				System.out.println(setting.getPreposition());
+
 			} else {
+				System.out.println("setting null");
 				frame.put("setting_preposition", null);
 			}
 			JSONArray subjects = new JSONArray();

@@ -1,6 +1,6 @@
 package frameComponents;
 
-public class AnAgent extends AnEntity {
+public class AnAgent extends AnEntity implements Agent {
 	
 	public enum AgentType {
 		HUMAN, ANIMAL
