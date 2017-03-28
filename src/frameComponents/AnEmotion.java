@@ -1,7 +1,7 @@
 package frameComponents;
 
 public class AnEmotion extends AFrameComponent implements Emotion {
-	private String color;
+	private String primitiveEmotion;
 	private String emotion;
 
 	public String getEmotion() {
@@ -12,12 +12,12 @@ public class AnEmotion extends AFrameComponent implements Emotion {
 		emotion = newEmotion;
 	}
 
-	public String getColor() {
-		return color;
+	public String getPrimitiveEmotion() {
+		return primitiveEmotion;
 	}
 
-	public void setColor(String newColor) {
-		color = newColor;
+	public void setPrimitiveEmotion(String newPrimitiveEmotion) {
+		primitiveEmotion = newPrimitiveEmotion;
 	}
 
 }

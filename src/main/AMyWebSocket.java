@@ -20,9 +20,11 @@ import org.json.simple.JSONObject;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import frameComponents.ASetting;
-import frameComponents.AnAction;
+import frameComponents.Action;
 import frameComponents.AnAgent;
-import frameComponents.AnEmotion;
+import frameComponents.AnObject;
+import frameComponents.Emotion;
+import frameComponents.Setting;
 import story.AStory;
 import story.Frame;
 import story.Story;
@@ -132,23 +134,22 @@ public class AMyWebSocket implements MyWebSocket {
 		JSONArray frameList = new JSONArray();
 		for (int i = 0; i < frames.size(); i++) {
 			JSONObject frame = new JSONObject();
-			AnAction action = (AnAction) frames.get(i).getAction();
-			AnEmotion emotion = (AnEmotion) frames.get(i).getEmotion();
-			ASetting setting = (ASetting) frames.get(i).getSetting();
+			Action action = frames.get(i).getAction();
+			Emotion emotion = frames.get(i).getEmotion();
+			Setting setting = frames.get(i).getSetting();
 			if (action != null) {
 				frame.put("action", action.getAnimation());
 			} else {
 				frame.put("action", "");
 			}
+			// TODO: change color to emotion
 			if (emotion != null) {
-				frame.put("color", emotion.getColor());
+				frame.put("color", emotion.getPrimitiveEmotion());
 			} else {
 				frame.put("color", "");
 			}
 			if (setting != null) {
-				frame.put("setting_preposition", setting.getPreposition());
-				System.out.println(setting.getPreposition());
-
+				frame.put("setting_preposition", setting.getPreposition().toLowerCase());
 			} else {
 				frame.put("setting_preposition", "");
 			}
@@ -158,8 +159,8 @@ public class AMyWebSocket implements MyWebSocket {
 					JSONObject subject = new JSONObject();
 					if (frames.get(i).getSubjects().get(j).getClass() == AnAgent.class) {
 						subject.put("subjectType", "agent");
-						subject.put("agentType", ((AnAgent) frames.get(i).getSubjects().get(j)).getAgentType());
-						subject.put("gender", ((AnAgent) frames.get(i).getSubjects().get(j)).getAgentType());
+						subject.put("agentType", ((AnAgent) frames.get(i).getSubjects().get(j)).getAgentType().toString());
+						subject.put("gender", ((AnAgent) frames.get(i).getSubjects().get(j)).getGender().toString());
 					} else {
 						subject.put("subjectType", "object");
 					}
@@ -167,7 +168,7 @@ public class AMyWebSocket implements MyWebSocket {
 				}
 				frame.put("subjects", subjects);
 			} else {
-				frame.put("predicates", "");
+				frame.put("subjects", "");
 			}
 			JSONArray predicates = new JSONArray();
 			if (frames.get(i).getPredicates() != null) {
@@ -175,11 +176,11 @@ public class AMyWebSocket implements MyWebSocket {
 					JSONObject predicate = new JSONObject();
 					if (frames.get(i).getPredicates().get(j).getClass() == AnAgent.class) {
 						predicate.put("predicateType", "agent");
-						predicate.put("agentType", ((AnAgent) frames.get(i).getPredicates().get(j)).getAgentType());
-						predicate.put("gender", ((AnAgent) frames.get(i).getPredicates().get(j)).getAgentType());
-					} else {
+						predicate.put("agentType", ((AnAgent) frames.get(i).getPredicates().get(j)).getAgentType().toString());
+						predicate.put("gender", ((AnAgent) frames.get(i).getPredicates().get(j)).getGender().toString());
+					} else if (frames.get(i).getPredicates().get(j).getClass() == AnObject.class) {
 						predicate.put("predicateType", "object");
-					}
+					} 
 					predicates.put(predicate);
 				}
 				frame.put("predicates", predicates);
