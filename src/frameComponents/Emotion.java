@@ -5,7 +5,7 @@ public interface Emotion extends FrameComponent {
 
 	public void setEmotion(String newEmotion);
 
-	public String getColor();
+	public String getPrimitiveEmotion();
 
-	public void setColor(String newColor);
+	public void setPrimitiveEmotion(String newColor);
 }
