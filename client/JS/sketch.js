@@ -1,6 +1,7 @@
 var display;
 var recordedText = "";
-var tex = "Yesterday, I felt hungry. I considered going to eat, but instead I walked to the store. I spoke with my friend Cathy. She listened to me and together we decided to buy some carrots. We put the carrots in the cart and went back home. I had food and was happy. Then, my dog ate the carrots and vomited. It smelled horrible.";
+//var tex = "He woke to the smell of smoke. The house was burning and he did not know what to do. He ran downstairs and went outside. Suddenly, he remembered that he left his cat inside. He called 911 and the firefighters saved the cat.";
+//var tex = "Once upon a time ,in a village there lived a beautiful girl named Cinderella with her wicked stepmother and two step-sisters. She worked hard all day. One day, they all went to a ball in the palace, leaving Cinderella behind. Cinderella was feeling sad. Suddenly there was a burst of light and the fairy godmother appeared. With a flick of the magic she turned Cinderella into a beautiful princess with glass slippers and a horse carriage appeared at the door. The fairy godmother warned Cinderella to return before midnight. Cinderella arrived at the ball, the prince saw her and fell in love with her. They danced together all night. As the clock struck twelve, Cinderella rushed out to her carriage leaving one of her slippers behind. The prince went to every house in the town with the slipper until he found Cinderella. The prince and Cinderella lived happily ever after.";
 //I was visiting my now late grandmother (or Khun Yai, as I called her in Thai) in Bangkok, where she and my mother's family lived. I picked at it, unsure of whether or not I wanted to eat this decidedly raw fish in its spongy sleeve of rice. I was, after all, American, and was used to food served through a car window. All of a sudden, I spotted something familiar on my plate: a small but appetizing lump of green guacamole. I scraped all of it up and plopped it in my mouth, noticing an amused glint in my grandmother's eyes far too late. Fire swept my mouth in a painful, sinus-clearing swell. As I wailed, experiencing the zing of wasabi for the first time, my grandmother laughed the heartiest, most earnest laugh I've ever heard to this day."
 //Web socket functionality 
 start("ws://127.0.0.1:8000/");
@@ -10,7 +11,7 @@ function start(websocketServerLocation) {
  
   ws.onopen = function() {
     console.log("open");
-    ws.send(tex);
+    //ws.send(tex);
   };
 
   ws.onmessage = function (evt) {
@@ -35,19 +36,16 @@ var recorder = new p5.SpeechRec();
 recorder.continuous = true; // do continuous recognition 
 
 function parseResult() {
-
-/*
   console.log("parsing");
   recordedText += recorder.resultString + ". ";
-    //if (recordedText.length > 100) {
+    if (recordedText.length > 100) {
       console.log("sending");
-    //ws.send(recordedText);
-    ws.send(recorder.resultString);
-    //recordedText = "";
-  //}
-*/
-
+      ws.send(recordedText);
+      // ws.send(recorder.resultString);
+      recordedText = "";
+    }
 }
+
 var comicStrip = [];
 function createComic(data)
 {

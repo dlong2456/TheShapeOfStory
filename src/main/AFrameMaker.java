@@ -78,12 +78,15 @@ public class AFrameMaker implements FrameMaker {
 					// assume personal prounouns indicate humanity
 					entity = new AnAgent();
 					((Agent) entity).setAgentType(AgentType.HUMAN);
-					if (token.lemma().toString().equals("her") || token.lemma().toString().equals("she")|| token.lemma().toString().equals("hers")) {
+					if (token.lemma().toString().equals("her") || token.lemma().toString().equals("she")
+							|| token.lemma().toString().equals("hers")) {
 						((Agent) entity).setGender(Gender.FEMALE);
-					} else if (token.lemma().toString().equals("him") || token.lemma().toString().equals("his")|| token.lemma().toString().equals("he")) {
+					} else if (token.lemma().toString().equals("him") || token.lemma().toString().equals("his")
+							|| token.lemma().toString().equals("he")) {
 						((Agent) entity).setGender(Gender.MALE);
-					} else if (token.lemma().toString().equals("I") || token.lemma().toString().equals("my")|| token.lemma().toString().equals("me")) {
-						//assume a male narrator
+					} else if (token.lemma().toString().equals("I") || token.lemma().toString().equals("my")
+							|| token.lemma().toString().equals("me")) {
+						// assume a male narrator
 						((Agent) entity).setGender(Gender.MALE);
 					}
 				} else if (pos.equals("NN") || pos.equals("NNS") || pos.equals("NNP") || pos.equals("NNPS")) {
@@ -131,7 +134,7 @@ public class AFrameMaker implements FrameMaker {
 					entity.setPosition(new IntTuple(positionArr));
 					entity.setOriginalWord(token.originalText());
 					entity.setLemma(token.lemma());
-					//DT = determiner
+					// DT = determiner
 					if (!token.tag().equals("DT")) {
 						mentionEntities.add(entity);
 					}
@@ -265,7 +268,14 @@ public class AFrameMaker implements FrameMaker {
 									for (IndexedWord grandchild : grandchildren) {
 										SemanticGraphEdge nextEdge = dependencies.getEdge(child, grandchild);
 										if (nextEdge.getRelation().toString().equals("case")) {
-											((Setting) ambiguousEntity).setPreposition(grandchild.lemma().toString());
+											if (grandchild.lemma().toString().equals("to")
+													|| grandchild.lemma().toString().equals("on")
+													|| grandchild.lemma().toString().equals("in")
+													|| grandchild.lemma().toString().equals("at")
+													|| grandchild.lemma().toString().equals("from")) {
+												((Setting) ambiguousEntity)
+														.setPreposition(grandchild.lemma().toString());
+											}
 										}
 									}
 									frame.setSetting((Setting) ambiguousEntity);
@@ -287,9 +297,9 @@ public class AFrameMaker implements FrameMaker {
 		}
 		// sort by action index
 		frames.sort(new PositionComparator());
-//		for (Frame frame : frames) {
-//			System.out.println(frame.getAction().getAnimation());
-//		}
+		// for (Frame frame : frames) {
+		// System.out.println(frame.getAction().getAnimation());
+		// }
 		return frames;
 	}
 
