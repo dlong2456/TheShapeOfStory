@@ -173,8 +173,7 @@ var AgentLayer = function(subjects,predicates,action,relation,setting)
   this.predicates = predicates || [] ;
 	this.action = action || "";
   this.relation = relation || {};
-//  this.setting = setting || random(["in","to","on","from"]);
-this.setting = setting || "in";
+  this.setting = setting || "in";
  // console.log(this.relation);
   
 }
@@ -220,25 +219,6 @@ AgentLayer.prototype=
    
      }
      if(this.setting == "in")
-     {
-     // posSettingx = i+0.1*pt["length"]*2;
-     // posSettingy = j+0.1*pt["length"]*2;
-     posSettingx = i;
-     posSettingy = j;
-     settingBoundx = 0.8*pt["length"]*2;
-     settingBoundy = 0.8*pt["length"]*2;
-      agentspacex = 0.7*pt["length"]*2;
-      agentspacey = 0.7*pt["length"]*2;
-     
-      posSx =  i-0.7*pt["length"];
-      posSy = j-0.7*pt["length"];
-      posPx = posSx+agentspacex/2;
-      posPy = posSy;
-      posx = posSx+agentspacex/2;
-      posy = posSy+agentspacey/2;
-       
-     }
-      if(this.setting == "")
      {
      // posSettingx = i+0.1*pt["length"]*2;
      // posSettingy = j+0.1*pt["length"]*2;
