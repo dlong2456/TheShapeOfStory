@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -34,16 +35,19 @@ import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations.BasicDependenciesA
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
 import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.util.IntTuple;
-import frameComponents.AFrameComponent;
 import frameComponents.ASetting;
+import frameComponents.Action;
+import frameComponents.Agent;
 import frameComponents.AnAction;
 import frameComponents.AnAgent;
 import frameComponents.AnAgent.AgentType;
 import frameComponents.AnAgent.Gender;
 import frameComponents.AnEmotion;
-import frameComponents.AnEntity;
 import frameComponents.AnObject;
+import frameComponents.Emotion;
+import frameComponents.Entity;
 import frameComponents.FrameComponent;
+import frameComponents.Setting;
 import story.AFrame;
 import story.Frame;
 
@@ -56,29 +60,30 @@ public class AFrameMaker implements FrameMaker {
 	}
 
 	public ArrayList<Frame> makeFrame(Annotation document) {
-		ArrayList<FrameComponent> actions = new ArrayList<FrameComponent>();
-		ArrayList<FrameComponent> entities = new ArrayList<FrameComponent>();
+		ArrayList<Action> actions = new ArrayList<Action>();
+		ArrayList<Entity> entities = new ArrayList<Entity>();
 		ArrayList<Frame> frames = new ArrayList<Frame>();
 		// COREFERENCE RESOLUTION
 		// Create an entity for each reference chain in the story
 		document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values();
 		for (CorefChain cc : document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values()) {
-			ArrayList<FrameComponent> mentionEntities = new ArrayList<FrameComponent>();
+			ArrayList<Entity> mentionEntities = new ArrayList<Entity>();
 			CorefMention mention = cc.getRepresentativeMention();
 			CoreMap sentence = document.get(CoreAnnotations.SentencesAnnotation.class).get(mention.sentNum - 1);
 			for (int i = mention.startIndex - 1; i < mention.endIndex - 1; i++) {
-				FrameComponent entity = null;
+				Entity entity = null;
 				CoreLabel token = sentence.get(TokensAnnotation.class).get(i);
 				String pos = token.tag();
 				if (pos.equals("PRP") || pos.equals("PRP$")) {
 					// assume narrator is a human
+//					System.out.println(token);
 					entity = new AnAgent();
-					((AnAgent) entity).setAgentType(AgentType.HUMAN);
+					((Agent) entity).setAgentType(AgentType.HUMAN);
 				} else if (pos.equals("NN") || pos.equals("NNS") || pos.equals("NNP") || pos.equals("NNPS")) {
 					String ner = token.ner();
 					if (ner.equals("PERSON")) {
 						entity = new AnAgent();
-						((AnAgent) entity).setAgentType(AgentType.HUMAN);
+						((Agent) entity).setAgentType(AgentType.HUMAN);
 					} else if (ner.equals("LOCATION")) {
 						entity = new ASetting();
 					} else if (ner.equals("ORGANIZATION")) {
@@ -90,16 +95,16 @@ public class AFrameMaker implements FrameMaker {
 					if (mention.animacy.toString().equals("ANIMATE")) {
 						if (nounType.equals("person")) {
 							entity = new AnAgent();
-							((AnAgent) entity).setAgentType(AgentType.HUMAN);
+							((Agent) entity).setAgentType(AgentType.HUMAN);
 						} else if (nounType.equals("animal")) {
 							entity = new AnAgent();
-							((AnAgent) entity).setAgentType(AgentType.ANIMAL);
+							((Agent) entity).setAgentType(AgentType.ANIMAL);
 						}
 						if (entity != null) {
 							if (mention.gender.toString().equals("MALE")) {
-								((AnAgent) entity).setGender(Gender.MALE);
+								((Agent) entity).setGender(Gender.MALE);
 							} else if (mention.gender.toString().equals("FEMALE")) {
-								((AnAgent) entity).setGender(Gender.FEMALE);
+								((Agent) entity).setGender(Gender.FEMALE);
 							}
 						}
 					} else {
@@ -111,7 +116,7 @@ public class AFrameMaker implements FrameMaker {
 					}
 				}
 				if (entity != null) {
-					((AnEntity) entity).setReferences(cc);
+					entity.setReferences(cc);
 					int[] positionArr = { token.sentIndex(), token.index() };
 					entity.setPosition(new IntTuple(positionArr));
 					entity.setOriginalWord(token.originalText());
@@ -130,53 +135,85 @@ public class AFrameMaker implements FrameMaker {
 		// DEPENDENCY MAPPING
 		for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
 			SemanticGraph dependencies = sentence.get(BasicDependenciesAnnotation.class);
+			ArrayList<Frame> sentenceFrames = new ArrayList<Frame>();
 			Collection<IndexedWord> rootVerbs = dependencies.getRoots();
 			for (IndexedWord root : rootVerbs) {
 				// create a new frame for each root verb
+				// all verbs are actions
 				Frame frame = new AFrame();
-				if (root.tag().equals("VB") || root.tag().equals("VBD") || root.tag().equals("VBG")
-						|| root.tag().equals("VBN") || root.tag().equals("VBP") || root.tag().equals("VBZ")) {
-					// all verbs are actions
-					AnAction action = new AnAction();
-					action.setOriginalWord(root.originalText());
-					int[] positionArr = { root.sentIndex(), root.index() };
-					action.setPosition(new IntTuple(positionArr));
-					action.setLemma(root.lemma());
-					action.setAnimation(findAnimation(action));
-					actions.add(action);
-					// TODO: Should I do a null check for animation/emotion?
-					frame.setAction(action);
-					((AnAction) frame.getAction()).setAnimation(findAnimation(action));
-					frames.add(frame);
-				}
-				// follow the nodes connected to the root verb to fill in the
-				// rest of the frame
-				Collection<IndexedWord> children = dependencies.getChildren(root);
-				ArrayList<FrameComponent> predicates = new ArrayList<FrameComponent>();
-				ArrayList<FrameComponent> subjects = new ArrayList<FrameComponent>();
-				// TODO: try sentences: The sky is blue, The book is on the
-				// table
-				for (IndexedWord child : children) {
+				Action action = new AnAction();
+				action.setOriginalWord(root.originalText());
+				int[] positionArr = { root.sentIndex(), root.index() };
+				action.setPosition(new IntTuple(positionArr));
+				action.setLemma(root.lemma());
+				action.setAnimation(findAnimation(action));
+				action.setVerb(root);
+				actions.add(action);
+				frame.setAction(action);
+				sentenceFrames.add(frame);
+				Collection<IndexedWord> verbChildren = dependencies.getChildren(root);
+				for (IndexedWord child : verbChildren) {
 					SemanticGraphEdge edge = dependencies.getEdge(root, child);
+					if (edge.getRelation().toString().equals("conj")) {
+						if (child.tag().equals("VB") || child.tag().equals("VBD") || child.tag().equals("VBG")
+								|| child.tag().equals("VBN") || child.tag().equals("VBP")
+								|| child.tag().equals("VBZ")) {
+							// all verbs are actions
+							Action secondAction = new AnAction();
+							Frame secondFrame = new AFrame();
+							secondAction.setOriginalWord(child.originalText());
+							int[] secondPositionArr = { child.sentIndex(), child.index() };
+							secondAction.setPosition(new IntTuple(secondPositionArr));
+							secondAction.setLemma(child.lemma());
+							secondAction.setAnimation(findAnimation(secondAction));
+							secondAction.setVerb(child);
+							actions.add(secondAction);
+							secondFrame.setAction(secondAction);
+							sentenceFrames.add(secondFrame);
+						}
+					}
+				}
+			}
+			// follow the nodes connected to each verb to fill in the
+			// rest of the frames
+			ArrayList<Entity> predicates = new ArrayList<Entity>();
+			ArrayList<Entity> subjects = new ArrayList<Entity>();
+			for (Frame frame : sentenceFrames) {
+				IndexedWord verb = frame.getAction().getVerb();
+				Collection<IndexedWord> children = dependencies.getChildren(verb);
+				for (IndexedWord child : children) {
+					SemanticGraphEdge edge = dependencies.getEdge(verb, child);
 					if (edge.getRelation().toString().equals("cop")) {
 						// verb is a copula
 						// https://en.wikipedia.org/wiki/Copula_(linguistics)
-						// Stanford NLP defines the object of a copula as the
+						// Stanford NLP defines the object of a copula as
+						// the
 						// root verb (e.g. happy in "I am happy")
 						// See if the root is an emotion - if so, store the
 						// frame contents differently
-						List<String> emotion = findEmotion(root.lemma());
+						List<String> emotion = findEmotion(verb.lemma());
 						if (emotion != null) {
-							FrameComponent emotionObj = new AnEmotion();
-							((AnEmotion) emotionObj).setEmotion(emotion.get(0));
-							((AnEmotion) emotionObj).setColor(emotion.get(1));
+							Emotion emotionObj = new AnEmotion();
+							emotionObj.setEmotion(emotion.get(0));
+							emotionObj.setColor(emotion.get(1));
 							frame.setEmotion(emotionObj);
-							// set animation to an actual verb ("feel") rather
+							// set animation to an actual verb ("feel")
+							// rather
 							// than "happy"
-							FrameComponent action = new AnAction();
+							Action action = new AnAction();
 							action.setOriginalWord(child.originalText());
 							action.setLemma(child.lemma());
-							((AnAction) action).setAnimation("feel");
+							int[] positionArr = { verb.sentIndex(), verb.index() };
+							action.setPosition(new IntTuple(positionArr));
+							action.setAnimation("feel");
+							frame.setAction(action);
+						} else {
+							Action action = new AnAction();
+							action.setOriginalWord(child.originalText());
+							action.setLemma(child.lemma());
+							int[] positionArr = { verb.sentIndex(), verb.index() };
+							action.setPosition(new IntTuple(positionArr));
+							action.setAnimation("be");
 							frame.setAction(action);
 						}
 					} else if (edge.getRelation().toString().equals("dobj")) {
@@ -202,13 +239,14 @@ public class AFrameMaker implements FrameMaker {
 							}
 						}
 					} else if (edge.getRelation().toString().equals("nmod")) {
+						// TODO: just look for prepositions?
 						// nmod = indirect object. Something following a
 						// preposition
 						// match entity
-						ArrayList<FrameComponent> tempList = new ArrayList<FrameComponent>();
+						ArrayList<Entity> tempList = new ArrayList<Entity>();
 						matchEntity(entities, child, tempList);
 						if (tempList.size() > 0) {
-							FrameComponent ambiguousEntity = tempList.get(0);
+							Entity ambiguousEntity = tempList.get(0);
 							if (ambiguousEntity != null) {
 								if (ambiguousEntity.getClass() == frameComponents.ASetting.class) {
 									Collection<IndexedWord> grandchildren = dependencies.getChildren(child);
@@ -216,10 +254,10 @@ public class AFrameMaker implements FrameMaker {
 									for (IndexedWord grandchild : grandchildren) {
 										SemanticGraphEdge nextEdge = dependencies.getEdge(child, grandchild);
 										if (nextEdge.getRelation().toString().equals("case")) {
-											((ASetting) ambiguousEntity).setPreposition(grandchild.toString());
+											((Setting) ambiguousEntity).setPreposition(grandchild.toString());
 										}
 									}
-									frame.setSetting(ambiguousEntity);
+									frame.setSetting((Setting) ambiguousEntity);
 								} else if (ambiguousEntity.getClass() == frameComponents.AnObject.class) {
 									predicates.add(ambiguousEntity);
 								} else if (ambiguousEntity.getClass() == frameComponents.AnAgent.class) {
@@ -229,16 +267,37 @@ public class AFrameMaker implements FrameMaker {
 						}
 					}
 				}
-				// check for null properties as well
-				if (frame != null) {
-					frame.setPredicates(predicates);
-					frame.setSubjects(subjects);
-					frames.add(frame);
-				}
-
+				frame.setPredicates(predicates);
+				frame.setSubjects(subjects);
+			}
+			for (Frame sentenceFrame : sentenceFrames) {
+				frames.add(sentenceFrame);
 			}
 		}
+		// sort by action index
+		frames.sort(new PositionComparator());
+//		for (Frame frame : frames) {
+//			System.out.println(frame.getAction().getAnimation());
+//		}
 		return frames;
+	}
+
+	class PositionComparator implements Comparator<Frame> {
+		@Override
+		public int compare(Frame a, Frame b) {
+			if (a.getAction().getPosition().get(0) < b.getAction().getPosition().get(0)) {
+				return -1;
+			} else if (b.getAction().getPosition().get(0) < a.getAction().getPosition().get(0)) {
+				return 1;
+			} else {
+				// same sentence, look at indices
+				if (a.getAction().getPosition().get(1) < b.getAction().getPosition().get(1)) {
+					return -1;
+				} else {
+					return 1;
+				}
+			}
+		}
 	}
 
 	private ArrayList<String> lemmatize(String documentText) {
@@ -254,7 +313,7 @@ public class AFrameMaker implements FrameMaker {
 		return lemmas;
 	}
 
-	private ArrayList<String> getGenericTypes(String word, AFrameComponent frameComponent) {
+	private ArrayList<String> getGenericTypes(String word, FrameComponent frameComponent) {
 		ArrayList<String> partOf = getPartOf(word);
 		ArrayList<String> isA = getIsA(word);
 		ArrayList<String> genericTypes = new ArrayList<String>();
@@ -372,7 +431,7 @@ public class AFrameMaker implements FrameMaker {
 		return symbolOfArray;
 	}
 
-	private ArrayList<String> getRelatedWords(String word, AFrameComponent frameComponent) {
+	private ArrayList<String> getRelatedWords(String word, FrameComponent frameComponent) {
 		ArrayList<String> related = getRelated(word);
 		ArrayList<String> symbolOf = getSymbolOf(word);
 		ArrayList<String> relatedWords = new ArrayList<String>();
@@ -382,7 +441,7 @@ public class AFrameMaker implements FrameMaker {
 	}
 
 	// Use this if we need to find specific images of words
-	private void parseFrameComponent(AFrameComponent frameComponent) {
+	private void parseFrameComponent(FrameComponent frameComponent) {
 		frameComponent.setRelatedWords(getGenericTypes(frameComponent.getOriginalWord(), frameComponent));
 		frameComponent.setGenericTypes(getRelatedWords(frameComponent.getOriginalWord(), frameComponent));
 	}
@@ -452,10 +511,9 @@ public class AFrameMaker implements FrameMaker {
 		return 0;
 	}
 
-	private void matchEntity(ArrayList<FrameComponent> entities, IndexedWord token, ArrayList<FrameComponent> list) {
+	private void matchEntity(ArrayList<Entity> entities, IndexedWord token, ArrayList<Entity> list) {
 		for (int i = 0; i < entities.size(); i++) {
-			List<CorefMention> referenceChain = ((AnEntity) entities.get(i)).getReferences()
-					.getMentionsInTextualOrder();
+			List<CorefMention> referenceChain = entities.get(i).getReferences().getMentionsInTextualOrder();
 			for (int j = 0; j < referenceChain.size(); j++) {
 				if (referenceChain.get(j).position.get(0) == token.sentIndex() + 1
 						&& token.index() <= referenceChain.get(j).endIndex
@@ -524,7 +582,7 @@ public class AFrameMaker implements FrameMaker {
 		return null;
 	}
 
-	private String findAnimation(FrameComponent frameComponent) {
+	private String findAnimation(Action frameComponent) {
 		CSVReader reader;
 		try {
 			reader = new CSVReader(new FileReader("res/canonical_verbs.csv"));

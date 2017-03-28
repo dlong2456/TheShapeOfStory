@@ -2,27 +2,30 @@ package story;
 
 import java.util.ArrayList;
 
-import frameComponents.FrameComponent;
+import frameComponents.Action;
+import frameComponents.Emotion;
+import frameComponents.Entity;
+import frameComponents.Setting;
 
 public interface Frame {
-	public FrameComponent getAction();
+	public Action getAction();
 
-	public void setAction(FrameComponent newAction);
+	public void setAction(Action newAction);
 
-	public FrameComponent getEmotion();
+	public Emotion getEmotion();
 
-	public void setEmotion(FrameComponent newEmotion);
+	public void setEmotion(Emotion newEmotion);
 
-	public FrameComponent getSetting();
+	public Setting getSetting();
 
-	public void setSetting(FrameComponent newSetting);
+	public void setSetting(Setting newSetting);
 
-	public ArrayList<FrameComponent> getPredicates();
+	public ArrayList<Entity> getPredicates();
 
-	public void setPredicates(ArrayList<FrameComponent> newPredicates);
+	public void setPredicates(ArrayList<Entity> newPredicates);
 
-	public ArrayList<FrameComponent> getSubjects();
+	public ArrayList<Entity> getSubjects();
 
-	public void setSubjects(ArrayList<FrameComponent> newSubjects);
+	public void setSubjects(ArrayList<Entity> newSubjects);
 
 }

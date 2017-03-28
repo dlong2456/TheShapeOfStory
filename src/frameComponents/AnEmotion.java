@@ -1,9 +1,9 @@
 package frameComponents;
 
-public class AnEmotion extends AFrameComponent {
+public class AnEmotion extends AFrameComponent implements Emotion {
 	private String color;
 	private String emotion;
-	
+
 	public String getEmotion() {
 		return emotion;
 	}

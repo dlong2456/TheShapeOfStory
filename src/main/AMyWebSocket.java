@@ -57,6 +57,7 @@ public class AMyWebSocket implements MyWebSocket {
 	}
 
 	// Receives messages from the web client(s)
+	@SuppressWarnings("unchecked")
 	@OnWebSocketMessage
 	public void onMessage(String message) {
 		// For debugging
@@ -137,17 +138,19 @@ public class AMyWebSocket implements MyWebSocket {
 			if (action != null) {
 				frame.put("action", action.getAnimation());
 			} else {
-				frame.put("action", null);
+				frame.put("action", "");
 			}
 			if (emotion != null) {
 				frame.put("color", emotion.getColor());
 			} else {
-				frame.put("color", null);
+				frame.put("color", "");
 			}
 			if (setting != null) {
 				frame.put("setting_preposition", setting.getPreposition());
+				System.out.println(setting.getPreposition());
+
 			} else {
-				frame.put("setting_preposition", null);
+				frame.put("setting_preposition", "");
 			}
 			JSONArray subjects = new JSONArray();
 			if (frames.get(i).getSubjects() != null) {
@@ -164,7 +167,7 @@ public class AMyWebSocket implements MyWebSocket {
 				}
 				frame.put("subjects", subjects);
 			} else {
-				frame.put("predicates", null);
+				frame.put("predicates", "");
 			}
 			JSONArray predicates = new JSONArray();
 			if (frames.get(i).getPredicates() != null) {
@@ -181,7 +184,7 @@ public class AMyWebSocket implements MyWebSocket {
 				}
 				frame.put("predicates", predicates);
 			} else {
-				frame.put("predicates", null);
+				frame.put("predicates", "");
 			}
 			frameList.put(frame);
 		}
