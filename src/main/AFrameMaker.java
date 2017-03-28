@@ -76,6 +76,7 @@ public class AFrameMaker implements FrameMaker {
 				String pos = token.tag();
 				if (pos.equals("PRP") || pos.equals("PRP$")) {
 					// assume narrator is a human
+//					System.out.println(token);
 					entity = new AnAgent();
 					((Agent) entity).setAgentType(AgentType.HUMAN);
 				} else if (pos.equals("NN") || pos.equals("NNS") || pos.equals("NNP") || pos.equals("NNPS")) {
