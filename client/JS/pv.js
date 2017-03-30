@@ -420,7 +420,7 @@ var curvature=function( A,  B,  C) // computes 1 / radius of circumcircle to (A,
   } // radius of circumcenter
 var drawSpiral1 = function(G)
 {
-   var b = 100;
+   var b = 150;
    var t = 0;
    var r1 = b*sqrt(t);
    var r2 = b*sqrt(t);
@@ -447,7 +447,7 @@ var drawSpiral1 = function(G)
 
 var drawSpiral2 = function(G)
 {
-   var b = 100;
+   var b = 150;
    var t = 0;
    var r1 = b*sqrt(t);
    var r2 = b*sqrt(t);
