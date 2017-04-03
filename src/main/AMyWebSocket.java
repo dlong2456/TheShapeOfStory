@@ -19,7 +19,6 @@ import org.json.simple.JSONObject;
 
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import frameComponents.ASetting;
 import frameComponents.Action;
 import frameComponents.AnAgent;
 import frameComponents.AnObject;
@@ -56,6 +55,7 @@ public class AMyWebSocket implements MyWebSocket {
 		props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse, mention, dcoref, sentiment");
 		pipeline = new StanfordCoreNLP(props);
 		story = new AStory();
+		//TODO: This is also where I should initialize the Python Word2Vec model
 	}
 
 	// Receives messages from the web client(s)
@@ -65,31 +65,40 @@ public class AMyWebSocket implements MyWebSocket {
 		// For debugging
 		System.out.println("received message: " + message);
 		if (!message.equals(null)) {
+			//Sent each time a new person begins to speak
 			if (message.equals("new person")) {
 				// perform sentiment analysis on story
 				story.setSentiment(pipeline);
+				System.out.println(story.getSentiment());
 				JSONObject sentiment = new JSONObject();
 				sentiment.put("sentiment", story.getSentiment());
 				sendMessage(sentiment.toJSONString());
+				//save story sentiment to file
 				writeToFile(sentiment.toJSONString());
+			//Sent each time a new story session begins
 			} else if (message.equals("new story")) {
 				// start a new file for each new story
 				out = null;
 			} else {
+				//TODO: Measure how long this annotation takes and see if you can speed it up
+				//Annotate the new piece of the story that server has received
 				Annotation document = new Annotation(message);
 				pipeline.annotate(document);
-				FrameMaker frameMaker = new AFrameMaker(pipeline);
+				//Generate frames from annotated story
+				FrameMaker frameMaker = new AFrameMaker();
 				ArrayList<Frame> frames = frameMaker.makeFrame(document);
 				if (story.getFrames() == null) {
 					story.setFrames(frames);
 				} else {
 					story.addFrames(frames);
 				}
+				//Add new section to existing story
 				story.augmentFullText(message);
-				// Only send message back if frames exist
+				// Only send message back to client if frames exist
 				if (frames != null) {
 					String jsonString = convertToJSON(frames);
 					sendMessage(jsonString);
+					//Write new frames to file for display later
 					writeToFile(jsonString);
 				}
 			}
@@ -111,6 +120,8 @@ public class AMyWebSocket implements MyWebSocket {
 		}
 	}
 
+	//Writes JSON string to a .txt file in the stories folder
+	//NOTE: To get project to run, you need to create a stories folder in your project
 	private void writeToFile(String json) {
 		if (out != null) {
 			out.println(json);
@@ -127,7 +138,8 @@ public class AMyWebSocket implements MyWebSocket {
 			}
 		}
 	}
-
+	
+	//Converts a list of frames to a JSON object so it can be sent to client
 	@SuppressWarnings("unchecked")
 	private static String convertToJSON(ArrayList<Frame> frames) {
 		JSONObject obj = new JSONObject();

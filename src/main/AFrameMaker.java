@@ -16,6 +16,9 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.python.core.PyObject;
+import org.python.core.PyString;
+import org.python.util.PythonInterpreter;
 
 import com.opencsv.CSVReader;
 
@@ -23,13 +26,10 @@ import edu.stanford.nlp.coref.CorefCoreAnnotations;
 import edu.stanford.nlp.coref.data.CorefChain;
 import edu.stanford.nlp.coref.data.CorefChain.CorefMention;
 import edu.stanford.nlp.ling.CoreAnnotations;
-import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
-import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations.BasicDependenciesAnnotation;
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
@@ -46,19 +46,12 @@ import frameComponents.AnEmotion;
 import frameComponents.AnObject;
 import frameComponents.Emotion;
 import frameComponents.Entity;
-import frameComponents.FrameComponent;
 import frameComponents.Setting;
 import story.AFrame;
 import story.Frame;
 
 public class AFrameMaker implements FrameMaker {
-
-	private StanfordCoreNLP pipeline;
-
-	public AFrameMaker(StanfordCoreNLP newPipeline) {
-		pipeline = newPipeline;
-	}
-
+	
 	public ArrayList<Frame> makeFrame(Annotation document) {
 		ArrayList<Action> actions = new ArrayList<Action>();
 		ArrayList<Entity> entities = new ArrayList<Entity>();
@@ -90,6 +83,7 @@ public class AFrameMaker implements FrameMaker {
 						((Agent) entity).setGender(Gender.MALE);
 					}
 				} else if (pos.equals("NN") || pos.equals("NNS") || pos.equals("NNP") || pos.equals("NNPS")) {
+					// First try named entity recognition
 					String ner = token.ner();
 					if (ner.equals("PERSON")) {
 						entity = new AnAgent();
@@ -104,27 +98,29 @@ public class AFrameMaker implements FrameMaker {
 					} else if (ner.equals("ORGANIZATION")) {
 						entity = new AnObject();
 					}
-				}
-				if (entity == null) {
-					String nounType = getNounType(token.lemma());
-					if (mention.animacy.toString().equals("ANIMATE")) {
-						if (nounType.equals("person")) {
-							entity = new AnAgent();
-							((Agent) entity).setAgentType(AgentType.HUMAN);
-							if (mention.gender.toString().equals("MALE")) {
-								((Agent) entity).setGender(Gender.MALE);
-							} else if (mention.gender.toString().equals("FEMALE")) {
-								((Agent) entity).setGender(Gender.FEMALE);
+					// Then try concept net matching
+					if (entity == null) {
+						String nounType = getNounType(token.lemma());
+						System.out.println(token.lemma() + " " + nounType);
+						if (mention.animacy.toString().equals("ANIMATE")) {
+							if (nounType.equals("person")) {
+								entity = new AnAgent();
+								((Agent) entity).setAgentType(AgentType.HUMAN);
+								if (mention.gender.toString().equals("MALE")) {
+									((Agent) entity).setGender(Gender.MALE);
+								} else if (mention.gender.toString().equals("FEMALE")) {
+									((Agent) entity).setGender(Gender.FEMALE);
+								}
+							} else if (nounType.equals("animal")) {
+								entity = new AnAgent();
+								((Agent) entity).setAgentType(AgentType.ANIMAL);
 							}
-						} else if (nounType.equals("animal")) {
-							entity = new AnAgent();
-							((Agent) entity).setAgentType(AgentType.ANIMAL);
-						}
-					} else {
-						if (nounType.equals("location")) {
-							entity = new ASetting();
-						} else if (nounType.equals("object")) {
-							entity = new AnObject();
+						} else {
+							if (nounType.equals("location")) {
+								entity = new ASetting();
+							} else if (nounType.equals("object")) {
+								entity = new AnObject();
+							}
 						}
 					}
 				}
@@ -146,25 +142,29 @@ public class AFrameMaker implements FrameMaker {
 				entities.add(mentionEntities.get(0));
 			}
 		}
+
 		// DEPENDENCY MAPPING
+		// Find and connect actions, entities, setting prepositions, and
+		// emotions
 		for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
 			SemanticGraph dependencies = sentence.get(BasicDependenciesAnnotation.class);
 			ArrayList<Frame> sentenceFrames = new ArrayList<Frame>();
 			Collection<IndexedWord> rootVerbs = dependencies.getRoots();
 			for (IndexedWord root : rootVerbs) {
 				// create a new frame for each root verb
-				// all verbs are actions
 				Frame frame = new AFrame();
 				Action action = new AnAction();
 				action.setOriginalWord(root.originalText());
 				int[] positionArr = { root.sentIndex(), root.index() };
 				action.setPosition(new IntTuple(positionArr));
 				action.setLemma(root.lemma());
-				action.setAnimation(findAnimation(action));
+				action.setAnimation(findPrimitiveAction(action));
 				action.setVerb(root);
 				actions.add(action);
 				frame.setAction(action);
 				sentenceFrames.add(frame);
+				// find additional verbs in sentence (this handles compound
+				// sentences)
 				Collection<IndexedWord> verbChildren = dependencies.getChildren(root);
 				for (IndexedWord child : verbChildren) {
 					SemanticGraphEdge edge = dependencies.getEdge(root, child);
@@ -172,14 +172,13 @@ public class AFrameMaker implements FrameMaker {
 						if (child.tag().equals("VB") || child.tag().equals("VBD") || child.tag().equals("VBG")
 								|| child.tag().equals("VBN") || child.tag().equals("VBP")
 								|| child.tag().equals("VBZ")) {
-							// all verbs are actions
 							Action secondAction = new AnAction();
 							Frame secondFrame = new AFrame();
 							secondAction.setOriginalWord(child.originalText());
 							int[] secondPositionArr = { child.sentIndex(), child.index() };
 							secondAction.setPosition(new IntTuple(secondPositionArr));
 							secondAction.setLemma(child.lemma());
-							secondAction.setAnimation(findAnimation(secondAction));
+							secondAction.setAnimation(findPrimitiveAction(secondAction));
 							secondAction.setVerb(child);
 							actions.add(secondAction);
 							secondFrame.setAction(secondAction);
@@ -188,7 +187,8 @@ public class AFrameMaker implements FrameMaker {
 					}
 				}
 			}
-			// follow the nodes connected to each verb to fill in the
+			// follow the nodes connected to each verb in the sentence to fill
+			// in the
 			// rest of the frames
 			ArrayList<Entity> predicates = new ArrayList<Entity>();
 			ArrayList<Entity> subjects = new ArrayList<Entity>();
@@ -205,6 +205,9 @@ public class AFrameMaker implements FrameMaker {
 						// root verb (e.g. happy in "I am happy")
 						// See if the root is an emotion - if so, store the
 						// frame contents differently
+						// TODO: Maybe also just look for emotion key words in
+						// the sentence? This misses some
+						// TODO: How to associate an emotion with an agent?
 						List<String> emotion = findEmotion(verb.lemma());
 						if (emotion != null) {
 							Emotion emotionObj = new AnEmotion();
@@ -232,6 +235,7 @@ public class AFrameMaker implements FrameMaker {
 						}
 					} else if (edge.getRelation().toString().equals("dobj")) {
 						// predicate
+						System.out.println("dobj " + child);
 						matchEntity(entities, child, predicates);
 						Collection<IndexedWord> grandchildren = dependencies.getChildren(child);
 						for (IndexedWord grandchild : grandchildren) {
@@ -253,7 +257,6 @@ public class AFrameMaker implements FrameMaker {
 							}
 						}
 					} else if (edge.getRelation().toString().equals("nmod")) {
-						// TODO: just look for prepositions?
 						// nmod = indirect object. Something following a
 						// preposition
 						// match entity
@@ -266,8 +269,14 @@ public class AFrameMaker implements FrameMaker {
 									Collection<IndexedWord> grandchildren = dependencies.getChildren(child);
 									// case
 									for (IndexedWord grandchild : grandchildren) {
+										// TODO: just look for preposition key
+										// words in sentence? System is missing
+										// some of these
 										SemanticGraphEdge nextEdge = dependencies.getEdge(child, grandchild);
 										if (nextEdge.getRelation().toString().equals("case")) {
+											// TODO: Do we want to add any other
+											// prepositions? Out/outside/inside?
+											// Maybe a mapping
 											if (grandchild.lemma().toString().equals("to")
 													|| grandchild.lemma().toString().equals("on")
 													|| grandchild.lemma().toString().equals("in")
@@ -295,14 +304,12 @@ public class AFrameMaker implements FrameMaker {
 				frames.add(sentenceFrame);
 			}
 		}
-		// sort by action index
+		// Sort by action index so that the frames are in chronological order
 		frames.sort(new PositionComparator());
-		// for (Frame frame : frames) {
-		// System.out.println(frame.getAction().getAnimation());
-		// }
 		return frames;
 	}
 
+	// A comparator to assist in sorting frame array by action index
 	class PositionComparator implements Comparator<Frame> {
 		@Override
 		public int compare(Frame a, Frame b) {
@@ -321,71 +328,7 @@ public class AFrameMaker implements FrameMaker {
 		}
 	}
 
-	private ArrayList<String> lemmatize(String documentText) {
-		ArrayList<String> lemmas = new ArrayList<String>();
-		Annotation document = new Annotation(documentText);
-		pipeline.annotate(document);
-		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
-		for (CoreMap sentence : sentences) {
-			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
-				lemmas.add(token.get(LemmaAnnotation.class));
-			}
-		}
-		return lemmas;
-	}
-
-	private ArrayList<String> getGenericTypes(String word, FrameComponent frameComponent) {
-		ArrayList<String> partOf = getPartOf(word);
-		ArrayList<String> isA = getIsA(word);
-		ArrayList<String> genericTypes = new ArrayList<String>();
-		genericTypes.addAll(partOf);
-		genericTypes.addAll(isA);
-		return genericTypes;
-	}
-
-	private ArrayList<String> getPartOf(String word) {
-		String partOf = httpGet("http://api.conceptnet.io/query?start=/c/en/" + word + "&rel=/r/PartOf");
-		ArrayList<String> partOfArray = parseJSONObject(partOf, "end");
-		return partOfArray;
-	}
-
-	private ArrayList<String> getIsA(String word) {
-		String isA = httpGet("http://api.conceptnet.io/query?start=/c/en/" + word + "&rel=/r/IsA");
-		ArrayList<String> isAArray = parseJSONObject(isA, "end");
-		return isAArray;
-	}
-
-	private ArrayList<String> parseJSONObject(String jsonString, String node) {
-		ArrayList<String> arr = new ArrayList<String>();
-		JSONObject obj = new JSONObject(jsonString);
-		JSONArray edges = obj.getJSONArray("edges");
-		for (int i = 0; i < edges.length(); i++) {
-			JSONObject edge = edges.getJSONObject(i);
-			if (edge.getDouble("weight") >= 1.15) {
-				String word = edge.getJSONObject(node).getString("label");
-				if (word.startsWith("a ")) {
-					word = word.substring(2, word.length());
-				}
-				ArrayList<String> words = lemmatize(word);
-				if (words.size() == 1) {
-					word = words.get(0);
-				}
-				// Use concreteness value as a filter if we need to find
-				// specific images from words
-				// if (findConcretenessValue(word) > 4) {
-				arr.add(word);
-				// }
-			}
-		}
-		return arr;
-	}
-
-	private ArrayList<String> getRelated(String word) {
-		String related = httpGet("http://api.conceptnet.io/query?start=/c/en/" + word + "&rel=/r/RelatedTo");
-		ArrayList<String> relatedArray = parseJSONObject(related, "end");
-		return relatedArray;
-	}
-
+	// Finds all words "located at" the given word using ConceptNet API
 	private ArrayList<String> getLocationLinks(String word) {
 		String locatedAt = httpGet("http://api.conceptnet.io/query?end=/c/en/" + word + "&rel=/r/AtLocation");
 		ArrayList<String> arr = new ArrayList<String>();
@@ -398,11 +341,13 @@ public class AFrameMaker implements FrameMaker {
 		return arr;
 	}
 
+	// Finds links between the given word and "animal" using ConceptNet API
 	private ArrayList<String> getAnimalLinks(String word) {
 		String animalLinks = httpGet("http://api.conceptnet.io/query?node=/c/en/" + word + "&other=/c/en/animal");
 		ArrayList<String> arr = new ArrayList<String>();
 		JSONObject obj = new JSONObject(animalLinks);
 		JSONArray edges = obj.getJSONArray("edges");
+		// Only pay attention to RelatedTo and IsA links
 		for (int i = 0; i < edges.length(); i++) {
 			JSONObject edge = edges.getJSONObject(i);
 			if (edge.getJSONObject("rel").getString("label").equals("RelatedTo")) {
@@ -422,11 +367,13 @@ public class AFrameMaker implements FrameMaker {
 		return arr;
 	}
 
+	// Finds links between the given word and "person" using ConceptNet API
 	private ArrayList<String> getPersonLinks(String word) {
 		String personLinks = httpGet("http://api.conceptnet.io/query?node=/c/en/" + word + "&other=/c/en/person");
 		ArrayList<String> arr = new ArrayList<String>();
 		JSONObject obj = new JSONObject(personLinks);
 		JSONArray edges = obj.getJSONArray("edges");
+		// Only pay attention to RelatedTo and IsA links
 		for (int i = 0; i < edges.length(); i++) {
 			JSONObject edge = edges.getJSONObject(i);
 			if (edge.getJSONObject("rel").getString("label").equals("RelatedTo")) {
@@ -446,29 +393,9 @@ public class AFrameMaker implements FrameMaker {
 		return arr;
 	}
 
-	private ArrayList<String> getSymbolOf(String word) {
-		String symbolOf = httpGet("http://api.conceptnet.io/query?end=/c/en/" + word + "&rel=/r/SymbolOf");
-		ArrayList<String> symbolOfArray = parseJSONObject(symbolOf, "start");
-		return symbolOfArray;
-	}
-
-	private ArrayList<String> getRelatedWords(String word, FrameComponent frameComponent) {
-		ArrayList<String> related = getRelated(word);
-		ArrayList<String> symbolOf = getSymbolOf(word);
-		ArrayList<String> relatedWords = new ArrayList<String>();
-		relatedWords.addAll(related);
-		relatedWords.addAll(symbolOf);
-		return relatedWords;
-	}
-
-	// Use this if we need to find specific images of words
-	private void parseFrameComponent(FrameComponent frameComponent) {
-		frameComponent.setRelatedWords(getGenericTypes(frameComponent.getOriginalWord(), frameComponent));
-		frameComponent.setGenericTypes(getRelatedWords(frameComponent.getOriginalWord(), frameComponent));
-	}
-
+	// Categorizes nouns as person, location, animal, or object
 	private String getNounType(String word) {
-		// TODO: how to differentiate between settings and locations?
+		// TODO: location links throwing off some results
 		ArrayList<String> locationLinks = getLocationLinks(word);
 		ArrayList<String> personLinks = getPersonLinks(word);
 		ArrayList<String> animalLinks = getAnimalLinks(word);
@@ -487,6 +414,7 @@ public class AFrameMaker implements FrameMaker {
 		}
 	}
 
+	// Helper for HTTP GET requests
 	private static String httpGet(String urlString) {
 		try {
 			StringBuilder result = new StringBuilder();
@@ -503,6 +431,8 @@ public class AFrameMaker implements FrameMaker {
 				rd.close();
 			}
 			String res = result.toString();
+			// TODO: Might want to break this part into a modular function,
+			// makes this not a general use HTTP GET method
 			int index = res.indexOf("{\"@context\"");
 			res = res.substring(index, res.length());
 			return res;
@@ -512,26 +442,8 @@ public class AFrameMaker implements FrameMaker {
 		}
 	}
 
-	// Use this if we need to find specific images of words
-	private double findConcretenessValue(String word) {
-		try (BufferedReader br = new BufferedReader(new FileReader("res/concreteness_ratings.txt"))) {
-			String line;
-			while ((line = br.readLine()) != null) {
-				if (line.startsWith(word + "\t")) {
-					String[] columns = line.split("\t");
-					return Double.parseDouble(columns[2]);
-				}
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return 0;
-	}
-
+	// Finds an unknown entity in a list of known entities (assists in entity
+	// tracking throughout a story)
 	private void matchEntity(ArrayList<Entity> entities, IndexedWord token, ArrayList<Entity> list) {
 		for (int i = 0; i < entities.size(); i++) {
 			List<CorefMention> referenceChain = entities.get(i).getReferences().getMentionsInTextualOrder();
@@ -546,6 +458,8 @@ public class AFrameMaker implements FrameMaker {
 		}
 	}
 
+	// Uses a CSV file and ConceptNet queries to map any emotion to a set of six
+	// basic emotions
 	private List<String> findEmotion(String adj) {
 		CSVReader reader;
 		String[] nextLine;
@@ -603,7 +517,9 @@ public class AFrameMaker implements FrameMaker {
 		return null;
 	}
 
-	private String findAnimation(Action frameComponent) {
+	// Uses a CSV file and ConceptNet queries to map any verb to a set of 14
+	// canonical verbs (Schank)
+	private String findPrimitiveAction(Action frameComponent) {
 		CSVReader reader;
 		try {
 			reader = new CSVReader(new FileReader("res/canonical_verbs.csv"));
