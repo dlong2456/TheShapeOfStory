@@ -34,6 +34,11 @@ public class AMyWebSocket implements MyWebSocket {
 	private StanfordCoreNLP pipeline;
 	private Story story;
 	private PrintWriter out;
+	private PythonThread outThread;
+	private final Object lock = new Object();
+	
+	public AMyWebSocket() {
+	}
 
 	@OnWebSocketClose
 	public void onClose(int statusCode, String reason) {
@@ -56,6 +61,7 @@ public class AMyWebSocket implements MyWebSocket {
 		pipeline = new StanfordCoreNLP(props);
 		story = new AStory();
 		//TODO: This is also where I should initialize the Python Word2Vec model
+		loadModel();
 	}
 
 	// Receives messages from the web client(s)
@@ -85,7 +91,7 @@ public class AMyWebSocket implements MyWebSocket {
 				Annotation document = new Annotation(message);
 				pipeline.annotate(document);
 				//Generate frames from annotated story
-				FrameMaker frameMaker = new AFrameMaker();
+				FrameMaker frameMaker = new AFrameMaker(outThread, lock);
 				ArrayList<Frame> frames = frameMaker.makeFrame(document);
 				if (story.getFrames() == null) {
 					story.setFrames(frames);
@@ -136,6 +142,26 @@ public class AMyWebSocket implements MyWebSocket {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	private void loadModel() {
+		// Make a new thread that executes the python script
+		outThread = new PythonThread(lock);
+		// Start the thread
+		outThread.start();
+		try {
+			// Wait on the thread until the model is loaded
+			System.out.println("waiting for model to load...");
+			synchronized (lock) {
+				while (!outThread.isReady()) {
+					lock.wait();
+				}
+			}
+			System.out.println("Model has been loaded but thread is still running in background!");
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	

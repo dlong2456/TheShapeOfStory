@@ -1,26 +1,9 @@
 package main;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.python.core.PyObject;
-import org.python.core.PyString;
-import org.python.util.PythonInterpreter;
-
-import com.opencsv.CSVReader;
 
 import edu.stanford.nlp.coref.CorefCoreAnnotations;
 import edu.stanford.nlp.coref.data.CorefChain;
@@ -51,7 +34,15 @@ import story.AFrame;
 import story.Frame;
 
 public class AFrameMaker implements FrameMaker {
-	
+
+	private PythonThread outThread;
+	private final Object lock;
+
+	public AFrameMaker(PythonThread outThread, Object lock) {
+		this.outThread = outThread;
+		this.lock = lock;
+	}
+
 	public ArrayList<Frame> makeFrame(Annotation document) {
 		ArrayList<Action> actions = new ArrayList<Action>();
 		ArrayList<Entity> entities = new ArrayList<Entity>();
@@ -100,7 +91,7 @@ public class AFrameMaker implements FrameMaker {
 					}
 					// Then try concept net matching
 					if (entity == null) {
-						String nounType = getNounType(token.lemma());
+						String nounType = setInput("categorize " + token.lemma());
 						System.out.println(token.lemma() + " " + nounType);
 						if (mention.animacy.toString().equals("ANIMATE")) {
 							if (nounType.equals("person")) {
@@ -158,7 +149,7 @@ public class AFrameMaker implements FrameMaker {
 				int[] positionArr = { root.sentIndex(), root.index() };
 				action.setPosition(new IntTuple(positionArr));
 				action.setLemma(root.lemma());
-				action.setAnimation(findPrimitiveAction(action));
+				action.setAnimation(setInput("verb " + action));
 				action.setVerb(root);
 				actions.add(action);
 				frame.setAction(action);
@@ -178,7 +169,7 @@ public class AFrameMaker implements FrameMaker {
 							int[] secondPositionArr = { child.sentIndex(), child.index() };
 							secondAction.setPosition(new IntTuple(secondPositionArr));
 							secondAction.setLemma(child.lemma());
-							secondAction.setAnimation(findPrimitiveAction(secondAction));
+							secondAction.setAnimation(setInput("verb " + secondAction));
 							secondAction.setVerb(child);
 							actions.add(secondAction);
 							secondFrame.setAction(secondAction);
@@ -208,11 +199,11 @@ public class AFrameMaker implements FrameMaker {
 						// TODO: Maybe also just look for emotion key words in
 						// the sentence? This misses some
 						// TODO: How to associate an emotion with an agent?
-						List<String> emotion = findEmotion(verb.lemma());
+						String emotion = setInput("emotion " + verb.lemma());
 						if (emotion != null) {
 							Emotion emotionObj = new AnEmotion();
-							emotionObj.setEmotion(emotion.get(0));
-							emotionObj.setPrimitiveEmotion(emotion.get(1));
+							emotionObj.setEmotion(verb.lemma());
+							emotionObj.setPrimitiveEmotion(emotion);
 							frame.setEmotion(emotionObj);
 							// set animation to an actual verb ("feel")
 							// rather
@@ -328,120 +319,6 @@ public class AFrameMaker implements FrameMaker {
 		}
 	}
 
-	// Finds all words "located at" the given word using ConceptNet API
-	private ArrayList<String> getLocationLinks(String word) {
-		String locatedAt = httpGet("http://api.conceptnet.io/query?end=/c/en/" + word + "&rel=/r/AtLocation");
-		ArrayList<String> arr = new ArrayList<String>();
-		JSONObject obj = new JSONObject(locatedAt);
-		JSONArray edges = obj.getJSONArray("edges");
-		for (int i = 0; i < edges.length(); i++) {
-			JSONObject edge = edges.getJSONObject(i);
-			arr.add(edge.getJSONObject("start").getString("label"));
-		}
-		return arr;
-	}
-
-	// Finds links between the given word and "animal" using ConceptNet API
-	private ArrayList<String> getAnimalLinks(String word) {
-		String animalLinks = httpGet("http://api.conceptnet.io/query?node=/c/en/" + word + "&other=/c/en/animal");
-		ArrayList<String> arr = new ArrayList<String>();
-		JSONObject obj = new JSONObject(animalLinks);
-		JSONArray edges = obj.getJSONArray("edges");
-		// Only pay attention to RelatedTo and IsA links
-		for (int i = 0; i < edges.length(); i++) {
-			JSONObject edge = edges.getJSONObject(i);
-			if (edge.getJSONObject("rel").getString("label").equals("RelatedTo")) {
-				if (edge.getJSONObject("start").getString("label").equals("animal")) {
-					arr.add(edge.getJSONObject("start").getString("label"));
-				} else {
-					arr.add(edge.getJSONObject("end").getString("label"));
-				}
-			} else if (edge.getJSONObject("rel").getString("label").equals("IsA")) {
-				if (edge.getJSONObject("start").getString("label").equals("animal")) {
-					arr.add(edge.getJSONObject("start").getString("label"));
-				} else {
-					arr.add(edge.getJSONObject("end").getString("label"));
-				}
-			}
-		}
-		return arr;
-	}
-
-	// Finds links between the given word and "person" using ConceptNet API
-	private ArrayList<String> getPersonLinks(String word) {
-		String personLinks = httpGet("http://api.conceptnet.io/query?node=/c/en/" + word + "&other=/c/en/person");
-		ArrayList<String> arr = new ArrayList<String>();
-		JSONObject obj = new JSONObject(personLinks);
-		JSONArray edges = obj.getJSONArray("edges");
-		// Only pay attention to RelatedTo and IsA links
-		for (int i = 0; i < edges.length(); i++) {
-			JSONObject edge = edges.getJSONObject(i);
-			if (edge.getJSONObject("rel").getString("label").equals("RelatedTo")) {
-				if (edge.getJSONObject("start").getString("label").equals("person")) {
-					arr.add(edge.getJSONObject("start").getString("label"));
-				} else {
-					arr.add(edge.getJSONObject("end").getString("label"));
-				}
-			} else if (edge.getJSONObject("rel").getString("label").equals("IsA")) {
-				if (edge.getJSONObject("start").getString("label").equals("person")) {
-					arr.add(edge.getJSONObject("start").getString("label"));
-				} else {
-					arr.add(edge.getJSONObject("end").getString("label"));
-				}
-			}
-		}
-		return arr;
-	}
-
-	// Categorizes nouns as person, location, animal, or object
-	private String getNounType(String word) {
-		// TODO: location links throwing off some results
-		ArrayList<String> locationLinks = getLocationLinks(word);
-		ArrayList<String> personLinks = getPersonLinks(word);
-		ArrayList<String> animalLinks = getAnimalLinks(word);
-		// return the noun type with the most links
-		if (locationLinks.size() > 2 && locationLinks.size() > personLinks.size()
-				&& locationLinks.size() > animalLinks.size()) {
-			return "location";
-		} else if (personLinks.size() > 0 && personLinks.size() >= locationLinks.size()
-				&& personLinks.size() >= animalLinks.size()) {
-			return "person";
-		} else if (animalLinks.size() > 0 && animalLinks.size() > personLinks.size()
-				&& animalLinks.size() >= locationLinks.size()) {
-			return "animal";
-		} else {
-			return "object";
-		}
-	}
-
-	// Helper for HTTP GET requests
-	private static String httpGet(String urlString) {
-		try {
-			StringBuilder result = new StringBuilder();
-			URL url = new URL(urlString);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setRequestMethod("GET");
-			int responseCode = conn.getResponseCode();
-			if (responseCode == 200) {
-				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-				String line;
-				while ((line = rd.readLine()) != null) {
-					result.append(line);
-				}
-				rd.close();
-			}
-			String res = result.toString();
-			// TODO: Might want to break this part into a modular function,
-			// makes this not a general use HTTP GET method
-			int index = res.indexOf("{\"@context\"");
-			res = res.substring(index, res.length());
-			return res;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
 	// Finds an unknown entity in a list of known entities (assists in entity
 	// tracking throughout a story)
 	private void matchEntity(ArrayList<Entity> entities, IndexedWord token, ArrayList<Entity> list) {
@@ -458,112 +335,22 @@ public class AFrameMaker implements FrameMaker {
 		}
 	}
 
-	// Uses a CSV file and ConceptNet queries to map any emotion to a set of six
-	// basic emotions
-	private List<String> findEmotion(String adj) {
-		CSVReader reader;
-		String[] nextLine;
-		try {
-			reader = new CSVReader(new FileReader("res/emotions.csv"));
-			ArrayList<String> basicEmotions = new ArrayList<String>();
-			ArrayList<String> colorArr = new ArrayList<String>();
-			ArrayList<Double> weights = new ArrayList<Double>();
-			while ((nextLine = reader.readNext()) != null) {
-				// nextLine[] is an array of values from the line
-				String[] emotionArr = nextLine[1].split(", ");
-				if (adj.equals(nextLine[0])) {
-					reader.close();
-					List<String> arr = Arrays.asList(nextLine[0], nextLine[2]);
-					return arr;
-				}
-				for (String emotion : emotionArr) {
-					String relation = httpGet(
-							"http://api.conceptnet.io/query?node=/c/en/" + adj + "&other=/c/en/" + emotion);
-					JSONObject obj = new JSONObject(relation);
-					JSONArray edges = obj.getJSONArray("edges");
-					for (int j = 0; j < edges.length(); j++) {
-						JSONObject edge = edges.getJSONObject(j);
-						weights.add(edge.getDouble("weight"));
-						colorArr.add(nextLine[2]);
-						basicEmotions.add(nextLine[0]);
-					}
+	private String setInput(String input) {
+		outThread.setReady(false);
+		outThread.setInput(input);
+		synchronized (lock) {
+			System.out.println("waiting");
+			while (!outThread.isReady()) {
+				try {
+					lock.wait();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
-			reader.close();
-			double max = 0;
-			String basicEmotion = null;
-			String color = null;
-			for (int j = 0; j < basicEmotions.size(); j++) {
-				if (weights.get(j) > max) {
-					max = weights.get(j);
-					basicEmotion = basicEmotions.get(j);
-					color = colorArr.get(j);
-				}
-			}
-			if (max >= 2) {
-				List<String> arr = Arrays.asList(basicEmotion, color);
-				return arr;
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("waking up");
+			return outThread.getReturnVal();
 		}
-		return null;
 	}
 
-	// Uses a CSV file and ConceptNet queries to map any verb to a set of 14
-	// canonical verbs (Schank)
-	private String findPrimitiveAction(Action frameComponent) {
-		CSVReader reader;
-		try {
-			reader = new CSVReader(new FileReader("res/canonical_verbs.csv"));
-			String[] nextLine;
-			ArrayList<String> primitiveActionArr = new ArrayList<String>();
-			ArrayList<Double> weights = new ArrayList<Double>();
-			while ((nextLine = reader.readNext()) != null) {
-				// nextLine[] is an array of values from the line
-				String[] actions = nextLine[1].split(", ");
-				for (int i = 0; i < actions.length; i++) {
-					if (frameComponent.getLemma().equals(actions[i])) {
-						reader.close();
-						return nextLine[0];
-					}
-					String relation = httpGet("http://api.conceptnet.io/query?node=/c/en/" + frameComponent.getLemma()
-							+ "&other=/c/en/" + actions[i]);
-					JSONObject obj = new JSONObject(relation);
-					JSONArray edges = obj.getJSONArray("edges");
-					for (int j = 0; j < edges.length(); j++) {
-						JSONObject edge = edges.getJSONObject(j);
-						primitiveActionArr.add(nextLine[0]);
-						weights.add(edge.getDouble("weight"));
-					}
-				}
-			}
-			reader.close();
-			double max = 0;
-			String primitiveAction = null;
-			for (int j = 0; j < primitiveActionArr.size(); j++) {
-				if (weights.get(j) > max) {
-					max = weights.get(j);
-					primitiveAction = primitiveActionArr.get(j);
-				}
-			}
-			if (max >= 2) {
-				return primitiveAction;
-			}
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
 }

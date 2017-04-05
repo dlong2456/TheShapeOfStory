@@ -3,48 +3,48 @@ Created on Apr 1, 2017
 
 @author: Duri
 '''
+import sys
 import gensim as gensim
+import traceback
+import categorize
+import emotion
+import gender
+import verb
+import time
 
-#todo: deal with word not in library exception from word2vec
+# todo: deal with word not in library exception from word2vec
 
 # Load Google's pre-trained Word2Vec model.
-print "hi"
 model = gensim.models.KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin', binary=True)
-print "model loaded"
+print("model loaded")
+sys.stdout.flush()
 
-try:
-    import traceback
-    import categorize
-    import emotion
-    import gender
-    import verb
-
+try:  
     while True:
-        print "waiting for input"
-        string = raw_input()
-        strings = string.split()
-        function = strings[0]
-        word = strings[1]
         try:
-            print"got input " + function + " " + word
-            if (function == "categorize"):
-                print "categorize"
-                reload(categorize)
-                categorize.main(model, word)
-            elif (function == "gender"): 
-                print "gender"
-                reload(gender)
-                gender.main(model, word) 
-            elif (function == "verb"): 
-                print "verb"
-                reload(verb)
-                verb.main(model, word)
-            elif (function == "emotion"):
-                print "emotion"
-                reload(emotion)
-                emotion.main(model, word)
+            string = sys.stdin.readline()
+            if (string is not None):
+                strings = string.split()
+                function = strings[0]
+                word = strings[1]
+                if (function == "categorize"):
+                    reload(categorize)
+                    print(categorize.main(model, word))
+                    sys.stdout.flush()
+                elif (function == "gender"): 
+                    reload(gender)
+                    print(gender.main(model, word))
+                    sys.stdout.flush()
+                elif (function == "verb"): 
+                    reload(verb)
+                    print(verb.main(model, word))
+                    sys.stdout.flush()
+                elif (function == "emotion"):
+                    reload(emotion)
+                    print(emotion.main(model, word))
+                    sys.stdout.flush()
         except:
             print traceback.print_exc()
-
+  
 except KeyboardInterrupt:
     print 'exit launcher'
