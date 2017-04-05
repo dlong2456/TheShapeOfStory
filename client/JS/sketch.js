@@ -13,14 +13,19 @@ function start(websocketServerLocation) {
  
   ws.onopen = function() {
     console.log("open");
-   // ws.send(tex);
+    // ws.send(tex);
   };
 
   ws.onmessage = function (evt) {
     console.log("message received");
-
-    createComic(evt.data);
-    display = true;
+    console.log(evt.data);
+    if (evt.data === "ready") {
+      console.log ("sending");
+      ws.send(tex);
+    } else {
+      createComic(evt.data);
+      display = true;
+    }
   };
 
   ws.onclose = function() {
@@ -39,14 +44,14 @@ recorder.continuous = true; // do continuous recognition
 
 
 function parseResult() {
-  console.log("parsing");
-  recordedText += recorder.resultString + ". ";
-    //if (recordedText.length > 100) {
-      console.log("sending");
-      ws.send(recordedText);
-      // ws.send(recorder.resultString);
-      recordedText = "";
-    //}
+  // console.log("parsing");
+  // recordedText += recorder.resultString + ". ";
+  //   //if (recordedText.length > 100) {
+  //     console.log("sending");
+  //     ws.send(recordedText);
+  //     // ws.send(recorder.resultString);
+  //     recordedText = "";
+  //   //}
 }
 
 var comicStrip = [];

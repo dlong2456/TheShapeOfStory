@@ -55,13 +55,15 @@ public class AMyWebSocket implements MyWebSocket {
 	@OnWebSocketConnect
 	public void onConnect(Session session) {
 		this.session = session;
+		//TODO: This is also where I should initialize the Python Word2Vec model
+		System.out.println("Loading Word2Vec before anything else");
+		loadModel();
 		// Make NLP pipeline here because it takes awhile
 		Properties props = new Properties();
 		props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse, mention, dcoref, sentiment");
 		pipeline = new StanfordCoreNLP(props);
 		story = new AStory();
-		//TODO: This is also where I should initialize the Python Word2Vec model
-		loadModel();
+		sendMessage("ready");
 	}
 
 	// Receives messages from the web client(s)

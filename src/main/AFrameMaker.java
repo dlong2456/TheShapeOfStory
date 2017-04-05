@@ -33,6 +33,11 @@ import frameComponents.Setting;
 import story.AFrame;
 import story.Frame;
 
+//TODO: Get rid of stanford corenlp NER and maybe even sentiment annotators to speed things up
+//TODO: Thread the startup so the stanford annotator loads while the model is loading
+//TODO: Any way to load model and stanford pipeline in Driver rather than onConnect?
+//TODO: Make sure action etc. mappings correspond to the right ones on the front end
+//TODO: Sentiment of individual sentences instead of emotion key words?
 public class AFrameMaker implements FrameMaker {
 
 	private PythonThread outThread;
@@ -97,10 +102,19 @@ public class AFrameMaker implements FrameMaker {
 							if (nounType.equals("person")) {
 								entity = new AnAgent();
 								((Agent) entity).setAgentType(AgentType.HUMAN);
-								if (mention.gender.toString().equals("MALE")) {
-									((Agent) entity).setGender(Gender.MALE);
-								} else if (mention.gender.toString().equals("FEMALE")) {
-									((Agent) entity).setGender(Gender.FEMALE);
+								if (mention.gender.toString() != null) {
+									if (mention.gender.toString().equals("MALE")) {
+										((Agent) entity).setGender(Gender.MALE);
+									} else if (mention.gender.toString().equals("FEMALE")) {
+										((Agent) entity).setGender(Gender.FEMALE);
+									}
+								} else {
+									String gender = setInput("gender " + token.lemma());
+									if (gender.equals("male")) {
+										((Agent) entity).setGender(Gender.MALE);
+									} else if (gender.equals("female")) {
+										((Agent) entity).setGender(Gender.FEMALE);
+									}
 								}
 							} else if (nounType.equals("animal")) {
 								entity = new AnAgent();
@@ -149,7 +163,7 @@ public class AFrameMaker implements FrameMaker {
 				int[] positionArr = { root.sentIndex(), root.index() };
 				action.setPosition(new IntTuple(positionArr));
 				action.setLemma(root.lemma());
-				action.setAnimation(setInput("verb " + action));
+				action.setAnimation(setInput("verb " + action.getLemma()));
 				action.setVerb(root);
 				actions.add(action);
 				frame.setAction(action);
@@ -169,7 +183,7 @@ public class AFrameMaker implements FrameMaker {
 							int[] secondPositionArr = { child.sentIndex(), child.index() };
 							secondAction.setPosition(new IntTuple(secondPositionArr));
 							secondAction.setLemma(child.lemma());
-							secondAction.setAnimation(setInput("verb " + secondAction));
+							secondAction.setAnimation(setInput("verb " + secondAction.getLemma()));
 							secondAction.setVerb(child);
 							actions.add(secondAction);
 							secondFrame.setAction(secondAction);
@@ -337,9 +351,8 @@ public class AFrameMaker implements FrameMaker {
 
 	private String setInput(String input) {
 		outThread.setReady(false);
-		outThread.setInput(input);
+		outThread.setInput(input + "\n");
 		synchronized (lock) {
-			System.out.println("waiting");
 			while (!outThread.isReady()) {
 				try {
 					lock.wait();

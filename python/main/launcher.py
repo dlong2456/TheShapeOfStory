@@ -43,6 +43,9 @@ try:
                     reload(emotion)
                     print(emotion.main(model, word))
                     sys.stdout.flush()
+                else:
+                    print("no response")
+                    sys.stdout.flush()
         except:
             print traceback.print_exc()
   

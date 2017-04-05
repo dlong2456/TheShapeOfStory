@@ -34,7 +34,7 @@ public class PythonThread extends Thread {
 			process = pb.start();
 			stdout = process.getInputStream();
 			stdin = process.getOutputStream();
-			stderr =  process.getErrorStream();
+			stderr = process.getErrorStream();
 			reader = new BufferedReader(new InputStreamReader(stdout));
 			errReader = new BufferedReader(new InputStreamReader(stderr));
 			writer = new BufferedWriter(new OutputStreamWriter(stdin));
@@ -69,14 +69,20 @@ public class PythonThread extends Thread {
 				if (input != null) {
 					if (input.startsWith("categorize") || input.startsWith("gender") || input.startsWith("verb")
 							|| input.startsWith("emotion")) {
-						System.out.println("sending input to python");
+						System.out.println("sending input to python: " + input);
 						writer.write(input);
 						writer.flush();
 						input = null;
+						System.out.println("written");
 					}
+				}
+				//Print Python errors
+				for (int i = 0; i < stderr.available(); i++) {
+					System.out.println("Error: " + stderr.read());
 				}
 				// Listen to input from Python program
 				if (reader.ready()) {
+					System.out.println("reader ready");
 					response = reader.readLine();
 					if (response != null) {
 						System.out.println("input from python: " + response);
@@ -105,7 +111,7 @@ public class PythonThread extends Thread {
 	public void setInput(String input) {
 		this.input = input;
 	}
-	
+
 	public String getReturnVal() {
 		return response;
 	}
