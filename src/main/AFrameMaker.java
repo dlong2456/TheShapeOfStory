@@ -35,9 +35,10 @@ import story.Frame;
 
 //TODO: Get rid of stanford corenlp NER and maybe even sentiment annotators to speed things up
 //TODO: Thread the startup so the stanford annotator loads while the model is loading
-//TODO: Any way to load model and stanford pipeline in Driver rather than onConnect?
 //TODO: Make sure action etc. mappings correspond to the right ones on the front end
 //TODO: Sentiment of individual sentences instead of emotion key words?
+//TODO: Make sure you are properly terminating python process so you don't create zombies
+//TODO: Get this so it will work on Sanjana's comp as well/list instructions to get it to work
 public class AFrameMaker implements FrameMaker {
 
 	private PythonThread outThread;

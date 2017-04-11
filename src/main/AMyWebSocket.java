@@ -5,7 +5,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Properties;
 import java.util.UUID;
 
 import org.eclipse.jetty.websocket.api.Session;
@@ -35,9 +34,14 @@ public class AMyWebSocket implements MyWebSocket {
 	private Story story;
 	private PrintWriter out;
 	private PythonThread outThread;
-	private final Object lock = new Object();
+	private Object lock;
 	
-	public AMyWebSocket() {
+	public AMyWebSocket(PythonThread outThread, Object lock, StanfordCoreNLP pipeline) {
+		System.out.println("Constructed");
+		this.outThread = outThread;
+		this.lock = lock;
+		this.pipeline = pipeline;
+		System.out.println(pipeline);
 	}
 
 	@OnWebSocketClose
@@ -55,13 +59,7 @@ public class AMyWebSocket implements MyWebSocket {
 	@OnWebSocketConnect
 	public void onConnect(Session session) {
 		this.session = session;
-		//TODO: This is also where I should initialize the Python Word2Vec model
-		System.out.println("Loading Word2Vec before anything else");
-		loadModel();
 		// Make NLP pipeline here because it takes awhile
-		Properties props = new Properties();
-		props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse, mention, dcoref, sentiment");
-		pipeline = new StanfordCoreNLP(props);
 		story = new AStory();
 		sendMessage("ready");
 	}
@@ -144,26 +142,6 @@ public class AMyWebSocket implements MyWebSocket {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
-	}
-	
-	private void loadModel() {
-		// Make a new thread that executes the python script
-		outThread = new PythonThread(lock);
-		// Start the thread
-		outThread.start();
-		try {
-			// Wait on the thread until the model is loaded
-			System.out.println("waiting for model to load...");
-			synchronized (lock) {
-				while (!outThread.isReady()) {
-					lock.wait();
-				}
-			}
-			System.out.println("Model has been loaded but thread is still running in background!");
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	
