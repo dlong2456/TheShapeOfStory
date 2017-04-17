@@ -1,20 +1,22 @@
 var Comic = (function()
 {
 	//Panels
-	var Action = function(subjects,predicates , action,emotionColor,relation,setting ,bgColor,name)
+	var Action = function(num,subjects,predicates , action,emotionColor,setting ,bgColor,name)
 	{
+
 		this.type = "action",
 		this.name = name || "";
 		this.subjects = subjects || [] ;
 		this.predicates = predicates || [] ;
 		this.action = action || "";
 		this.color = emotionColor || "";
-		this.relation = relation || {};
+		
 		this.bgColor = bgColor || "";
     this.setting = setting || "";
 		this.background = new Renderer.BackgroundLayer(this.bgColor);
-		this.agentLayer = new Renderer.AgentLayer(this.subjects,this.predicates,this.action,this.relation,this.setting);
+		this.agentLayer = new Renderer.AgentLayer(num,this.subjects,this.predicates,this.action,this.setting);
 		this.textLayer = new Renderer.TextLayer();
+    this.num = num;//frame number variable
 
 		//subject and predicates mapped to size of the agents
 		//
@@ -65,9 +67,9 @@ var Comic = (function()
    Holder.prototype =
    {
    	constructor : Holder,
-   	display : function(P,Q,G)
+   	display : function(P,Q,G,t)
    	{
-
+    //console.log(t);
      var i = 1;
      var positions = pv.circleSpaceBetweenTwoArcs(G);
      // console.log(positions[0]);
@@ -75,7 +77,7 @@ var Comic = (function()
      {
      	
      //	panel.background.draw(positions[i]);
-     	panel.agentLayer.draw(positions[i]);
+     	panel.agentLayer.draw(positions[i],t);
      	i+=1;
      });
    	  // var i = 10;

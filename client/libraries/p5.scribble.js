@@ -162,7 +162,7 @@ function Scribble(p) {
         return;
       }
 
-    var hachureAngle = this.sketch.radians( angle );
+    var hachureAngle = this.sketch.radians( angle%180 );
     var cosAngle = Math.cos( hachureAngle );
     var sinAngle = Math.sin( hachureAngle );
     var tanAngle = Math.tan( hachureAngle );
@@ -184,25 +184,12 @@ function Scribble(p) {
 
     while ( (rectCoords = it.getNextLine()) != null ) {
       var lines = this.getIntersectingLines( rectCoords, xCoords, yCoords );
-     // console.log("These are the lines: "+lines[0]+" "+lines[1]);
 
-      for ( var i = 0; i < lines.length; i+=1 ) {
+      for ( var i = 0; i < lines.length; i+=2 ) {
         if ( i < lines.length-1 ) {
           var p1 = lines[i];
           var p2 = lines[i+1];
-          //if(p1[0]>=left && p1[1]<=bottom && p2[0]>=left && p2[2]<=bottom)
-        
-          if(p1[0]<left ){p1[0] = left;}
-          if(p1[0]>right ){p1[0] = right;}
-          if(p1[1]<top ){p1[1] = top;}
-           if(p1[1]>bottom ){p1[1] = bottom;}
-          if(p2[0]<left ){p2[0] = left;}
-          if(p2[0]>right ){p2[0] = right;}
-          if(p2[1]<top ){p2[1] = top;}
-           if(p2[1]>bottom ){p2[1] = bottom;}
-           
           this.scribbleLine( p1[0], p1[1], p2[0], p2[1], 2 );
-        //  console.log("Lines: "+p1+" "+p2);
         }
       }
     }
@@ -220,8 +207,7 @@ function HachureIterator( _top, _bottom, _left, _right, _gap, _sinAngle, _cosAng
   var right = _right;
   var gap = _gap;
 
-  var pos; //some position value of the x coordinate.
-
+  var pos;
   var deltaX, hGap;
   var sLeft, sRight;
 
@@ -229,11 +215,10 @@ function HachureIterator( _top, _bottom, _left, _right, _gap, _sinAngle, _cosAng
     pos = left+gap;
   } else if (Math.abs(sinAngle) > 0.9999) {
     pos = top+gap;
-    //console.log(pos);
   } else {
-    deltaX = (bottom-top)/Math.abs(tanAngle);
+    deltaX = (bottom-top)*Math.abs(tanAngle);
     pos = left-Math.abs(deltaX);
-    hGap = Math.abs(gap * _cosAngle); //horizontal gap
+    hGap = Math.abs(gap / _cosAngle);
     sLeft = new Segment(left, bottom, left, top);
     sRight = new Segment(right, bottom, right, top);
   }
@@ -249,26 +234,25 @@ function HachureIterator( _top, _bottom, _left, _right, _gap, _sinAngle, _cosAng
       if (pos<bottom) {
         var line = [left, pos, right, pos];
         pos += gap;
-       // console.log("Here: "+line);
         return line;
       }
     } else {
-      var xLower = pos-deltaX;
-      var xUpper =pos+deltaX;
+      var xLower = pos-deltaX/2;
+      var xUpper = pos+deltaX/2;
       var yLower = bottom;
       var yUpper = top;
 
       if (pos < right+deltaX) {
         while (((xLower < left) && (xUpper < left)) || ((xLower > right) && (xUpper > right)))  {
           pos += hGap;
-          xLower = pos-deltaX;
-          xUpper = pos+deltaX;
+          xLower = pos-deltaX/2;
+          xUpper = pos+deltaX/2;
 
           if (pos > right+deltaX) {
             return null;
           }
         }
-/*
+
         var s = new Segment(xLower, yLower, xUpper, yUpper);
 
         if (s.compare(sLeft) == Relation.INTERSECTS) {
@@ -283,7 +267,7 @@ function HachureIterator( _top, _bottom, _left, _right, _gap, _sinAngle, _cosAng
           xLower = right-(xLower-left);
           xUpper = right-(xUpper-left);
         }
-*/
+
         var line = [xLower, yLower, xUpper, yUpper];
         pos += hGap;
         return line;

@@ -165,14 +165,14 @@ var TextLayer = function()
 }
 
 //the entity layer class
-var AgentLayer = function(subjects,predicates,action,relation,setting)
+var AgentLayer = function(num,subjects,predicates,action,setting)
 {
-  
+  this.num = num;
 	this.type = "agent";
 	this.subjects = subjects || [] ;
   this.predicates = predicates || [] ;
 	this.action = action || "";
-  this.relation = relation || {};
+  
   this.setting = setting || "";
  // console.log(this.relation);
   
@@ -181,8 +181,12 @@ var AgentLayer = function(subjects,predicates,action,relation,setting)
 AgentLayer.prototype=
 {
 	constructor :AgentLayer,
-	draw : function(pt)
+	draw : function(pt,t)
 	{
+    var time = t-4*this.num;
+   if(time > 0 && time <=3)
+   {
+   
       //var i = pt["pt"].x-(pt["length"]);
     //  var j =pt["pt"].y-(pt["length"]);
       var i = pt["pt"].x;
@@ -194,7 +198,7 @@ AgentLayer.prototype=
       var settingBoundx , settingBoundy;
       var posPx,posPy;
       var posSx , posSy;
-      var sizeRatio=1;
+     
       var agentspacex , agentspacey;
       var posx, posy;
       var boundingBoxX, boundingBoxY;
@@ -293,79 +297,13 @@ AgentLayer.prototype=
      boundingBoxX = agentspacex/2;
      boundingBoxY = agentspacey;
   
-  drawSetting(this.setting,posSettingx,posSettingy, pt["length"]);
-   if(this.relation.type == "dominant")
-   {
-     sizeRatio = 0.7;
-     if(this.relation.positivity == 2)
-     {
-      posSx = posSx+0.1*pt["length"];
-      posSy = posSy;
-      posPx = posPx-0.1*pt["length"];
-      posPy = posPy;
-     }
-     if(this.positivity == 1)
-     {
-      posSx = posSx+0.05*pt["length"];
-      posSy = posSy;
-      posPx = posPx-0.05*pt["length"];
-      posPy = posPy;
-     }
-     if(this.relation.positivity == 0)
-     {
-      posSx = posSx;
-      posSy = posSy;
-      posPx = posPx;
-      posPy = posPy//+agentspacey/2-20;
-     }
-     if(this.relation.positivity == -1)
-     {
-         posSx = posSx-0.05*pt["length"];
-      posSy = posSy;
-      posPx = posPx+0.05*pt["length"];
-      posPy = posPy//+agentspacey/2;
-     }
-     if(this.relation.positivity == -2)
-     {
-         posSx = posSx-0.1*pt["length"];
-      posSy = posSy;
-      posPx = posPx+0.1*pt["length"];
-      posPy = posPy;
-   }
- }
-  else if(this.relation.type == "equal")
-   {
-   
-    sizeRatio = 1;
-    if(this.relation.intimacy == 1 )
-    {
-      posSx = posSx+10;
-      posSy = posSy;
-      posPx = posPx-10;
-      posPy = posPy;
-    }
-    if(this.relation.intimacy == 0)
-    {
-     
-      posSx = posSx;
-      posSy = posSy;
-      posPx = posPx;
-      posPy = posPy;
-    }
- if(this.relation.intimacy == -1)
-    {
-      posSx = posSx-10;
-      posSy = posSy;
-      posPx = posPx+10;
-      posPy = posPy;
-    }
-   }
-
+  drawSetting(this.setting,posSettingx,posSettingy, pt["length"],time);
+  
       this.subjects.forEach(function(agent)
       {
              
              
-      drawShape(agent.shape,agent.color, posSx , posSy,alpha/obj,boundingBoxX,boundingBoxY,1);
+      drawShape(agent.shape,agent.color, posSx , posSy,alpha/obj,boundingBoxX,boundingBoxY,time);
       obj+=1;
 
       },this);
@@ -373,13 +311,14 @@ AgentLayer.prototype=
       this.predicates.forEach(function(agent)
       {
 
-               drawShape(agent.shape,agent.color, posPx , posPy,alpha/obj,boundingBoxX,boundingBoxY,sizeRatio);
+               drawShape(agent.shape,agent.color, posPx , posPy,alpha/obj,boundingBoxX,boundingBoxY,time);
       obj+=1;
 
       });
       var scribble = new Scribble();
-      actionUtility[this.action](posx,posy,agentspacex,agentspacey,sizeRatio,scribble);
-	},
+      //actionUtility[this.action](posx,posy,agentspacex,agentspacey,scribble,time);
+	}
+  },
 	
 }
 
@@ -388,41 +327,34 @@ AgentLayer.prototype=
 
 //private stuff
 
- function drawShape(shape, color ,  i , j,alpha,w,h,scaleSize)
+ function drawShape(shape, color ,  i , j,alpha,w,h,time)
 {
   
   var scribble = new Scribble();
-  //var c = colorUtility[color];//.concat([alpha]);
- 
- var c1 = colorUtility[random(feelingUtility[color])];
- var c1 = random(feelingUtility[color]);
-
- //console.log(feelingUtility[color]+": "+c1);
- //var c = "red";
- 
- shapeUtility[shape](i,j,w,h,scaleSize,c1,scribble);
+  var c1 = colorUtility[random(feelingUtility[color])];
+  var c1 = random(feelingUtility[color]);
+  shapeUtility[shape](i,j,w,h,c1,scribble,time);
  
   
  
 
 }
 
-function drawSetting(setting,i,j,length)
+function drawSetting(setting,i,j,length,time)
 {
   var scribble = new Scribble();
-   console.log(setting);
-  console.log(settingUtility[setting]);
-  settingUtility[setting](i,j,length,scribble);
+  settingUtility[setting](i,j,length,scribble,time);
 }
 
-function drawTriangle(i,j,w,h,s,color,scribble)
+function drawTriangle(i,j,w,h,color,scribble,time)
 {
   
  var rFactor = random(5); //degree of randomness
  push();
 
   translate(i,j);
-  scale(s);
+  
+  
   scribble.scribbleLine(w/2,0.1*h+rFactor,0.8*w,0.8*h);
   scribble.scribbleLine(0.8*w,0.8*h,0.2*w,0.8*h);
    scribble.scribbleLine(w/2,0.1*h+rFactor,0.2*w,0.8*h);
@@ -438,67 +370,101 @@ function drawTriangle(i,j,w,h,s,color,scribble)
  
 }
 
-function drawSquare(i,j,w,h,s,color,scribble)
+function drawSquare(i,j,w,h,color,scribble,time)
 {
   push();
 
     translate(i,j);
-
-  scale(s);
-  scribble.scribbleRect((w/2),(w/2),(w),(w));
+   var dist = w;
+   var speed = w/10;
+   var x = +speed*time;
+   var _x = dist+speed*(time-1);
+   var __x = dist+speed*(time-2);
+  
+   if(time<1)
+  {
+       scribble.scribbleLine(x,0,x+time*dist,0);
+       scribble.scribbleLine(0,x,0,x+time*dist);
+  }
+  else if(time<2)
+  {
+     scribble.scribbleLine(dist,_x-2*dist+dist,dist,_x+(time-1)*dist-2*dist+dist);
+  }
+  else if(time < 3)
+  {
+   scribble.scribbleLine(__x-2*dist+dist,0+dist,__x+(time-2)*dist-2*dist+dist,0+dist);
+  }
+ 
   stroke(color);
-   var xCoords = [0,w,w,0];
-   var yCoords = [0,0,w,w];
-   var gap = 2;
-   var angle = 180;
-   scribble.scribbleFilling(xCoords,yCoords,gap,angle);
+  
+   scribble.scribbleLine(0,(dist*time)%dist,w,(dist*time)%dist);
 
-   noStroke();
+  
+
+   stroke(0);
+
+   
   pop();
 
 }
 
-function drawRectangle(i,j,w,h,s,color,scribble)
+function drawRectangle(i,j,w,h,color,scribble,time)
 {
-  var rFactor = random(h/2,h)
+ 
   push();
+  var distX = w/2;
+  var distY = h;
     translate(i,j);
-  scale(s);
-   scribble.scribbleRect((w/2),(h/2),(w/2),rFactor);
+ 
+ 
+   var speedX = w/10;
+   var speedY = h/10;
+   var x = +speedX*time;
+   var _x = w+speedY*(time-1);
+   var __x = h+speedX*(time-2);
+ 
+   if(time<1)
+  {
+       scribble.scribbleLine(x,0,x+time*distX,0);
+       scribble.scribbleLine(0,x,0,x+time*distY);
+  }
+  else if(time<2)
+  {
+     scribble.scribbleLine(distX,_x-distY,distX,_x+(time-1)*distY-distY);
+  }
+  else if(time < 3)
+  {
+   scribble.scribbleLine(__x-2*distX,distY,__x+(time-2)*distX-2*distX,distY);
+  }
+ 
+  stroke(color);
+  
+   scribble.scribbleLine(0,(distY*time)%distY,w/2,(distY*time)%distY);
+
    stroke(color);
-   var xCoords = [w/4,w/4+w/2,w/4+w/2,w/4];
-   var yCoords = [h/4,h/4,rFactor,rFactor];
-   var gap = 1;
-   var angle = 180;
-   scribble.scribbleFilling(xCoords,yCoords,gap,angle);
+   
 
    stroke(0);
   pop();
 }
 
-function drawCircle(i,j,w,h,s,color,scribble)
+function drawCircle(i,j,w,h,color,scribble,time)
 {
  
   push()
     translate(i,j);
-  scale(s);
-  //scribble.scribbleEllipse((w/2),(h/2),(w),(w));
- // stroke(color);
- // scribble.scribbleFilling([][])
+ 
+  
  fill(color);
- var rFactor = random(15); //degree of randomness
-  scribble.scribbleEllipse(w/2+6,h/2+rFactor,(w),(w));
 
-/*
-   stroke(color);
-   var xCoords = [w/2+6-w/2,w+6+w/2-w/2,w+6+w/2-w/2,w/2-w/2];
-   var yCoords = [h/2+rFactor-w/2,h/2+rFactor-w/2,h/2+rFactor+w-w/2,h/2+rFactor+w-w/2];
-   var gap = 2;
-   var angle = 180;
-   scribble.scribbleFilling(xCoords,yCoords,gap,angle);
+  //scribble.scribbleEllipse(w/2+6,h/2,(w),(w));
+  var majorAxis = w/2;
+   var minorAxis = w/2;
+   var x =0+6+time;
+   var y = 0-w/2+time*10;
 
-   noStroke();
-*/
+   scribble.scribbleLine(x+minorAxis*Math.cos(time),y+majorAxis*Math.sin(time),x+minorAxis*Math.cos(time+2*deltaTime),y+majorAxis*Math.sin(time+2*deltaTime));
+
 noFill();
   pop();
  
@@ -508,56 +474,100 @@ function emptyFunction()
   return -1;
 }
 
-function drawOn(i,j,length,scribble)
+function drawOn(i,j,length,scribble,time)
 {
    
    strokeWeight(2);
+
   // var r = random([-1,1]);
+  var dist = (i+0.9*length*2)-(i+0.1*length*2);
+  var speed = dist/10;
+  var x = i+0.1*length*2+speed*time;
+  var _x = i+0.1*length*2+speed*(time-1);
+  var __x = i+0.1*length*2+speed*(time-2);
   var r = 1;
-    scribble.scribbleLine(i+0.1*length*2,j+r*0.3*length*2,i+0.9*length*2,j+r*0.3*length*2);
-     scribble.scribbleLine(i+0.1*length*2,j+r*0.2*length*2,i+0.9*length*2,j+r*0.2*length*2);
-    scribble.scribbleLine(i+0.1*length*2,j+r*0.1*length*2,i+0.9*length*2,j+r*0.1*length*2);
-    //w = 100;
-    //h = 60;
+  
+ 
+  if(time<1)
+  {
+  
+    scribble.scribbleLine(x,j+r*0.3*length*2,x+time*100,j+r*0.3*length*2);
+ }
+   else if(time<2)  
+  { 
+     scribble.scribbleLine(_x,j+r*0.2*length*2,_x+(time-1)*100,j+r*0.2*length*2);
+  }
+   else if(time<3)
+   {
+    scribble.scribbleLine(__x,j+r*0.1*length*2,__x+(time-2)*100,j+r*0.1*length*2);
+  }
+  
     strokeWeight(1);
 }
-function drawIn(i,j,length,scribble)
+function drawIn(i,j,length,scribble,time)
 {
   strokeWeight(2);
-  scribble.scribbleRect(i,j,0.8*length*2,0.8*length*2);
+  var dist = 0.8*length*2;
+  var speed = dist/10;
+  var x = (i-0.8*length*2)+speed*time;
+  var _x = (j+0.8*length*2)+speed*(time-1);
+  var __x = (i+0.8*length*2)+speed*(time-2);
+  if(time<1)
+  {
+       scribble.scribbleLine(x,j-dist,x+time*100,j-dist);
+       scribble.scribbleLine(i-dist,x,i-dist,x+time*100);
+  }
+  else if(time<2)
+  {
+     scribble.scribbleLine(i,_x-2*dist,i,_x+(time-1)*100-2*dist);
+  }
+  else if(time < 3)
+  {
+   scribble.scribbleLine(__x-2*dist,j,__x+(time-2)*100-2*dist,j);
+  }
+ // scribble.scribbleRect(i,j,0.8*length*2,0.8*length*2);
   strokeWeight(1);
 }
 
-function drawFrom(i,j,length,scribble)
+function drawFrom(i,j,length,scribble,time)
 {
     strokeWeight(2);
    // scribble.scribbleEllipse(i,j,0.6*length*2,0.8*length*2);
-   push();
-   rotate(radians(PI/4));
-   scribble.scribbleRect(i,j,0.6*length*2,0.8*length*2)
-   pop();
+   var majorAxis = 0.8*length*2;
+   var minorAxis = 0.6*length*2;
+   var x = i+time;
+   var y = j-0.8*length+time*10;
+
+   scribble.scribbleLine(x+minorAxis*Math.cos(time),y+majorAxis*Math.sin(time),x+minorAxis*Math.cos(time+deltaTime),y+majorAxis*Math.sin(time+deltaTime));
+   //scribble.scribbleRect(i,j,0.6*length*2,0.8*length*2)
+   
     strokeWeight(1);
 }
-function drawTo(i,j,length,scribble)
+function drawTo(i,j,length,scribble,time)
 {
     strokeWeight(2);
-    scribble.scribbleEllipse(i,j,0.6*length*2,0.8*length*2);
+     var majorAxis = 0.8*length*2;
+   var minorAxis = 0.6*length*2;
+   var x = i+time;
+   var y = j-0.8*length+time*10;
+    scribble.scribbleLine(x+minorAxis*Math.cos(time),y+majorAxis*Math.sin(time),x+minorAxis*Math.cos(time+deltaTime),y+majorAxis*Math.sin(time+deltaTime));
+    //scribble.scribbleEllipse(i,j,0.6*length*2,0.8*length*2);
     strokeWeight(1);
 }
-function drawBe(i,j,w,h,s,scribble)
+function drawBe(i,j,w,h,scribble,time)
 {
    push();
   translate(i,j);
-  scale(s);
+ 
   //using a sin wave.
   
   pop();
 }
-function drawSmell(i,j,w,h,s,scribble)
+function drawSmell(i,j,w,h,scribble,time)
 {
    push();
   translate(i,j);
-  scale(s);
+  
   //using a sin wave.
   fill(0);
  scribble.scribbleEllipse(-9,-8,5,5);
@@ -586,11 +596,11 @@ function drawSmell(i,j,w,h,s,scribble)
   pop();
   
 }
-function drawMoveObject(i,j,w,h,s,scribble)
+function drawMoveObject(i,j,w,h,scribble,time)
 {
      push();
   translate(i,j);
-  scale(s);
+ 
   scribble.scribbleLine(-5,-5,0,0);
   scribble.scribbleLine(-5,5,0,0);
   scribble.scribbleLine(-5+4,-5,4,0);
@@ -608,20 +618,20 @@ function drawMoveObject(i,j,w,h,s,scribble)
   stroke(0);
   pop();
 }
-function drawHave(i,j,w,h,s,scribble)
+function drawHave(i,j,w,h,scribble,time)
 {
     push();
   translate(i,j);
-  scale(s);
+
   //using a sin wave.
   
   pop();
 }
-function drawIngest(i,j,w,h,s,scribble)
+function drawIngest(i,j,w,h,scribble,time)
 {
     push();
   translate(i,j);
-  scale(s);
+ 
 
   //using a sin wave.
   stroke(0);
@@ -651,11 +661,11 @@ function drawIngest(i,j,w,h,s,scribble)
   pop();
 }
 
-function drawExpel(i,j,w,h,s,scribble)
+function drawExpel(i,j,w,h,scribble,time)
 {
   push();
   translate(i,j);
-  scale(s);
+ 
   //using a sin wave.
   fill(0);
   scribble.scribbleEllipse(-4*PI-5,sin(-4*PI),5,5);
@@ -695,11 +705,11 @@ fill(255,0,0);
   */
   pop();
 }
-function drawPropel(i,j,w,h,s,scribble)
+function drawPropel(i,j,w,h,scribble,time)
 {
    push();
   translate(i,j);
-  scale(s);
+ 
  
   fill(random(100,255),0,random(200,255));
   scribble.scribbleEllipse(0,0,10,10);
@@ -710,7 +720,7 @@ function drawPropel(i,j,w,h,s,scribble)
   
   pop();
 }
-function drawFeel(i,j,w,h,s,scribble)
+function drawFeel(i,j,w,h,scribble,time)
 {
   push();
   translate(i,j);
@@ -745,11 +755,11 @@ function drawFeel(i,j,w,h,s,scribble)
   pop();
 }
 
-function drawSee(i,j,w,h,s,scribble)
+function drawSee(i,j,w,h,scribble,time)
 {
   push();
   translate(i,j);
-  scale(s);
+  
   strokeWeight(2)
   scribble.scribbleEllipse(0,0,w/4,h/2);
   fill(0)
@@ -758,11 +768,11 @@ function drawSee(i,j,w,h,s,scribble)
   strokeWeight(1);
   pop();
 }
-function drawSpeak(i,j,w,h,s,scribble)
+function drawSpeak(i,j,w,h,scribble,time)
 {
   push();
   translate(i,j);
-  scale(s);
+  
   fill(255,150,0);
   arc(0,0,10,10,PI-3*PI/4,PI+3*PI/4);
   fill(0)
@@ -798,11 +808,11 @@ function drawSpeak(i,j,w,h,s,scribble)
   */
   pop();
 }
-function drawHear(i,j,w,h,s,scribble)
+function drawHear(i,j,w,h,scribble,time)
 {
    push();
   translate(i,j);
-  scale(s);
+ 
   fill(random(255),random(255),random(255));
   scribble.scribbleEllipse(w/2,-h/2,5,5);
   fill(random(255),random(255),random(255));
@@ -848,7 +858,7 @@ function drawHear(i,j,w,h,s,scribble)
    strokeWeight(1);
 }
 */
-function drawMoveBodyPart(i,j,w,h,s,scribble)
+function drawMoveBodyPart(i,j,w,h,scribble,time)
 {
   
   push();
@@ -881,19 +891,19 @@ noStroke();
  
 
 }
-function drawThinkAbout(i,j,w,h,s)
+function drawThinkAbout(i,j,w,h,time)
 {
   push();
   translate(i,j);
-  scale(s);
+ 
   pv.questionMark(pv.P(0,0));
   pop();
 }
-function drawConclude(i,j,w,h,s)
+function drawConclude(i,j,w,h,time)
 {
   push();
   translate(i,j);
-  scale(s);
+
   pv.questionMarkInverted(pv.P(0,0));
   pop();
 }
