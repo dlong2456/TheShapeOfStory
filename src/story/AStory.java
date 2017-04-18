@@ -47,7 +47,8 @@ public class AStory implements Story {
 	public Sentiment getSentiment() {
 		return sentiment;
 	}
-
+	
+	//Finds the sentiment of the story using Stanford CoreNLP's sentiment analysis
 	public void setSentiment(StanfordCoreNLP pipeline) {
 		Annotation document = new Annotation(fullText);
 		pipeline.annotate(document);
