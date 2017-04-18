@@ -25,15 +25,12 @@ import frameComponents.AnAction;
 import frameComponents.AnAgent;
 import frameComponents.AnAgent.AgentType;
 import frameComponents.AnAgent.Gender;
-import frameComponents.AnEmotion;
 import frameComponents.AnObject;
-import frameComponents.Emotion;
 import frameComponents.Entity;
 import frameComponents.Setting;
 import story.AFrame;
 import story.Frame;
 
-//TODO: Get rid of stanford corenlp NER and maybe even sentiment annotators to speed things up
 //TODO: Thread the startup so the stanford annotator loads while the model is loading
 //TODO: Make sure action etc. mappings correspond to the right ones on the front end
 //TODO: Sentiment of individual sentences instead of emotion key words?
@@ -53,6 +50,10 @@ public class AFrameMaker implements FrameMaker {
 		ArrayList<Action> actions = new ArrayList<Action>();
 		ArrayList<Entity> entities = new ArrayList<Entity>();
 		ArrayList<Frame> frames = new ArrayList<Frame>();
+		// SENTIMENT ANALYSIS
+		// TODO: for each sentence in frame, get sentiment
+		// just add it to the sentiment average and that way you don't have to
+		// re annotate the doc everytime in story
 		// COREFERENCE RESOLUTION
 		// Create an entity for each reference chain in the story
 		document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values();
@@ -214,31 +215,32 @@ public class AFrameMaker implements FrameMaker {
 						// TODO: Maybe also just look for emotion key words in
 						// the sentence? This misses some
 						// TODO: How to associate an emotion with an agent?
-						String emotion = setInput("emotion " + verb.lemma());
-						if (emotion != null) {
-							Emotion emotionObj = new AnEmotion();
-							emotionObj.setEmotion(verb.lemma());
-							emotionObj.setPrimitiveEmotion(emotion);
-							frame.setEmotion(emotionObj);
-							// set animation to an actual verb ("feel")
-							// rather
-							// than "happy"
-							Action action = new AnAction();
-							action.setOriginalWord(child.originalText());
-							action.setLemma(child.lemma());
-							int[] positionArr = { verb.sentIndex(), verb.index() };
-							action.setPosition(new IntTuple(positionArr));
-							action.setAnimation("feel");
-							frame.setAction(action);
-						} else {
-							Action action = new AnAction();
-							action.setOriginalWord(child.originalText());
-							action.setLemma(child.lemma());
-							int[] positionArr = { verb.sentIndex(), verb.index() };
-							action.setPosition(new IntTuple(positionArr));
-							action.setAnimation("be");
-							frame.setAction(action);
-						}
+						// String emotion = setInput("emotion " + verb.lemma());
+						// if (emotion != null) {
+						// Emotion emotionObj = new AnEmotion();
+						// emotionObj.setEmotion(verb.lemma());
+						// emotionObj.setPrimitiveEmotion(emotion);
+						// frame.setEmotion(emotionObj);
+						// // set animation to an actual verb ("feel")
+						// // rather
+						// // than "happy"
+						// Action action = new AnAction();
+						// action.setOriginalWord(child.originalText());
+						// action.setLemma(child.lemma());
+						// int[] positionArr = { verb.sentIndex(), verb.index()
+						// };
+						// action.setPosition(new IntTuple(positionArr));
+						// action.setAnimation("feel");
+						// frame.setAction(action);
+						// } else {
+						Action action = new AnAction();
+						action.setOriginalWord(child.originalText());
+						action.setLemma(child.lemma());
+						int[] positionArr = { verb.sentIndex(), verb.index() };
+						action.setPosition(new IntTuple(positionArr));
+						action.setAnimation("be");
+						frame.setAction(action);
+						// }
 					} else if (edge.getRelation().toString().equals("dobj")) {
 						// predicate
 						System.out.println("dobj " + child);
