@@ -3,6 +3,7 @@ package main;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 import edu.stanford.nlp.coref.CorefCoreAnnotations;
@@ -40,10 +41,29 @@ public class AFrameMaker implements FrameMaker {
 
 	private PythonThread outThread;
 	private final Object lock;
+	private final HashMap<String, String> actionMapping = new HashMap<String, String>();
 
 	public AFrameMaker(PythonThread outThread, Object lock) {
 		this.outThread = outThread;
 		this.lock = lock;
+		buildActionMapping();
+	}
+
+	private void buildActionMapping() {
+		actionMapping.put("smell", "smell");
+		actionMapping.put("think", "think-about");
+		actionMapping.put("move", "move-body-part");
+		actionMapping.put("ingest", "ingest");
+		actionMapping.put("speak", "speak");
+		actionMapping.put("hear", "hear");
+		actionMapping.put("feel", "feel");
+		actionMapping.put("have", "have");
+		actionMapping.put("conclude", "conclude");
+		actionMapping.put("be", "be");
+		actionMapping.put("see", "see");
+		actionMapping.put("transport", "move-object");
+		actionMapping.put("expel", "expel");
+		actionMapping.put("propel", "propel");
 	}
 
 	public ArrayList<Frame> makeFrame(Annotation document) {
@@ -99,7 +119,6 @@ public class AFrameMaker implements FrameMaker {
 					// Then try concept net matching
 					if (entity == null) {
 						String nounType = setInput("categorize " + token.lemma());
-						System.out.println(token.lemma() + " " + nounType);
 						if (mention.animacy.toString().equals("ANIMATE")) {
 							if (nounType.equals("person")) {
 								entity = new AnAgent();
@@ -165,7 +184,7 @@ public class AFrameMaker implements FrameMaker {
 				int[] positionArr = { root.sentIndex(), root.index() };
 				action.setPosition(new IntTuple(positionArr));
 				action.setLemma(root.lemma());
-				action.setAnimation(setInput("verb " + action.getLemma()));
+				action.setAnimation(actionMapping.get(setInput("verb " + action.getLemma())));
 				action.setVerb(root);
 				actions.add(action);
 				frame.setAction(action);
@@ -185,7 +204,7 @@ public class AFrameMaker implements FrameMaker {
 							int[] secondPositionArr = { child.sentIndex(), child.index() };
 							secondAction.setPosition(new IntTuple(secondPositionArr));
 							secondAction.setLemma(child.lemma());
-							secondAction.setAnimation(setInput("verb " + secondAction.getLemma()));
+							secondAction.setAnimation(actionMapping.get(setInput("verb " + secondAction.getLemma())));
 							secondAction.setVerb(child);
 							actions.add(secondAction);
 							secondFrame.setAction(secondAction);

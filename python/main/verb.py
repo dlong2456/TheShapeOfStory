@@ -6,7 +6,7 @@ Created on Apr 1, 2017
 
 #define functions
 def main(model, word):
-    verbs = ["smell", "move", "think", "ingest", "speak", "hear", "feel", "have", "conclude", "be"]
+    verbs = ["smell", "move", "think", "ingest", "speak", "see", "hear", "feel", "have", "conclude", "be", "transport", "expel", "propel"]
     similarities = []
     for verb in verbs:
         similarity = model.similarity(word, verb)
