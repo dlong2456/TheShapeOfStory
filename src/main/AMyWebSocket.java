@@ -5,7 +5,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Properties;
 import java.util.UUID;
 
 import org.eclipse.jetty.websocket.api.Session;
@@ -19,13 +18,13 @@ import org.json.simple.JSONObject;
 
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import frameComponents.ASetting;
 import frameComponents.Action;
 import frameComponents.AnAgent;
 import frameComponents.AnObject;
 import frameComponents.Emotion;
 import frameComponents.Setting;
 import story.AStory;
+import story.AStory.Sentiment;
 import story.Frame;
 import story.Story;
 
@@ -35,6 +34,16 @@ public class AMyWebSocket implements MyWebSocket {
 	private StanfordCoreNLP pipeline;
 	private Story story;
 	private PrintWriter out;
+	private PythonThread outThread;
+	private Object lock;
+	
+	public AMyWebSocket(PythonThread outThread, Object lock, StanfordCoreNLP pipeline) {
+		System.out.println("Constructed");
+		this.outThread = outThread;
+		this.lock = lock;
+		this.pipeline = pipeline;
+		System.out.println(pipeline);
+	}
 
 	@OnWebSocketClose
 	public void onClose(int statusCode, String reason) {
@@ -52,10 +61,8 @@ public class AMyWebSocket implements MyWebSocket {
 	public void onConnect(Session session) {
 		this.session = session;
 		// Make NLP pipeline here because it takes awhile
-		Properties props = new Properties();
-		props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse, mention, dcoref, sentiment");
-		pipeline = new StanfordCoreNLP(props);
 		story = new AStory();
+		sendMessage("ready");
 	}
 
 	// Receives messages from the web client(s)
@@ -65,31 +72,38 @@ public class AMyWebSocket implements MyWebSocket {
 		// For debugging
 		System.out.println("received message: " + message);
 		if (!message.equals(null)) {
+			//Sent each time a new person begins to speak
 			if (message.equals("new person")) {
-				// perform sentiment analysis on story
-				story.setSentiment(pipeline);
+				// get story sentiment
 				JSONObject sentiment = new JSONObject();
 				sentiment.put("sentiment", story.getSentiment());
 				sendMessage(sentiment.toJSONString());
+				//save story sentiment to file
 				writeToFile(sentiment.toJSONString());
+			//Sent each time a new story session begins
 			} else if (message.equals("new story")) {
 				// start a new file for each new story
 				out = null;
 			} else {
+				//TODO: Measure how long this annotation takes and see if you can speed it up
+				//Annotate the new piece of the story that server has received
 				Annotation document = new Annotation(message);
 				pipeline.annotate(document);
-				FrameMaker frameMaker = new AFrameMaker(pipeline);
+				//Generate frames from annotated story
+				FrameMaker frameMaker = new AFrameMaker(outThread, lock, story);
 				ArrayList<Frame> frames = frameMaker.makeFrame(document);
 				if (story.getFrames() == null) {
 					story.setFrames(frames);
 				} else {
 					story.addFrames(frames);
 				}
+				//Add new section to existing story
 				story.augmentFullText(message);
-				// Only send message back if frames exist
+				// Only send message back to client if frames exist
 				if (frames != null) {
 					String jsonString = convertToJSON(frames);
 					sendMessage(jsonString);
+					//Write new frames to file for display later
 					writeToFile(jsonString);
 				}
 			}
@@ -111,6 +125,8 @@ public class AMyWebSocket implements MyWebSocket {
 		}
 	}
 
+	//Writes JSON string to a .txt file in the stories folder
+	//NOTE: To get project to run, you need to create a stories folder in your project
 	private void writeToFile(String json) {
 		if (out != null) {
 			out.println(json);
@@ -127,7 +143,8 @@ public class AMyWebSocket implements MyWebSocket {
 			}
 		}
 	}
-
+	
+	//Converts a list of frames to a JSON object so it can be sent to client
 	@SuppressWarnings("unchecked")
 	private static String convertToJSON(ArrayList<Frame> frames) {
 		JSONObject obj = new JSONObject();
@@ -137,16 +154,21 @@ public class AMyWebSocket implements MyWebSocket {
 			Action action = frames.get(i).getAction();
 			Emotion emotion = frames.get(i).getEmotion();
 			Setting setting = frames.get(i).getSetting();
+			Sentiment sentiment = frames.get(i).getSentiment();
 			if (action != null) {
 				frame.put("action", action.getAnimation());
 			} else {
 				frame.put("action", "");
 			}
-			// TODO: change color to emotion
 			if (emotion != null) {
-				frame.put("color", emotion.getPrimitiveEmotion());
+				frame.put("emotion", emotion.getPrimitiveEmotion());
 			} else {
-				frame.put("color", "");
+				frame.put("emotion", "");
+			}
+			if (sentiment != null) {
+				frame.put("sentiment", sentiment.toString());
+			} else {
+				frame.put("sentiment", "");
 			}
 			if (setting != null) {
 				frame.put("setting_preposition", setting.getPreposition().toLowerCase());
