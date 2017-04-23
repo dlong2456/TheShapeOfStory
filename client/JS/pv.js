@@ -11,10 +11,10 @@ pt.prototype.setTo = function(x,y){
                this.y = y;
                return this;
   }
-  pt.prototype.setTo = function(P)
+  pt.prototype.setTo = function(P1)
   {
-    this.x = P.x;
-    this.y = P.y;
+    this.x = P1.x;
+    this.y = P1.y;
      return this;
   }
 
@@ -32,27 +32,26 @@ pt.prototype.setTo = function(x,y){
     //here p can be a point or a vector. No need to define seperately as javascript doesn't define types
     //this.add = function(v) would have been add but result is same so no need but keep difference in  mind
     //SOME ERROR. NEEDS TO BE RESOLVED
-    pt.prototype.add = function(s,P){
+    pt.prototype.add = function(s,P1){
       if(s!==0)
       {
-        this.x +=s*P.x;
-        this.y +=s*P.y;
+        this.x +=s*P1.x;
+        this.y +=s*P1.y;
        return this;
       }
       else
       {
-        this.x +=P.x;
-      this.y += P.y;
-      //console.log(this.x);
-      //console.log(this.y);
+        this.x +=P1.x;
+      this.y += P1.y;
+   
       return this;
       }
       
     }
    
-    pt.prototype.translatTowards = function(s,P){
-      this.x+=s*(P.x-this.x);
-      this.y+=s*(P.y-this.y);
+    pt.prototype.translatTowards = function(s,P1){
+      this.x+=s*(P1.x-this.x);
+      this.y+=s*(P1.y-this.y);
       return this;
     }
 
@@ -72,11 +71,11 @@ pt.prototype.setTo = function(x,y){
       
     }
    
-    pt.prototype.rotate = function(a , P){
-      if(P!={})
+    pt.prototype.rotate = function(a , P1){
+      if(P1!={})
       {
-        var dx= this.x-P.x;
-      var dy = this.y-P.y;
+        var dx= this.x-P1.x;
+      var dy = this.y-P1.y;
       }
       else
       {
@@ -89,15 +88,15 @@ pt.prototype.setTo = function(x,y){
       this.y = -s*dx+c*dy;
       return this;
     }
-    pt.prototype.rotateSinCos = function(s,t,P)
+    pt.prototype.rotateSinCos = function(s,t,P1)
     {
-      var dx = this.x-P.x;
-      var dy = this.y-P.y;
+      var dx = this.x-P1.x;
+      var dy = this.y-P1.y;
       dx -=dy*t;
       dy+=dx*s;
       dx-=dy*t;
-      this.x = P.x+dx;
-      this.y = P.y+dy;
+      this.x = P1.x+dx;
+      this.y = P1.y+dy;
       return this;
     }
     pt.prototype.moveWithMouse = function()
@@ -136,9 +135,9 @@ pt.prototype.setTo = function(x,y){
       noFill();
       return this;
     }
-    pt.prototype.labelByVector = function(s,V){
+    pt.prototype.labelByVector = function(s,V1){
       fill(0);
-      text(s,this.x+V.x,this.y+V.y);
+      text(s,this.x+V1.x,this.y+V1.y);
       noFill();
       return this;
     }
@@ -158,7 +157,7 @@ pt.prototype.setTo = function(x,y){
 
 // MODIFY
   vec.prototype.setTo  = function(px,py) {this.x = px; this.y = py; return this;}; 
-  vec.prototype.setToByV = function(V) {this.x = V.x; this.y = V.y; return this;}; 
+  vec.prototype.setToByV = function(V1) {this.x = V1.x; this.y = V1.y; return this;}; 
   vec.prototype.zero  = function(){this.x=0; this.y=0; return this;}
   vec.prototype.scaleBy = function(u,  v) {this.x*=u; this.y*=v; return this;};
   //vec.prototype.scaleBy = function(f) {this.x*=f; this.y*=f; return this;};
@@ -166,8 +165,8 @@ pt.prototype.setTo = function(x,y){
   vec.prototype.divideBy = function(f) {this.x/=f; this.y/=f; return this;};
   vec.prototype.normalize = function() { var n=Math.sqrt((this.x*this.x)+(this.y*this.y)); if (n>0.000001) {this.x/=n; this.y/=n;}; return this;};
   vec.prototype.add  = function( u,  v){this.x += u; this.y += v; return this;};
-  vec.prototype.addVector = function( V) {this.x += V.x; this.y += V.y; return this;};   
-  vec.prototype.addScaledVector  = function( s,  V){this.x += s*V.x; this.y += s*V.y; return this;};   
+  vec.prototype.addVector = function( V1) {this.x += V1.x; this.y += V1.y; return this;};   
+  vec.prototype.addScaledVector  = function( s,  V1){this.x += s*V1.x; this.y += s*V1.y; return this;};   
   vec.prototype.rotateBy  = function( a){var xx=this.x; var yy=this.y; this.x=xx*Math.cos(a)-yy*Math.sin(a); this.y=xx*Math.sin(a)+yy*Math.cos(a); return this;};
   vec.prototype.left = function(){ var m=this.x; this.x=-this.y; this.y=m; return this;};
  
@@ -181,31 +180,31 @@ pt.prototype.setTo = function(x,y){
 
   // DRAW, PRINT
   vec.prototype.write = function() {console.log("<"+this.x+","+this.y+">");};
-  vec.prototype.showAt   = function(P){line(P.x,P.y,P.x+this.x,P.y+this.y); }; 
+  vec.prototype.showAt   = function(P1){line(P1.x,P1.y,P1.x+this.x,P1.y+this.y); }; 
   
-  vec.prototype.showArrowAt= function ( P) 
+  vec.prototype.showArrowAt= function ( P1) 
       {
-      line(P.x,P.y,P.this.x+x,P.this.y+y); 
-      var n=min(this.norm()/10.,height/50.); 
-      var Q=P(P,this); 
-      var U = S(-n,U(this));
-      var W = S(.3,R(U)); 
-      beginShape(); Q.add(U).add(W).v(); Q.v(); Q.add(U).add(M(W)).v(); endShape(CLOSE); 
+      line(P1.x,P1.y,P1.this.x+x,P1.this.y+y); 
+      var n1=min(this.norm()/10.,height/50.); 
+      var Q=P(P1,this); 
+      var U1 = S(-n1,U(this));
+      var W = S(.3,R(U1)); 
+      beginShape(); Q.add(U1).add(W).v(); Q.v(); Q.add(U1).add(M(W)).v(); endShape(CLOSE); 
       };
       
-  vec.prototype.label = function( s,  P) {P(P).add(0.5,this).add(3,R(U(this))).label(s); };
+  vec.prototype.label = function( s,  P1) {P(P1).add(0.5,this).add(3,R(U(this))).label(s); };
 
 
 //POINT FUNCTIONS
-var P = Function.create(xTyped , [types(Number , Number), function(x,y){return new pt(x,y);} , types(pt),function(P){return new pt(P.x,P.y);},types(pt,pt),function( P,  V) {return P(P.x + V.x, P.y + V.y); }  ,types(pt,Number,pt),function( P,  s,  V) {return P(P,W(s,V)); } ]);
+var P = Function.create(xTyped , [types(Number , Number), function(x,y){return new pt(x,y);} , types(pt),function(P){return new pt(P.x,P.y);},types(pt,vec),function( P1,  V1) {return P(P1.x + V1.x, P1.y + V1.y); }  ,types(pt,Number,vec),function( P1,  s,  V1) {return P(P1.x+s*V1.x,P1.y+s*V1.y); } ]);
 var Mouse = function() {return P(mouseX,mouseY);}; 
 var Pmouse = function(){return P(pmouseX,pmouseY);};  
 var ScreenCenter=function() {return P(width/2,height/2);} 
-var d=function( P,  Q) {return Math.sqrt(d2(P,Q));  };    
-var d2=function( P,  Q) {return sq((Q.x-P.x))+sq((Q.y-P.y)); }; 
+var d=function( P1,  Q) {return Math.sqrt(d2(P1,Q));  };    
+var d2=function( P1,  Q) {return sq((Q.x-P1.x))+sq((Q.y-P1.y)); }; 
 var isSame=Function.create(false,[function( A,  B) {return (A.x==B.x)&&(A.y==B.y) ;} ,function( A,  B,  e) {return d2(A,B)<Math.pow(e,2);}   ]);
 var R=Function.create(false,[function( Q,  a) {var dx=Q.x, dy=Q.y, c=Math.cos(a), s=Math.sin(a); return new pt(c*dx+s*dy,-s*dx+c*dy); }, function( Q,  a,  C) {var dx=Q.x-C.x, dy=Q.y-C.y, c=Math.cos(a), s=Math.sin(a); return P(C.x+c*dx-s*dy, C.y+s*dx+c*dy); }]);  // Q rotated by angle a around the origin
-var MoveByDistanceTowards=function( P,  d,  Q) { return P(P,d,U(V(P,Q))); }; 
+var MoveByDistanceTowards=function( P1,  d,  Q) { return P(P1,d,U(V(P1,Q))); }; 
 
 // average 
 var A=Function.create(false , [function( A,  B) {return P((A.x+B.x)/2.0,(A.y+B.y)/2.0); },function( A,  B,  C) {return P((A.x+B.x+C.x)/3.0,(A.y+B.y+C.y)/3.0); }, function( A,  B,  C, D) {return A(A(A,B),A(C,D)); }]);                                          // (A+B)/2 (average)
@@ -213,13 +212,14 @@ var W=Function.create(false , [function( a,  A) {return P(a*A.x,a*A.y);} ,functi
 
 
 // display 
-var show=Function.create(xTyped,[types(pt , Number),function( P,  r) {ellipse(P.x, P.y, 2*r, 2*r);},types(pt ),function( P) {ellipse(P.x, P.y, 6,6);},types(pt , pt , pt),function( A,  B,  C)  {beginShape();  A.v(); B.v(); C.v(); endShape(CLOSE);} ,types(pt , pt , pt, pt),function( A,  B,  C,  D)  {beginShape();  A.v(); B.v(); C.v(); D.v(); endShape(CLOSE);}, types(pt , vec),function( P,  V) {line(P.x,P.y,P.x+V.x,P.y+V.y); },types(pt , Number , vec),function( P,  s,  V) {show(P,S(s,V));} ]);                                           // draws circle of center r around P
+var show=Function.create(xTyped,[types(pt , Number),function( P1,  r) {ellipse(P1.x, P1.y, 2*r, 2*r);},types(pt ),function( P1) {ellipse(P1.x, P1.y, 6,6);},types(pt , pt , pt),function( A,  B,  C)  {beginShape();  A.v(); B.v(); C.v(); endShape(CLOSE);} ,types(pt , pt , pt, pt),function( A,  B,  C,  D)  {beginShape();  A.v(); B.v(); C.v(); D.v(); endShape(CLOSE);}, types(pt , vec),function( P,  V) {line(P.x,P.y,P.x+V.x,P.y+V.y); },types(pt , Number , vec),function( P,  s,  V) {show(P,S(s,V));} ]);                                           // draws circle of center r around P
                                          // show V as line-segment from P 
 
-var label=Function.create(false,[function( P,  S) {text(S, P.x-4,P.y+6.5); },function( P,  V,  S) {text(S, P.x-3.5+V.x,P.y+7+V.y); } ]);                                                // writes string S next to P on the screen ( for example label(P[i],str(i));)
-var showId=function( P,  S) {fill(white); show(P,13); fill(black); label(P,S);}                       // sows disk with S written inside
-var edge=function( P,  Q) {line(P.x,P.y,Q.x,Q.y); };   
-var v=function( P) {vertex(P.x,P.y);};                                                                      // vertex for drawing polygons between beginShape() and endShape()
+var label=Function.create(false,[function( P1,  S) {text(S, P1.x-4,P1.y+6.5); },function( P1,  V1,  S) {text(S, P1.x-3.5+V1.x,P1.y+7+V1.y); } ]);                                                // writes string S next to P on the screen ( for example label(P[i],str(i));)
+//nothing broke till here
+var showId=function( P1,  S) {fill(white); show(P,13); fill(black); label(P1,S);}                       // sows disk with S written inside
+var edge=function( P1,  Q) {line(P1.x,P1.y,Q.x,Q.y); };   
+var v=function( P1) {vertex(P1.x,P1.y);};                                                                      // vertex for drawing polygons between beginShape() and endShape()
                                               // draws arrow from P to Q
 
 
@@ -229,16 +229,17 @@ var v=function( P) {vertex(P.x,P.y);};                                          
 
 // create 
 var V=Function.create(xTyped,[types(vec),function(V) {return new vec(V.x,V.y); },types(pt),function(V) {return new vec(V.x,V.y); }, types(Number,Number),function( x,  y) {return new vec(x,y); }, types(pt,pt),function( P,  Q) {return new vec(Q.x-P.x,Q.y-P.y);}]);                                                           // make copy of vector V
-
-var U=Function.create(false,[function( V) {var n = n(V); if (n==0) return new vec(0,0); else return new vec(V.x/n,V.y/n);},function( P,  Q) {return U(V(P,Q));}])      // V/||V|| (Unit vector : normalized version of V)
+var n=function( V1) {return Math.sqrt(dot(V1,V1));}; 
+var U=Function.create(false,[function( V1) {var n1 = n(V1); if (n1==0) return new vec(0,0); else return new vec(V1.x/n1,V1.y/n1);},function( P1,  Q) {return U(V(P1,Q));}])      // V/||V|| (Unit vector : normalized version of V)
 var MouseDrag=function() {return new vec(mouseX-pmouseX,mouseY-pmouseY);};                                      // vector representing recent mouse displacement
 
 // measure 
-var dot=function( U,  V) {return U.x*V.x+U.y*V.y; }                                                     // dot(U,V): U*V (dot product U*V)
-var det=function( U,  V) {return dot(R(U),V); }                                                         // det | U V | = scalar cross UxV 
-var n=function( V) {return Math.sqrt(dot(V,V));};                                                               // n(V): ||V|| (norm: length of V)
-var n2=function( V) {return sq(V.x)+sq(V.y);};                                                             // n2(V): V*V (norm squared)
-var parallel =function( U,  V) {return dot(U,R(V))==0; }; 
+var dot=function( U1,  V1) {return U1.x*V1.x+U1.y*V1.y; }                                                     // dot(U,V): U*V (dot product U*V)
+//var det=function( U,  V) {return dot(R(U),V); }  
+var det = function(U,V1){return -U.y*V1.x+U.x+V1.y;}                                                       // det | U V | = scalar cross UxV 
+                                                              // n(V): ||V|| (norm: length of V)
+var n2=function( V1) {return sq(V1.x)+sq(V1.y);};                                                             // n2(V): V*V (norm squared)
+var parallel =function( U,  V1) {return dot(U,R(V1))==0; }; 
 
 var angle =Function.create(false,[function( U,  V) {return Math.atan2(det(U,V),dot(U,V)); },function( V) {return(Math.atan2(V.y,V.x)); },function( A,  B,  C) {return  angle(V(B,A),V(B,C)); }]);                                 // angle <U,V> (between -PI and PI)
 var turnAngle=function( A,  B,  C) {return  angle(V(A,B),V(B,C)); }                                   // angle <AB,BC> (positive when right turn as seen on screen)
@@ -251,8 +252,8 @@ var Wvec=Function.create(xTyped, [types(Number , vec),function( s, V) {return V(
 
 
 // transformed 
-var S=function( s, V) {return new vec(s*V.x,s*V.y);};                                                  // sV
-var M=function( V) { return V(-V.x,-V.y); } 
+var S=function( s, V1) {return new vec(s*V1.x,s*V1.y);};                                                  // sV
+var M=function( V1) { return V(-V1.x,-V1.y); } 
 
 var RVec=Function.create(false,[function( V) {return new vec(-V.y,V.x);},function( V,  a) { return W(Math.cos(a),V,Math.sin(a),R(V)); } ,function( V ,  s ,  t )
   {
@@ -501,7 +502,7 @@ var spiral2 = function(G,b,t2)
    beginShape();
  
   scribble.scribbleLine(P(G.y-r*sin(t),G.x+r*cos(t)).x,P(G.y-r*sin(t),G.x+r*cos(t)).y,P(G.y-r*sin(t+0.05),G.x+r*cos(t+0.05)).x,P(G.y-r*sin(t+0.05),G.x+r*cos(t+0.05)).y);
-   //   show(P(G.y-r*sin(t),G.x+r*cos(t)),1);
+  
      endShape();
  r = b*pow(t,1/2.3);
 }
@@ -510,7 +511,7 @@ var spiral2 = function(G,b,t2)
 
 var questionMark = function(G)
 {
-  //v.questionMark(G,20,12,12.5,16);
+  
   push();
 scale(0.8);
    spiral1(G,5,12.5);
@@ -554,62 +555,45 @@ var emotionCircle = function(G,dia)
   triangle(G.x-dia/2,G.y-5,G.x-5-dia/2,G.y-11,G.x-5-dia/2,G.y-1);
   noFill()
 }
-var circleSpaceBetweenTwoArcs = function(G)
+
+
+var circleSpaceBetweenTwoArcs = function(G,Pt,Qt)
 {
-var Pt = drawSpiral1(G);
-var Qt = drawSpiral2(G);
+
 var circlePoints = [];
-var circlePoints2 = [];
 var i = 1;
-var j = 5;
 var size =100;
-//console.log(Qt[length/2]);
-//console.log(closest(Pt[200],Qt));
-
-
-
-//for(i = 0 ; i < Pt.length-1 ; i+=2){
-  while(i<Pt.length){
-    //show(P(P.G[i],0.3,V(P.closest(Q.G[i]),P.G[i])));
-   // show(L(P.G[i],Q.closest(P.G[i]),0.5));
-   noFill();
-   circlePoints.push({"pt":P(L(Pt[i],closest(Pt[i],Qt),0.5).x,L(Pt[i],closest(Pt[i],Qt),0.5).y),"length":d(Pt[i],closest(Pt[i],Q))/2});
-   //circlePoints.push({"pt":P(L(Qt[i],closest(Qt[i],Pt),0.5).x,L(Qt[i],closest(Qt[i],Pt),0.5).y),"length":d(Pt[i],closest(Pt[i],Q))/2});
-   
-
-   // ellipse(L(Pt[i],closest(Pt[i],Qt),0.5).x,L(Pt[i],closest(Pt[i],Qt),0.5).y,d(Pt[i],closest(Pt[i],Q)),d(Pt[i],closest(Pt[i],Q)));
-   
-
-   // ellipse(L(Qt[i],closest(Qt[i],Pt),0.5).x,L(Qt[i],closest(Qt[i],Pt),0.5).y,d(Pt[i],closest(Pt[i],Q)),d(Pt[i],closest(Pt[i],Q)));
- 
-
+while(i<Pt.length){
+   circlePoints.push({"pt":P(L(Pt[i],closest(Pt[i],Qt),0.5).x,L(Pt[i],closest(Pt[i],Qt),0.5).y),"length":d(Pt[i],closest(Pt[i],Qt))/2});
   if(i<Pt.length*.15)
-   i+=8;
+     i+=8;
   if(i<Pt.length*0.3)
-  i+=3;
+     i+=3;
     else
       i+=2;
- 
-  }
-while(j<Qt.length)
+ }
+  return circlePoints;
+}
+var circleSpaceBetweenTwoArcs2 = function(G,Pt,Qt)
 {
 
-if(j<Qt.length*0.05)
-size = 0.5*size;
-
-j+=8;
-}
-
+var circlePoints = [];
+var i = 1;
+var size =100;
+while(i<Qt.length){
+   circlePoints.push({"pt":P(L(Qt[i],closest(Qt[i],Pt),0.5).x,L(Qt[i],closest(Qt[i],Pt),0.5).y),"length":d(Qt[i],closest(Qt[i],Pt))/2});
+ /* if(i<Qt.length*.15)
+     i+=8;
+  if(i<Qt.length*0.3)
+     i+=3;
+    else*/
+      i+=2;
+ }
   return circlePoints;
-  
 }
-
 var closest = function(M,PS)
 {
- // var j = floor(PS.length/2);
-  
-//  console.log(j);
-//  console.log(PS[j]);
+ 
   var v = 0;
    for(var j = 0 ; j < PS.length ; j++)
       if(d(PS[j],M)<d(PS[v],M)) v = floor(j);
@@ -639,6 +623,7 @@ var closest = function(M,PS)
       v : v,
       arrow : arrow,
       V :V,
+      U: U,
       MouseDrag : MouseDrag,
       dot : dot,
       det : det,
@@ -680,7 +665,8 @@ var closest = function(M,PS)
       questionMarkInverted:questionMarkInverted,
       circleHeadGear:circleHeadGear,
       emotionCircle:emotionCircle,
-
+      circleSpaceBetweenTwoArcs2:circleSpaceBetweenTwoArcs2,
+     
  
 
 

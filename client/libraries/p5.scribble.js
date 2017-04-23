@@ -157,7 +157,7 @@ function Scribble(p) {
     this.buildEllipse( x, y, rx, ry, 1.5, 0 );
   }
 
-  this.scribbleFilling = function( xCoords, yCoords, gap, angle ) {
+  this.scribbleFilling = function( xCoords, yCoords, gap, angle,j,time ) {
     if ((xCoords == null) || (yCoords == null) || (xCoords.length == 0) || (yCoords.length == 0)) {
         return;
       }
@@ -184,14 +184,17 @@ function Scribble(p) {
 
     while ( (rectCoords = it.getNextLine()) != null ) {
       var lines = this.getIntersectingLines( rectCoords, xCoords, yCoords );
-
-      for ( var i = 0; i < lines.length; i+=2 ) {
-        if ( i < lines.length-1 ) {
+      console.log(lines);
+      var p1 = lines[1];
+      var p2 = lines[1+1]
+      this.scribbleLine( p1[0], p1[1], p2[0], p2[1], 2 );
+     /* for ( var i = 1; i < lines.length; i+=2 ) {
+        if ( i < lines.length ) {
           var p1 = lines[i];
-          var p2 = lines[i+1];
+          var p2 = lines[i-1];
           this.scribbleLine( p1[0], p1[1], p2[0], p2[1], 2 );
         }
-      }
+      }*/
     }
   }
 }

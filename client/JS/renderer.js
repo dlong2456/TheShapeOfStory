@@ -89,52 +89,17 @@ var actionUtility =
 };
 var feelingUtility = 
 {
-  //red is a very emotionally intense color.
-  //orange combines the energy of red and happiness of yellow
-  //
-  "" : ["orange","yellow","olive_green","gold","aqua","light_blue"],
-  "anger" : ["dark_red","black","red_orange","dark_green"], //red orange for aggression
-  "disgust" : ["red","dull_yellow","grey_black","maroon"], //dull yellow for sickness
-  "fear" : ["red","dark_orange","yellow_green","dull_yellow"], //erd for danger, yellow_green for cowardice,//dark_orange for distrust
-  "happiness" : ["orange","yellow","olive_green","gold","aqua","light_blue"],
-  "sadness" : ["dull_green","blue"," dark_purple","grey"],
-  "surprise" : ["orange","bright_yellow","bright_blue","bright_green","magenta"],
+  
+  "very-negative" : ["dark_red","black","red_orange","dark_green","grey_black","maroon"], //red orange for aggression
+  "negative" : ["dull_yellow",], //dull yellow for sickness
+  "neutral" : ["dull_green","blue"," dark_purple","grey","red","dark_orange","yellow_green","dull_yellow"],
+  "positive" : ["orange","yellow","olive_green","gold","aqua","light_blue"],
+  "very-positive" : ["orange","bright_yellow","bright_blue","bright_green","magenta"],
 
 }
 
 
-//Public stuff
-	//the layer class 
-	var Layer = function(layerType)
-    {
 
-
-    	if(layerType == "background" )
-           BackgroundLayer.call(this);
-        if(layerType == "entity" )
-           EntityLayer.call(this);
-        if(layerType == "text" )
-           TextLayer.call(this);
-        else //defualt layer set to entity
-           EntityLayer.call(this);
-    }
-
-    Layer.prototype = 
-    {
-    	constructor : Layer,
-
-    }
- /*
- //use for testing different techniques
-  var testFunction = function()
-  {
-  	fill(200,200,0);
-  	rect(20,20,20,20);
-  }
-*/
-
-
-//the background layer class
 var BackgroundLayer = function(color,setting)
 {
   this.type = "background"
@@ -165,15 +130,21 @@ var TextLayer = function()
 }
 
 //the entity layer class
-var AgentLayer = function(num,subjects,predicates,action,setting)
+var AgentLayer = function(num,subjects,predicates,action,setting,emotion)
 {
   this.num = num;
 	this.type = "agent";
 	this.subjects = subjects || [] ;
   this.predicates = predicates || [] ;
 	this.action = action || "";
-  
+  this.emotion = emotion || "";
   this.setting = setting || "";
+  this.setDone = false;
+  this.subjectDone = false;
+   this.predicateDone = false;
+  this.actDone = false;
+  this.dt = 20;//frame drawing time
+  this.et = 5; //element drawing time - time to draw setting, 2 agents , action
  // console.log(this.relation);
   
 }
@@ -183,15 +154,20 @@ AgentLayer.prototype=
 	constructor :AgentLayer,
 	draw : function(pt,t)
 	{
-    var time = t-4*this.num;
-   if(time > 0 && time <=3)
+    
+    var time = t-this.dt*this.num;
+
+    
+   if(time > 0 && time <=this.dt)
    {
    
-      //var i = pt["pt"].x-(pt["length"]);
-    //  var j =pt["pt"].y-(pt["length"]);
+    
+   if(time >= this.dt/this.et) this.setDone = true;
+   if(time >= this.et * 2) this.subjectDone = true;
+   if(time>=this.et*3) this.predicateDone = true;
       var i = pt["pt"].x;
       var j = pt["pt"].y;
-      point(i,j);
+     
       var alpha = 255;
       var obj = 1;
       var posSettingx, posSettingy; 
@@ -205,7 +181,7 @@ AgentLayer.prototype=
 
      if(this.setting == "on" || this.setting == "at")
      {
-   
+     //top left corner 
       posSettingx = i-pt["length"];
       posSettingy = j + 0.1*pt["length"]*2;
       settingBoundx = pt["length"];
@@ -226,6 +202,7 @@ AgentLayer.prototype=
      {
      // posSettingx = i+0.1*pt["length"]*2;
      // posSettingy = j+0.1*pt["length"]*2;
+     //middle of the "in" box
      posSettingx = i;
      posSettingy = j;
      settingBoundx = 0.8*pt["length"]*2;
@@ -262,6 +239,7 @@ AgentLayer.prototype=
      }
      if(this.setting == "to")
      {
+      //middle of the "to" circle.
       posSettingx = i+0.3*pt["length"];
       posSettingy = j;
       settingBoundx = 0.6*pt["length"]*2;
@@ -279,6 +257,7 @@ AgentLayer.prototype=
      }
      if(this.setting == "from")
      {
+         //middle of the "from" circle.
       posSettingx = i;
       posSettingy = j;
       settingBoundx = 0.6*pt["length"]*2;
@@ -296,9 +275,13 @@ AgentLayer.prototype=
      }
      boundingBoxX = agentspacex/2;
      boundingBoxY = agentspacey;
-  
+  if(!this.setDone)
   drawSetting(this.setting,posSettingx,posSettingy, pt["length"],time);
-  
+  if(this.setDone && !this.subjectDone)
+
+    {  
+
+      console.log("drawing agents");
       this.subjects.forEach(function(agent)
       {
              
@@ -307,7 +290,8 @@ AgentLayer.prototype=
       obj+=1;
 
       },this);
-
+}
+if(this.subjectDone && !this.predicateDone){
       this.predicates.forEach(function(agent)
       {
 
@@ -315,8 +299,14 @@ AgentLayer.prototype=
       obj+=1;
 
       });
-      var scribble = new Scribble();
-      //actionUtility[this.action](posx,posy,agentspacex,agentspacey,scribble,time);
+    }
+      if(this.predicateDone)
+      {
+        var scribble = new Scribble();
+        strokeWeight(1);
+         actionUtility[this.action](posPx+boundingBoxX/2,posPy,boundingBoxX,boundingBoxY,scribble,time);
+      }
+      
 	}
   },
 	
@@ -349,125 +339,267 @@ function drawSetting(setting,i,j,length,time)
 function drawTriangle(i,j,w,h,color,scribble,time)
 {
   
- var rFactor = random(5); //degree of randomness
- push();
+  if(time >= 5 && time < 10)
+ {
+  var a = 5;
 
+  var b = 10;
+  var t = time-a;
+ }
+ else if(time >= 10 && time < 15)
+ {
+  var a = 10;
+
+  var b = 15;
+  var t = time-a;
+
+ }
+
+  var T = 5; //amount of time available for drawing this animation
+  var delTperLine = T/3; //amount of time available to draw each part of the animation. This element has 4 parts therefore, 5/4.
+  var dist = sqrt(sq(w/2)+sq(h/2))/2; // length of each line to be drawn.
+ 
+  var speed = dist/delTperLine; //speed of drawing each line.
+  
+  strokeWeight(1);
+  push();
   translate(i,j);
-  
-  
-  scribble.scribbleLine(w/2,0.1*h+rFactor,0.8*w,0.8*h);
-  scribble.scribbleLine(0.8*w,0.8*h,0.2*w,0.8*h);
-   scribble.scribbleLine(w/2,0.1*h+rFactor,0.2*w,0.8*h);
-   stroke(color);
-   var xCoords = [w/2,0.8*w,0.2*w];
-   var yCoords = [0.1*h+rFactor,0.8*h,0.8*h];
-   var gap = 2;
-   var angle = 90;
-   scribble.scribbleFilling(xCoords,yCoords,gap,angle);
 
-   noStroke();
+  var colorDistance = h;
+  var colorSpeed = h/T;
+  stroke(255,0,0);
+  //scribble.scribbleFilling([w/2,3*w/2,-w/2,],[0,h,h],2,0,2*time);
+ // scribble.scribbleLine(w/2-(h/4)*t,h/2*t,w/2+(h/4)*t,h/2*t);
+ scribble.scribbleLine(w/2-colorSpeed/2*t,colorSpeed*t,w/2+colorSpeed/2*t,colorSpeed*t);
+ stroke(0);
+  if(t<delTperLine)
+  {
+   
+    var x = w/2-speed*t;
+    var y = 0+speed*2*t;
+    scribble.scribbleLine(x,y,x-speed*t,y+2*speed*t);
+
+  }
+  else if(t<2*delTperLine)
+  {
+    var x = w/2+speed*(t-delTperLine);
+    var y = 0+speed*2*(t-delTperLine);
+    scribble.scribbleLine(x,y,x+speed*(t-delTperLine),y+speed*2*(t-delTperLine));
+
+  }
+
+  else if (t<=T)
+  {
+    var x = -w/2+2*speed*(t-2*delTperLine);
+    var y = h;
+    scribble.scribbleLine(x,y,x+2*speed*(t-2*delTperLine),y);
+  }
+
+ 
+
   pop();
+  strokeWeight(1);
+
+
  
 }
 
 function drawSquare(i,j,w,h,color,scribble,time)
 {
+ if(time >= 5 && time < 10)
+ {
+  var a = 5;
+
+  var b = 10;
+  var t = time-a;
+ }
+ else if(time >= 10 && time < 15)
+ {
+  var a = 10;
+
+  var b = 15;
+  var t = time-a;
+
+ }
+
+  var T = 5; //amount of time available for drawing this animation
+  var delTperLine = T/4; //amount of time available to draw each part of the animation. This element has 4 parts therefore, 5/4.
+  var dist = w/2; // length of each line to be drawn.
+  
+  var speed = dist/delTperLine; //speed of drawing each line.
+
+  strokeWeight(1);
   push();
+  translate(i,j);
 
-    translate(i,j);
-   var dist = w;
-   var speed = w/10;
-   var x = +speed*time;
-   var _x = dist+speed*(time-1);
-   var __x = dist+speed*(time-2);
-  
-   if(time<1)
+   var colorDistance = w;
+  var colorSpeed = w/T;
+  stroke(255,0,0);
+  //scribble.scribbleFilling([w/2,3*w/2,-w/2,],[0,h,h],2,0,2*time);
+ // scribble.scribbleLine(w/2-(h/4)*t,h/2*t,w/2+(h/4)*t,h/2*t);
+ scribble.scribbleLine(0,colorSpeed*t,w,colorSpeed*t);
+
+  if(t<delTperLine)
   {
-       scribble.scribbleLine(x,0,x+time*dist,0);
-       scribble.scribbleLine(0,x,0,x+time*dist);
+    var x = 0;
+    var y = 0+speed*t;
+    scribble.scribbleLine(x,y,x,y+speed*t);
+
   }
-  else if(time<2)
+  else if(t<2*delTperLine)
   {
-     scribble.scribbleLine(dist,_x-2*dist+dist,dist,_x+(time-1)*dist-2*dist+dist);
+    var x = 0+speed*(t-delTperLine);
+    var y = 0;
+    scribble.scribbleLine(x,y,x+speed*(t-delTperLine),y);
+
   }
-  else if(time < 3)
+else if(t<3*delTperLine)
   {
-   scribble.scribbleLine(__x-2*dist+dist,0+dist,__x+(time-2)*dist-2*dist+dist,0+dist);
+    var x = w;
+    var y = w-speed*(t-2*delTperLine);
+ console.log(t-2*delTperLine);
+    scribble.scribbleLine(x,y,x,y-speed*(t-2*delTperLine));
+
   }
- 
-  stroke(color);
-  
-   scribble.scribbleLine(0,(dist*time)%dist,w,(dist*time)%dist);
-
-  
-
-   stroke(0);
-
-   
+  else if (t<T)
+  {
+    var x = w-speed*(t-3*delTperLine);
+    var y = w;
+    scribble.scribbleLine(x,y,x-speed*(t-3*delTperLine),y);
+  }
   pop();
+  strokeWeight(1);
 
 }
 
 function drawRectangle(i,j,w,h,color,scribble,time)
 {
- 
+ if(time >= 5 && time < 10)
+ {
+  var a = 5;
+
+  var b = 10;
+  var t = time-a;
+ }
+ else if(time >= 10 && time < 15)
+ {
+  var a = 10;
+
+  var b = 15;
+  var t = time-a;
+
+ }
+
+  var T = 5; //amount of time available for drawing this animation
+  var delTperLine = T/4; //amount of time available to draw each part of the animation. This element has 4 parts therefore, 5/4.
+  var distX = w; // length of each line to be drawn.
+  var distY = h/2;
+  var speedX = distX/delTperLine; //speed of drawing each line.
+  var speedY = distY/delTperLine;
+  strokeWeight(1);
   push();
-  var distX = w/2;
-  var distY = h;
-    translate(i,j);
- 
- 
-   var speedX = w/10;
-   var speedY = h/10;
-   var x = +speedX*time;
-   var _x = w+speedY*(time-1);
-   var __x = h+speedX*(time-2);
- 
-   if(time<1)
+  translate(i,j);
+ var colorDistance = h/2;
+  var colorSpeed = h/(2*T);
+  stroke(255,0,0);
+  //scribble.scribbleFilling([w/2,3*w/2,-w/2,],[0,h,h],2,0,2*time);
+ // scribble.scribbleLine(w/2-(h/4)*t,h/2*t,w/2+(h/4)*t,h/2*t);
+ scribble.scribbleLine(0,colorSpeed*t,w,colorSpeed*t);
+stroke(0);
+  if(t<delTperLine)
   {
-       scribble.scribbleLine(x,0,x+time*distX,0);
-       scribble.scribbleLine(0,x,0,x+time*distY);
-  }
-  else if(time<2)
-  {
-     scribble.scribbleLine(distX,_x-distY,distX,_x+(time-1)*distY-distY);
-  }
-  else if(time < 3)
-  {
-   scribble.scribbleLine(__x-2*distX,distY,__x+(time-2)*distX-2*distX,distY);
-  }
- 
-  stroke(color);
-  
-   scribble.scribbleLine(0,(distY*time)%distY,w/2,(distY*time)%distY);
+    var x = 0;
+    var y = 0+speedY*t;
+    scribble.scribbleLine(x,y,x,y+speedY*t);
 
-   stroke(color);
+  }
+  else if(t<2*delTperLine)
+  {
+    var x = 0+speedX*(t-delTperLine);
+    var y = 0;
+    scribble.scribbleLine(x,y,x+speedX*(t-delTperLine),y);
+
+  }
+else if(t<3*delTperLine)
+  {
+    var x = distX;
+    var y = distY-speedY*(t-2*delTperLine);
    
+    scribble.scribbleLine(x,y,x,y-speedY*(t-2*delTperLine));
 
-   stroke(0);
+  }
+  else if (t<T)
+  {
+    var x = distX-speedX*(t-3*delTperLine);
+    var y = distY;
+    scribble.scribbleLine(x,y,x-speedX*(t-3*delTperLine),y);
+  }
   pop();
+  strokeWeight(1);
+  
 }
 
-function drawCircle(i,j,w,h,color,scribble,time)
+function drawCircle(i,j,w,h,color,scribble,time,emotion)
 {
+  if(time >= 5 && time < 10)
+ {
+  var a = 5;
+
+  var b = 10;
+  var t = time-a;
+ }
+ else if(time >= 10 && time < 15)
+ {
+  var a = 10;
+
+  var b = 15;
+  var t = time-a;
+
+ }
+
+ //variable to make the circle scribbly
+ var r = random(0,0.5);
+  var majorAxis = w;
+  var minorAxis = w;
+  var T = 5; //amount of time available for drawing this animation
+  var dist = TWO_PI; // length of each line to be drawn.
+  var speed = dist/T; //speed of drawing each line.
  
-  push()
-    translate(i,j);
+  push();
+  translate(i,j);
+var colorDistanceX = PI/2;
+  var colorSpeedX = colorDistanceX/T;
+  var colorDistanceY = w;
+  var colorSpeedY = colorDistanceY/(T/2);
+  stroke(255,0,0);
+  //scribble.scribbleFilling([w/2,3*w/2,-w/2,],[0,h,h],2,0,2*time);
+ // scribble.scribbleLine(w/2-(h/4)*t,h/2*t,w/2+(h/4)*t,h/2*t);
+ scribble.scribbleLine(minorAxis*Math.sin(colorSpeedX*t),-w+colorSpeedY*t,-minorAxis*Math.sin(colorSpeedX*t),-w+colorSpeedY*t);
+ //scribble.scribbleLine(minorAxis*Math.sin(colorSpeedX*t),w-colorSpeedY*t,-minorAxis*Math.sin(colorSpeedX*t),w-colorSpeedY*t);
+stroke(0);
+/*noStroke()
+if(t<T/3 || t > 2*T/3 ){
+fill(0,255,0,255*0.1*t*t);
+ellipse(0,0,w-2,w-2);
+noFill();*/
+
+//******
+stroke(0);
+ strokeWeight(2);
+ 
+  var x1 = minorAxis*Math.cos(speed*t);
+  var y1 = majorAxis*Math.sin(speed*t);
+  var x2 = minorAxis*Math.cos(speed*(t+r)); //0.05 = deltaTime of overall painting set in the sketch.js
+  var y2 = majorAxis*Math.sin(speed*(t+r));
+
+  scribble.scribbleLine(x1,y1,x2,y2);
+
+  
+  pop();
+  strokeWeight(1);
+  
  
   
- fill(color);
-
-  //scribble.scribbleEllipse(w/2+6,h/2,(w),(w));
-  var majorAxis = w/2;
-   var minorAxis = w/2;
-   var x =0+6+time;
-   var y = 0-w/2+time*10;
-
-   scribble.scribbleLine(x+minorAxis*Math.cos(time),y+majorAxis*Math.sin(time),x+minorAxis*Math.cos(time+2*deltaTime),y+majorAxis*Math.sin(time+2*deltaTime));
-
-noFill();
-  pop();
- 
 }
 function emptyFunction()
 {
@@ -476,83 +608,125 @@ function emptyFunction()
 
 function drawOn(i,j,length,scribble,time)
 {
-   
-   strokeWeight(2);
 
-  // var r = random([-1,1]);
-  var dist = (i+0.9*length*2)-(i+0.1*length*2);
-  var speed = dist/10;
-  var x = i+0.1*length*2+speed*time;
-  var _x = i+0.1*length*2+speed*(time-1);
-  var __x = i+0.1*length*2+speed*(time-2);
-  var r = 1;
-  
- 
-  if(time<1)
+
+   var T = 5; //amount of time available for drawing this animation
+  var delTperLine = T/3; //amount of time available to draw each part of the animation. This element has 4 parts therefore, 5/4.
+  var dist = 0.9*length; // length of each line to be drawn.
+  var speed = dist/delTperLine; //speed of drawing each line.
+  strokeWeight(1);
+  push();
+  translate(i,j);
+  if(time<delTperLine)
   {
-  
-    scribble.scribbleLine(x,j+r*0.3*length*2,x+time*100,j+r*0.3*length*2);
- }
-   else if(time<2)  
-  { 
-     scribble.scribbleLine(_x,j+r*0.2*length*2,_x+(time-1)*100,j+r*0.2*length*2);
+    if(time>0.9*delTperLine) strokeWeight(0);
+    var x = 0+speed*time;
+    var y = 0;
+    scribble.scribbleLine(x,y,x+speed*time,y);
+
   }
-   else if(time<3)
-   {
-    scribble.scribbleLine(__x,j+r*0.1*length*2,__x+(time-2)*100,j+r*0.1*length*2);
+  else if(time<2*delTperLine)
+  {
+     if(time>0.99*delTperLine*2) strokeWeight(0);
+    var x = 0+speed*(time-delTperLine);
+    var y = dist/3;
+    scribble.scribbleLine(x,y,x+speed*(time-delTperLine),y);
+
   }
+
+  else if (time<T)
+  {
+    if(time>0.99*delTperLine*3) strokeWeight(0);
+    var x = 0+speed*(time-2*delTperLine);
+    var y = 2*dist/3;
+    scribble.scribbleLine(x,y,x+speed*(time-2*delTperLine),y);
+  }
+  pop();
+  strokeWeight(1);
+   
   
-    strokeWeight(1);
 }
 function drawIn(i,j,length,scribble,time)
 {
-  strokeWeight(2);
-  var dist = 0.8*length*2;
-  var speed = dist/10;
-  var x = (i-0.8*length*2)+speed*time;
-  var _x = (j+0.8*length*2)+speed*(time-1);
-  var __x = (i+0.8*length*2)+speed*(time-2);
-  if(time<1)
+  var T = 5; //amount of time available for drawing this animation
+  var delTperLine = T/4; //amount of time available to draw each part of the animation. This element has 4 parts therefore, 5/4.
+  var dist = 0.8*length; // length of each line to be drawn.
+  var speed = dist/delTperLine; //speed of drawing each line.
+  strokeWeight(1);
+  push();
+  translate(i,j);
+  if(time<delTperLine)
   {
-       scribble.scribbleLine(x,j-dist,x+time*100,j-dist);
-       scribble.scribbleLine(i-dist,x,i-dist,x+time*100);
+    var x = -dist;
+    var y = -dist+speed*time;
+    scribble.scribbleLine(x,y,x,y+speed*time);
+
   }
-  else if(time<2)
+  else if(time<2*delTperLine)
   {
-     scribble.scribbleLine(i,_x-2*dist,i,_x+(time-1)*100-2*dist);
+    var x = -dist+speed*(time-delTperLine);
+    var y = -dist;
+    scribble.scribbleLine(x,y,x+speed*(time-delTperLine),y);
+
   }
-  else if(time < 3)
+else if(time<3*delTperLine)
   {
-   scribble.scribbleLine(__x-2*dist,j,__x+(time-2)*100-2*dist,j);
+    var x = dist;
+    var y = -dist+speed*(time-2*delTperLine);
+    scribble.scribbleLine(x,y,x,y+speed*(time-2*delTperLine));
+
   }
- // scribble.scribbleRect(i,j,0.8*length*2,0.8*length*2);
+  else if (time<T)
+  {
+    var x = -dist+speed*(time-3*delTperLine);
+    var y = dist;
+    scribble.scribbleLine(x,y,x+speed*(time-3*delTperLine),y);
+  }
+  pop();
   strokeWeight(1);
 }
 
 function drawFrom(i,j,length,scribble,time)
 {
-    strokeWeight(2);
-   // scribble.scribbleEllipse(i,j,0.6*length*2,0.8*length*2);
-   var majorAxis = 0.8*length*2;
-   var minorAxis = 0.6*length*2;
-   var x = i+time;
-   var y = j-0.8*length+time*10;
+  var majorAxis = 0.8*length*2;
+  var minorAxis = 0.6*length*2;
+  var T = 5; //amount of time available for drawing this animation
+  var dist = TWO_PI; // length of each line to be drawn.
+  var speed = dist/T; //speed of drawing each line.
+   var r = random(0,0.5);
+  strokeWeight(2);
+  push();
+  translate(i,j);
+  var x1 = minorAxis*Math.cos(speed*time);
+  var y1 = majorAxis*Math.sin(speed*time);
+  var x2 = minorAxis*Math.cos(speed*(time+r)); //0.05 = deltaTime of overall painting set in the sketch.js
+  var y2 = majorAxis*Math.sin(speed*(time+r));
 
-   scribble.scribbleLine(x+minorAxis*Math.cos(time),y+majorAxis*Math.sin(time),x+minorAxis*Math.cos(time+deltaTime),y+majorAxis*Math.sin(time+deltaTime));
-   //scribble.scribbleRect(i,j,0.6*length*2,0.8*length*2)
-   
-    strokeWeight(1);
+  scribble.scribbleLine(x1,y1,x2,y2);
+  pop();
+  strokeWeight(1);
+  
 }
 function drawTo(i,j,length,scribble,time)
 {
-    strokeWeight(2);
-     var majorAxis = 0.8*length*2;
-   var minorAxis = 0.6*length*2;
-   var x = i+time;
-   var y = j-0.8*length+time*10;
-    scribble.scribbleLine(x+minorAxis*Math.cos(time),y+majorAxis*Math.sin(time),x+minorAxis*Math.cos(time+deltaTime),y+majorAxis*Math.sin(time+deltaTime));
-    //scribble.scribbleEllipse(i,j,0.6*length*2,0.8*length*2);
-    strokeWeight(1);
+ 
+   var majorAxis = 0.8*length*2;
+  var minorAxis = 0.6*length*2;
+  var T = 5; //amount of time available for drawing this animation
+  var dist = TWO_PI; // length of each line to be drawn.
+  var speed = dist/T; //speed of drawing each line.
+  strokeWeight(2);
+   var r = random(0,0.5);
+  push();
+  translate(i,j);
+  var x1 = -minorAxis*Math.cos(speed*time);
+  var y1 = majorAxis*Math.sin(speed*time);
+  var x2 = -minorAxis*Math.cos(speed*(time+r)); //0.05 = deltaTime of overall painting set in the sketch.js
+  var y2 = majorAxis*Math.sin(speed*(time+r));
+
+  scribble.scribbleLine(x1,y1,x2,y2);
+  pop();
+  strokeWeight(1);
 }
 function drawBe(i,j,w,h,scribble,time)
 {
@@ -612,7 +786,7 @@ function drawMoveObject(i,j,w,h,scribble,time)
   noFill();
   stroke(random(255),random(255),random(255));
   
-  scribble.scribbleFilling([-20,-10,-10,-20],[-5,-5,5,5],2,180)
+  scribble.scribbleFilling([-20,-10,-10,-20],[-5,-5,5,5],2,90)
   scribble.scribbleRect(-15,0,10,10);
   
   stroke(0);
@@ -675,34 +849,7 @@ function drawExpel(i,j,w,h,scribble,time)
   scribble.scribbleEllipse(t+1,8*sin(t+0.1),10,10);
   noFill();
 
-/*
-fill(255,0,0);
-  scribble.scribbleEllipse(-w/2,-30,5,5);
-  scribble.scribbleEllipse(-w/2,-20,5,5);
-  scribble.scribbleEllipse(-w/2,-10,5,5);
-  noFill();
-  scribble.scribbleCurve(-w/2,-30,-w/8,-5,-w/4,-25,-w/6,-20)
-  scribble.scribbleCurve(-w/2,-20,-w/8,-0,-w/4,-15,-w/6,-10)
-  scribble.scribbleCurve(-w/2,-10,-w/8,5,-w/4,-5,-w/6,0)
-  fill(255,0,0);
-  scribble.scribbleEllipse(w/2,-30,5,5);
-  scribble.scribbleEllipse(w/2,-20,5,5);
-  scribble.scribbleEllipse(w/2,-10,5,5);
-  noFill();
-  scribble.scribbleCurve(w/2,-30,w/8,-5,w/4,-25,w/6,-20)
-  scribble.scribbleCurve(w/2,-20,w/8,-0,w/4,-15,w/6,-10)
-  scribble.scribbleCurve(w/2,-10,w/8,5,w/4,-5,w/6,0)
-  noFill();
-*/
-  /*
-  arc(w+10,h-20,50,50,PI,PI+PI/3);
-  //fill(255,0,0);
-  var v = pv.V(pv.R(pv.V(-1,0),PI/3));
 
- //var p = pv.P(G,1,v);
- // show(p);
-  noFill();
-  */
   pop();
 }
 function drawPropel(i,j,w,h,scribble,time)
@@ -909,8 +1056,57 @@ function drawConclude(i,j,w,h,time)
 }
 
 
+//emotion drawings as line quality
+/*
+Anger
+Disgust
+Fear
+Happiness
+Sadness
+Surprise
+*/
+//P is the coordinate of points in clockwise sense , in which angry is to be drawn.
+//P is an array of points in case of triangle and square and rectangle
+//P is an array of center and radius in case of circle
+function drawAngry(P,color,time)
+{
+  var speed = 2;
+  var sWeight = 2;
+  var roughness = 2;
+  //triangle
+   if(P.length === 6)
+   {
+     fillTriangle(P,speed,color,roughness,sweight,time)
+   }
+   //rectangle / square
+    if(P.length == 8)
+   {
+       fillSquare(P,speed,color,roughness,sweight,time)
+
+   }
+   //circle.
+   if(P.length == 3)
+   {
+     fillCircle(P,speed,color,roughness,sweight,time)
+   }
+
+}
+function fillCircle(P,speed,color,roughness,sweight,time)
+{
+
+}
+
+function fillSquare(P,speed,color,roughness,sweight,time)
+{
+
+}
+
+function fillTriangle(P,speed,color,roughness,sweight,time)
+{
+
+}
 	return {
-    Layer: Layer,
+   
     BackgroundLayer : BackgroundLayer,
     TextLayer : TextLayer,
     AgentLayer : AgentLayer,

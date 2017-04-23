@@ -1,4 +1,3 @@
-var display;
 var recordedText = "";
 //var tex = "He woke to the smell of smoke. The house was burning and he did not know what to do. He ran downstairs and went outside. Suddenly, he remembered that he left his cat inside. He called 911 and the firefighters saved the cat.";
 //var tex = "Once upon a time ,in a village there lived a beautiful girl named Cinderella with her wicked stepmother and two step-sisters. She worked hard all day. One day, they all went to a ball in the palace, leaving Cinderella behind. Cinderella was feeling sad. Suddenly there was a burst of light and the fairy godmother appeared. With a flick of the magic she turned Cinderella into a beautiful princess with glass slippers and a horse carriage appeared at the door. The fairy godmother warned Cinderella to return before midnight. Cinderella arrived at the ball, the prince saw her and fell in love with her. They danced together all night. As the clock struck twelve, Cinderella rushed out to her carriage leaving one of her slippers behind. The prince went to every house in the town with the slipper until he found Cinderella. The prince and Cinderella lived happily ever after.";
@@ -18,7 +17,7 @@ function start(websocketServerLocation) {
     console.log("message received");
 
     createComic(evt.data);
-    display = true;
+   
   };
 
   ws.onclose = function() {
@@ -100,32 +99,7 @@ function createComic(data)
 
         });
 
-/*
-       relates.forEach(function(rel){
-            var pr = rel["primary_agent"];
-            var sec = rel["secondary_agent"];
-            var primaryA = {};
-            var secondaryA = {};
-            
-                if(pr["agentType"] == "HUMAN")
-                {
-                    primaryA = new Agent.Human(emoColor,pr["gender"]);
-                }
-                else
-                {
-                   primaryA = new Agent.NonHuman(emoColor,pr["gender"]);
-                }
-                if(sec["agentType"] == "HUMAN")
-                {
-                    secondaryA = new Agent.Human(emoColor,sec["gender"]);
-                }
-                else
-                {
-                   secondaryA = new Agent.NonHuman(emoColor,sec["gender"]);
-                }
-               relationsArray.push(new Relation(rel["type"],rel["intimacy"],rel["positivity"],primaryA,secondaryA));
 
-       });*/
 
        var emptyRelation = new Relation("equal",0,0);
        actionPanel = new Comic.Action(subjectArray,predArray,act,emotion,emptyRelation,set);
@@ -134,118 +108,117 @@ function createComic(data)
   });
 }
 
+
+
+var comic = new Comic.Holder(comicStrip);
+
+
+var inc = 0.1;
+var scl = 10;
+var cols, rows;
+
+var zoff = 0;
+
+var fr;
+
+var particles = [];
+var flowfield;
+var showPattern = false;
+
+
 var G;
+
 var t = 0;
 var P = [];
 var Q = [];
-var sentimentColor = false;
-var comic = new Comic.Holder(comicStrip);
-var fillColor = '#'
+var R = [];
+var B = [];
+
+
+
 
 function preload()
 {
   recorder.onResult = parseResult;
   recorder.start();
-  createCanvas(800,800);
- // background('#DAA45E');
-//background(255);
-  G = new pv.pt(width/2,height/2);
-  P = pv.drawSpiral1(G);
-  Q = pv.drawSpiral2(G);
+ createCanvas(800,800);
+ background(255);
+ G = new pv.pt(width/2,height/2);
+ P = pv.drawSpiral1(G);
+ Q = pv.drawSpiral2(G);
+ R = pv.circleSpaceBetweenTwoArcs(G,P,Q); 
+ R[0]["length"] = R[1]["length"];
+ R[0]["pt"].y-= (R[0]["length"]+25);
+ R[1]["pt"].x+=R[1]["length"]+30;
+ R[1]["pt"].y-=R[1]["length"];
+ B = pv.circleSpaceBetweenTwoArcs2(G,P,Q); 
+ B[0]["length"] = B[1]["length"];
+ B[0]["pt"].y+= (B[0]["length"]+25);
+ B[1]["pt"].x-=2*B[1]["length"];
+ B[1]["pt"].y+=B[1]["length"];
 
 
-//sentiment analysis stuff
-Sentiment.initialise();
+
 }
+var deltaTime = 0.05;
 function setup()
 {
-  background(255);
-// pv.spiral1(G,20,12.5);
-// pv.spiral2(G,12,16);
+  scribble = new Scribble();
+  //sentiment pattern 
+ // colorMode(HSB, 255);
+  cols = floor(width / scl);
+  rows = floor(height / scl);
+  fr = createP('');
+  flowfield = new Array(cols * rows);
 
-//pv.questionMarkInverted(G);
+  for (var i = 0; i < B.length; i++) {
+    particles[i] = new Particle(B[i]["pt"].x,B[i]["pt"].y);
+  }
 
   
 }
 
 function draw()
 {
-    
-   if(sentimentColor === true)
-  {
-    background(random(200,255),random(200,255),random(200,255));
-    /*
-    //console.log("true");
-    for(var k = 0; k< 5 ; k++)
-   {
-     Sentiment.reactionDiffusion();
-   }
-   Sentiment.drawCells(fillColor);
-  */
+  
+ 
+  if(!showPattern)
+   comic.display(P,R,t);
+    t+=deltaTime;
+if(showPattern)
+{
+  var yoff = 0;
+  for (var y = 0; y < rows; y++) {
+    var xoff = 0;
+    for (var x = 0; x < cols; x++) {
+      var index = x + y * cols;
+      var angle = noise(xoff, yoff, zoff) * TWO_PI * 4;
+      var v = p5.Vector.fromAngle(angle);
+      v.setMag(1);
+      flowfield[index] = v;
+      xoff += inc;
+      stroke(0, 50);
+     
+    }
+    yoff += inc;
+
+    zoff += 0.0003;
   }
 
- 
-   P = pv.drawSpiral1(G);
-   Q = pv.drawSpiral2(G); 
-
-  
-  if(display === true)
-  {
-    console.log("Displaying now..");
-    background(255);
-    comic.display(P,Q,G);
-  // noLoop();
-    display = false;
+  for (var i = 0; i < particles.length; i++) {
+    particles[i].follow(flowfield);
+    particles[i].update();
+    particles[i].edges(B[i]["length"]);
+    particles[i].show();
   }
-  
-  
-  // noLoop();
-  // pv.show(G);
-  // pv.show(pv.spiral(G,t));
-  // t+=0.5;
-  
-
- //pv.circleSpaceBetweenTwoArcs(G);
- 
- //  for(var i = 1 ; i < P.length ; i++)
-   // line(P[i-1].x,P[i-1].y,P[i].x,P[i].y);
 
 }
-
-function mouseClicked()
-{
-  display = true;
-  redraw();
 }
 function mouseWheel(event)
 {
-  console.log((event.delta+3)%3);
-  if((event.delta+3)%3 == -2)
-  {
-     background("#FFCCCC");
-  }
-  if((event.delta+3)%3 == -1)
-  {
-     background("#ccff99");
-  }
-  if((event.delta+3)%3 == -0 || (event.delta+3)%3 == 0)
-  {
-     background("#cc99ff");
-  }
-  if((event.delta+3)%3 == 1)
-  {
-    background("#99ffff");
-  }
-  if((event.delta+3)%3 == 2)
-  {
-    background("#ffff99");
-  }
-//  background((event.delta+255)%255, random(200,255),random(200,255));
-  P = pv.drawSpiral1(G);
-   Q = pv.drawSpiral2(G); 
-  comic.display(P,Q,G);
-  
+  showPattern = !showPattern;
 }
+
 
 
 /*
@@ -300,50 +273,124 @@ Happiness
 Sadness
 Surprise
 */
-/*var t; //time for creating the animation.
+/*var inc = 0.1;
+var scl = 10;
+var cols, rows;
+
+var zoff = 0;
+
+var fr;
+
+var particles = [];
+var flowfield;
+var showPattern = false;
+
+var t; //time for creating the animation.
 var G;
+
 var t = 0;
 var P = [];
 var Q = [];
+var R = [];
+var B = [];
 var testAgent = new Agent.Human("happiness","FEMALE");
 var testAgent2 = new Agent.Human("surprise","MALE");
 var object = new Agent.Object("happiness");
 var testAgent3 = new Agent.NonHuman("surprise","MALE");
 var r = new Relation("dominant",1,2,[testAgent],[testAgent2]);
 var emptyRelation = {};
-var p1 = new Comic.Action(0,[testAgent],[testAgent3],"ingest","happiness","to");
-//subjects,predicates , action,emotionColor,relation,setting ,bgColor,name
-var p2 = new Comic.Action(1,[testAgent2],[testAgent3],"see","surprise","to");
-var comic = new Comic.Holder([p1,p2]);
+var p1 = new Comic.Action(0,[testAgent],[testAgent3],"ingest","happiness","from");
+
+var p2 = new Comic.Action(1,[testAgent2],[testAgent3],"feel","surprise","to");
+var p3 = new Comic.Action(2,[testAgent2],[testAgent3],"see","surprise","to");
+var p4 = new Comic.Action(3,[testAgent2],[testAgent3],"expel","surprise","to");
+var comic = new Comic.Holder([p1,p2,p3,p4]);
+var P1 = pv.P(100,200);
+var P2 = pv.P(50,300);
+var P3 = pv.P(150,300);
+
+var V1 = pv.U(P1,P2);
+var V2 = pv.U(P2,P3);
+var V3 = pv.U(P3,P1);
+var scribble;
+//V1 = pv.U(V1);
+var Pt = pv.P(P1);
+var s = 0;
 function preload()
 {
   createCanvas(800,800);
- // background('#DAA45E');
  background(255);
-  G = new pv.pt(width/2,height/2);
-P = pv.drawSpiral1(G);
+ G = new pv.pt(width/2,height/2);
+ P = pv.drawSpiral1(G);
  Q = pv.drawSpiral2(G);
-
+ R = pv.circleSpaceBetweenTwoArcs(G,P,Q); 
+ R[0]["length"] = R[1]["length"];
+ R[0]["pt"].y-= (R[0]["length"]+25);
+ R[1]["pt"].x+=R[1]["length"]+30;
+ R[1]["pt"].y-=R[1]["length"];
+ B = pv.circleSpaceBetweenTwoArcs2(G,P,Q); 
+ B[0]["length"] = B[1]["length"];
+ B[0]["pt"].y+= (B[0]["length"]+25);
+ B[1]["pt"].x-=2*B[1]["length"];
+ B[1]["pt"].y+=B[1]["length"];
 }
-var deltaTime = 0.1;
+var deltaTime = 0.05;
 function setup()
 {
-  
+scribble = new Scribble();
+  //sentiment pattern 
+ // colorMode(HSB, 255);
+  cols = floor(width / scl);
+  rows = floor(height / scl);
+  fr = createP('');
+  flowfield = new Array(cols * rows);
 
-
-  
+  for (var i = 0; i < B.length; i++) {
+    particles[i] = new Particle(B[i]["pt"].x,B[i]["pt"].y);
+  }
+ 
 }
 
 function draw()
 {
-   comic.display(P,Q,G,t);
-    t+=deltaTime;
-  
   
  
+  if(!showPattern)
+   comic.display(P,R,t);
+    t+=deltaTime;
+if(showPattern)
+{
+  var yoff = 0;
+  for (var y = 0; y < rows; y++) {
+    var xoff = 0;
+    for (var x = 0; x < cols; x++) {
+      var index = x + y * cols;
+      var angle = noise(xoff, yoff, zoff) * TWO_PI * 4;
+      var v = p5.Vector.fromAngle(angle);
+      v.setMag(1);
+      flowfield[index] = v;
+      xoff += inc;
+      stroke(0, 50);
+     
+    }
+    yoff += inc;
+
+    zoff += 0.0003;
+  }
+
+  for (var i = 0; i < particles.length; i++) {
+    particles[i].follow(flowfield);
+    particles[i].update();
+    particles[i].edges(B[i]["length"]);
+    particles[i].show();
+  }
 
 }
-*/
+}
+function mouseWheel(event)
+{
+  showPattern = !showPattern;
+}*/
 /*var t = 0;
 var scribble;
 var x = 100;
@@ -426,8 +473,8 @@ function draw()
   scribble.scribbleFilling([150,50,50,150],[150,150,50,50],2,90);
 }
 */
-/*
-function setup() {
+
+/*function setup() {
         var canvas = createCanvas( windowWidth*0.98, windowHeight*0.97 );
         background( 255 );
         stroke( 0 );
@@ -476,7 +523,7 @@ function setup() {
           // the gap between two hachure lines
           var gap = 3.5;
           // the angle of the hachure in degrees
-          var angle = 180;
+          var angle = 30;
           // set the thikness of our hachure lines
           strokeWeight( 3 );
           //set the color of the hachure to a nice blue
@@ -487,3 +534,4 @@ function setup() {
       }
       function draw() {}
       */
+

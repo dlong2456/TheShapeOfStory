@@ -1,7 +1,7 @@
 var Comic = (function()
 {
 	//Panels
-	var Action = function(num,subjects,predicates , action,emotionColor,setting ,bgColor,name)
+	var Action = function(num,subjects,predicates , action,emotionColor,setting ,emotion,name)
 	{
 
 		this.type = "action",
@@ -11,50 +11,15 @@ var Comic = (function()
 		this.action = action || "";
 		this.color = emotionColor || "";
 		
-		this.bgColor = bgColor || "";
+		this.emotion = emotion || "";
     this.setting = setting || "";
-		this.background = new Renderer.BackgroundLayer(this.bgColor);
-		this.agentLayer = new Renderer.AgentLayer(num,this.subjects,this.predicates,this.action,this.setting);
-		this.textLayer = new Renderer.TextLayer();
-    this.num = num;//frame number variable
+		this.agentLayer = new Renderer.AgentLayer(num,this.subjects,this.predicates,this.action,this.setting,this.emotion);
+		this.num = num;//frame number variable
+  }
 
-		//subject and predicates mapped to size of the agents
-		//
-	}
+   
 
-    var Expository = function(setting,emotionColor,bgColor,name)
-    {
-          this.type = "expository",
-          this.color = emotionColor || "";
-          this.bgColor = bgColor || "";
-		this.background = new Renderer.BackgroundLayer(this.bgColor);
-		this.name = name || "";
-    }
-
-    var ComicStrip = function(PanelList , capacity)
-    {
-    	this.panels = PanelList || [];
-    	this.capacity = capacity || 5; // Number of panels per strip.
-    }
-
-     ComicStrip.prototype =
-   {
-   	 constructor : ComicStrip,
-///
-   	 display : function(pt)
-   	 {
-   	 
-   	 	
-   	 	this.panels.forEach(function(panel)
-   	 	{     
-              
-              panel.background.draw(i,j);
-              panel.agentLayer.draw(i,j);  
-              i+=120; 
-             
-   	 	});
-   	 },
-   }
+   
 
 
  var Holder = function(panels , capacity)
@@ -67,90 +32,24 @@ var Comic = (function()
    Holder.prototype =
    {
    	constructor : Holder,
-   	display : function(P,Q,G,t)
+   	display : function(P,R,t)
    	{
-    //console.log(t);
-     var i = 1;
-     var positions = pv.circleSpaceBetweenTwoArcs(G);
-     // console.log(positions[0]);
+  
+     var i = 0;
+     var positions = R;
+  
      this.panels.forEach(function(panel)
      {
-     	
-     //	panel.background.draw(positions[i]);
      	panel.agentLayer.draw(positions[i],t);
      	i+=1;
      });
-   	  // var i = 10;
-      // this.strips.forEach(function(strip){
-       	// rect(10,i,(width-10),120);
-        // strip.display(i+10);
-        
-        // i+=130;
-
-       //});
+   	 
    	},
    }
 
-/*
-   ComicStrip.prototype =
-   {
-   	 constructor : ComicStrip,
-///
-   	 display : function(j)
-   	 {
-   	 	var i = 20.0;
-   	 	
-   	 	this.panels.forEach(function(panel)
-   	 	{     
-              
-              panel.background.draw(i,j);
-              panel.agentLayer.draw(i,j);  
-              i+=120; 
-             
-   	 	});
-   	 },
-   }
-*/
-  /* var Holder = function(ComicStrips , capacity)
-   {
-         this.strips = ComicStrips || [];
-         this.capacity = capacity || 5; // Number of strips to display on the screen.
 
-   }
-
-   Holder.prototype =
-   {
-   	constructor : Holder,
-   	display : function(P,Q,G)
-   	{
-
-      P = pv.drawSpiral1(G);
-      Q = pv.drawSpiral2(G);
-      var positions = pv.circleSpaceBetweenTwoArcs(G);
-     // console.log(positions[0]);
-      positions.forEach(function(pt){
-      	fill(255,0,0);
-         ellipse(pt.x,pt.y,10,10);
-         noFill();
-      //  strip.display(pt);
-      });
-   	  // var i = 10;
-      // this.strips.forEach(function(strip){
-       	// rect(10,i,(width-10),120);
-        // strip.display(i+10);
-        
-        // i+=130;
-
-       //});
-   	},
-   }
-*/
 return {
 	Action : Action,
-	
-	
-	
-	ComicStrip : ComicStrip,
 	Holder : Holder,
 
 }
