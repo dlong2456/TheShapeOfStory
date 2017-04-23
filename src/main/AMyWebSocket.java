@@ -24,6 +24,7 @@ import frameComponents.AnObject;
 import frameComponents.Emotion;
 import frameComponents.Setting;
 import story.AStory;
+import story.AStory.Sentiment;
 import story.Frame;
 import story.Story;
 
@@ -73,9 +74,7 @@ public class AMyWebSocket implements MyWebSocket {
 		if (!message.equals(null)) {
 			//Sent each time a new person begins to speak
 			if (message.equals("new person")) {
-				// perform sentiment analysis on story
-				story.setSentiment(pipeline);
-				System.out.println(story.getSentiment());
+				// get story sentiment
 				JSONObject sentiment = new JSONObject();
 				sentiment.put("sentiment", story.getSentiment());
 				sendMessage(sentiment.toJSONString());
@@ -91,7 +90,7 @@ public class AMyWebSocket implements MyWebSocket {
 				Annotation document = new Annotation(message);
 				pipeline.annotate(document);
 				//Generate frames from annotated story
-				FrameMaker frameMaker = new AFrameMaker(outThread, lock);
+				FrameMaker frameMaker = new AFrameMaker(outThread, lock, story);
 				ArrayList<Frame> frames = frameMaker.makeFrame(document);
 				if (story.getFrames() == null) {
 					story.setFrames(frames);
@@ -155,16 +154,21 @@ public class AMyWebSocket implements MyWebSocket {
 			Action action = frames.get(i).getAction();
 			Emotion emotion = frames.get(i).getEmotion();
 			Setting setting = frames.get(i).getSetting();
+			Sentiment sentiment = frames.get(i).getSentiment();
 			if (action != null) {
 				frame.put("action", action.getAnimation());
 			} else {
 				frame.put("action", "");
 			}
-			// TODO: change color to emotion
 			if (emotion != null) {
-				frame.put("color", emotion.getPrimitiveEmotion());
+				frame.put("emotion", emotion.getPrimitiveEmotion());
 			} else {
-				frame.put("color", "");
+				frame.put("emotion", "");
+			}
+			if (sentiment != null) {
+				frame.put("sentiment", sentiment.toString());
+			} else {
+				frame.put("sentiment", "");
 			}
 			if (setting != null) {
 				frame.put("setting_preposition", setting.getPreposition().toLowerCase());

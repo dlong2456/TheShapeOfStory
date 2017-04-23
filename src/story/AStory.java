@@ -2,17 +2,14 @@ package story;
 
 import java.util.ArrayList;
 
-import edu.stanford.nlp.ling.CoreAnnotations;
-import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
-import edu.stanford.nlp.util.CoreMap;
-
 public class AStory implements Story {
 
 	private ArrayList<Frame> frames;
 	private String fullText = "";
 	private Sentiment sentiment;
+	private int sentimentCount = 0;
+	private int sentimentRunningTotal = 0;
+	private int sentimentVal = 0;
 
 	public enum Sentiment {
 		POSITIVE, NEGATIVE, NEUTRAL, VERY_POSITIVE, VERY_NEGATIVE
@@ -48,40 +45,19 @@ public class AStory implements Story {
 		return sentiment;
 	}
 	
-	//Finds the sentiment of the story using Stanford CoreNLP's sentiment analysis
-	public void setSentiment(StanfordCoreNLP pipeline) {
-		Annotation document = new Annotation(fullText);
-		pipeline.annotate(document);
-		Integer mean = 0;
-		int sentimentCount = 0;
-		for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
-			String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
-			System.out.println(sentiment);
-			int sentimentVal = 0;
-			if (sentiment.equalsIgnoreCase("Neutral")) {
-				sentimentVal = 0;
-			} else if (sentiment.equalsIgnoreCase("Positive")) {
-				sentimentVal = 1;
-			} else if (sentiment.equalsIgnoreCase("Very Positive")) {
-				sentimentVal = 2;
-			} else if (sentiment.equalsIgnoreCase("Negative")) {
-				sentimentVal = -1;
-			} else if (sentiment.equalsIgnoreCase("Very Negative")) {
-				sentimentVal = -2;
-			}
-			mean = mean + sentimentVal;
-			sentimentCount++;
-		}
-		mean = (int) Math.ceil(mean / sentimentCount);
-		if (mean == 0) {
+	public void addSentiment(int newSentimentVal) {
+		sentimentCount++;
+		sentimentRunningTotal = sentimentRunningTotal + newSentimentVal;
+		sentimentVal = (int) Math.ceil(sentimentRunningTotal / sentimentCount);
+		if (sentimentVal == 0) {
 			sentiment = Sentiment.NEUTRAL;
-		} else if (mean == 1) {
+		} else if (sentimentVal == 1) {
 			sentiment = Sentiment.POSITIVE;
-		} else if (mean == 2) {
+		} else if (sentimentVal == 2) {
 			sentiment = Sentiment.VERY_POSITIVE;
-		} else if (mean == -1) {
+		} else if (sentimentVal == -1) {
 			sentiment = Sentiment.NEGATIVE;
-		} else if (mean == -2) {
+		} else if (sentimentVal == -2) {
 			sentiment = Sentiment.VERY_NEGATIVE;
 		} else {
 			// default to neutral

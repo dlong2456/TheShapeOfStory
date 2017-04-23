@@ -17,6 +17,7 @@ import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations.BasicDependenciesAnnotation;
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
+import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.util.IntTuple;
 import frameComponents.ASetting;
@@ -26,15 +27,17 @@ import frameComponents.AnAction;
 import frameComponents.AnAgent;
 import frameComponents.AnAgent.AgentType;
 import frameComponents.AnAgent.Gender;
+import frameComponents.AnEmotion;
 import frameComponents.AnObject;
+import frameComponents.Emotion;
 import frameComponents.Entity;
 import frameComponents.Setting;
 import story.AFrame;
+import story.AStory.Sentiment;
 import story.Frame;
+import story.Story;
 
 //TODO: Thread the startup so the stanford annotator loads while the model is loading
-//TODO: Make sure action etc. mappings correspond to the right ones on the front end
-//TODO: Sentiment of individual sentences instead of emotion key words?
 //TODO: Make sure you are properly terminating python process so you don't create zombies
 //TODO: Get this so it will work on Sanjana's comp as well/list instructions to get it to work
 public class AFrameMaker implements FrameMaker {
@@ -42,8 +45,10 @@ public class AFrameMaker implements FrameMaker {
 	private PythonThread outThread;
 	private final Object lock;
 	private final HashMap<String, String> actionMapping = new HashMap<String, String>();
+	private Story story;
 
-	public AFrameMaker(PythonThread outThread, Object lock) {
+	public AFrameMaker(PythonThread outThread, Object lock, Story story) {
+		this.story = story;
 		this.outThread = outThread;
 		this.lock = lock;
 		buildActionMapping();
@@ -70,10 +75,6 @@ public class AFrameMaker implements FrameMaker {
 		ArrayList<Action> actions = new ArrayList<Action>();
 		ArrayList<Entity> entities = new ArrayList<Entity>();
 		ArrayList<Frame> frames = new ArrayList<Frame>();
-		// SENTIMENT ANALYSIS
-		// TODO: for each sentence in frame, get sentiment
-		// just add it to the sentiment average and that way you don't have to
-		// re annotate the doc everytime in story
 		// COREFERENCE RESOLUTION
 		// Create an entity for each reference chain in the story
 		document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values();
@@ -188,6 +189,7 @@ public class AFrameMaker implements FrameMaker {
 				action.setVerb(root);
 				actions.add(action);
 				frame.setAction(action);
+				calculateSentiment(sentence, frame, story);
 				sentenceFrames.add(frame);
 				// find additional verbs in sentence (this handles compound
 				// sentences)
@@ -208,14 +210,14 @@ public class AFrameMaker implements FrameMaker {
 							secondAction.setVerb(child);
 							actions.add(secondAction);
 							secondFrame.setAction(secondAction);
+							calculateSentiment(sentence, secondFrame, story);
 							sentenceFrames.add(secondFrame);
 						}
 					}
 				}
 			}
 			// follow the nodes connected to each verb in the sentence to fill
-			// in the
-			// rest of the frames
+			// in the rest of the frames
 			ArrayList<Entity> predicates = new ArrayList<Entity>();
 			ArrayList<Entity> subjects = new ArrayList<Entity>();
 			for (Frame frame : sentenceFrames) {
@@ -234,35 +236,33 @@ public class AFrameMaker implements FrameMaker {
 						// TODO: Maybe also just look for emotion key words in
 						// the sentence? This misses some
 						// TODO: How to associate an emotion with an agent?
-						// String emotion = setInput("emotion " + verb.lemma());
-						// if (emotion != null) {
-						// Emotion emotionObj = new AnEmotion();
-						// emotionObj.setEmotion(verb.lemma());
-						// emotionObj.setPrimitiveEmotion(emotion);
-						// frame.setEmotion(emotionObj);
-						// // set animation to an actual verb ("feel")
-						// // rather
-						// // than "happy"
-						// Action action = new AnAction();
-						// action.setOriginalWord(child.originalText());
-						// action.setLemma(child.lemma());
-						// int[] positionArr = { verb.sentIndex(), verb.index()
-						// };
-						// action.setPosition(new IntTuple(positionArr));
-						// action.setAnimation("feel");
-						// frame.setAction(action);
-						// } else {
-						Action action = new AnAction();
-						action.setOriginalWord(child.originalText());
-						action.setLemma(child.lemma());
-						int[] positionArr = { verb.sentIndex(), verb.index() };
-						action.setPosition(new IntTuple(positionArr));
-						action.setAnimation("be");
-						frame.setAction(action);
-						// }
+						String emotion = setInput("emotion " + verb.lemma());
+						if (emotion != null) {
+							Emotion emotionObj = new AnEmotion();
+							emotionObj.setEmotion(verb.lemma());
+							emotionObj.setPrimitiveEmotion(emotion);
+							frame.setEmotion(emotionObj);
+							// set animation to an actual verb ("feel")
+							// rather
+							// than "happy"
+							Action action = new AnAction();
+							action.setOriginalWord(child.originalText());
+							action.setLemma(child.lemma());
+							int[] positionArr = { verb.sentIndex(), verb.index() };
+							action.setPosition(new IntTuple(positionArr));
+							action.setAnimation("feel");
+							frame.setAction(action);
+						} else {
+							Action action = new AnAction();
+							action.setOriginalWord(child.originalText());
+							action.setLemma(child.lemma());
+							int[] positionArr = { verb.sentIndex(), verb.index() };
+							action.setPosition(new IntTuple(positionArr));
+							action.setAnimation("be");
+							frame.setAction(action);
+						}
 					} else if (edge.getRelation().toString().equals("dobj")) {
 						// predicate
-						System.out.println("dobj " + child);
 						matchEntity(entities, child, predicates);
 						Collection<IndexedWord> grandchildren = dependencies.getChildren(child);
 						for (IndexedWord grandchild : grandchildren) {
@@ -371,6 +371,28 @@ public class AFrameMaker implements FrameMaker {
 		}
 	}
 
+	private void calculateSentiment(CoreMap sentence, Frame frame, Story story) {
+		String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
+		int sentimentVal = 0;
+		if (sentiment.equalsIgnoreCase("Neutral")) {
+			sentimentVal = 0;
+			frame.setSentiment(Sentiment.NEUTRAL);
+		} else if (sentiment.equalsIgnoreCase("Positive")) {
+			sentimentVal = 1;
+			frame.setSentiment(Sentiment.POSITIVE);
+		} else if (sentiment.equalsIgnoreCase("Very Positive")) {
+			sentimentVal = 2;
+			frame.setSentiment(Sentiment.VERY_POSITIVE);
+		} else if (sentiment.equalsIgnoreCase("Negative")) {
+			sentimentVal = -1;
+			frame.setSentiment(Sentiment.NEGATIVE);
+		} else if (sentiment.equalsIgnoreCase("Very Negative")) {
+			sentimentVal = -2;
+			frame.setSentiment(Sentiment.VERY_NEGATIVE);
+		}
+		story.addSentiment(sentimentVal);
+	}
+
 	private String setInput(String input) {
 		outThread.setReady(false);
 		outThread.setInput(input + "\n");
@@ -383,7 +405,6 @@ public class AFrameMaker implements FrameMaker {
 					e.printStackTrace();
 				}
 			}
-			System.out.println("waking up");
 			return outThread.getReturnVal();
 		}
 	}

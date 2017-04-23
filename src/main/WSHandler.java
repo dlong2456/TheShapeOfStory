@@ -26,6 +26,14 @@ public class WSHandler extends WebSocketHandler {
 	private void loadModel() {
 		// Make a new thread that executes the python script
 		outThread = new PythonThread(lock);
+		//TODO: this does not work in eclipse. 
+		//add a shutdown hook so that when the program terminates, we properly cleanup the thread and process that it spawns
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+		    public void run() {
+		    	System.out.println("thread interrupted");
+		        outThread.interrupt();
+		    }
+		});
 		// Start the thread
 		outThread.start();
 		try {

@@ -6,6 +6,7 @@ import frameComponents.Action;
 import frameComponents.Emotion;
 import frameComponents.Entity;
 import frameComponents.Setting;
+import story.AStory.Sentiment;
 
 public class AFrame implements Frame {
 	
@@ -14,6 +15,7 @@ public class AFrame implements Frame {
 	private Setting setting;
 	private ArrayList<Entity> predicates;
 	private ArrayList<Entity> subjects;
+	private Sentiment sentiment;
 
 	public Action getAction() {
 		return action;
@@ -53,6 +55,14 @@ public class AFrame implements Frame {
 	
 	public void setSubjects(ArrayList<Entity> newSubjects) {
 		subjects = newSubjects;
+	}
+	
+	public Sentiment getSentiment() {
+		return sentiment;
+	}
+	
+	public void setSentiment(Sentiment newSentiment) {
+		sentiment = newSentiment;
 	}
 
 }

@@ -27,7 +27,6 @@ public class PythonThread extends Thread {
 	public PythonThread(Object lock) {
 		this.lock = lock;
 		try {
-			System.out.println("thread started");
 			ProcessBuilder pb = new ProcessBuilder("/Users/Duri/virtualenvironment/jython_app/venv/bin/python",
 					"launcher.py", "run");
 			pb.directory(new File("/Users/Duri/TheRoadNotTaken/python/main"));
@@ -51,41 +50,34 @@ public class PythonThread extends Thread {
 		try {
 			// don't notify until we receive notification that the model has
 			// loaded
-			while (reader.readLine() == null) {
+			while (reader.readLine() == null && !Thread.currentThread().isInterrupted()) {
 				// spin
 			}
-			System.out.println("done waiting");
 			synchronized (lock) {
 				ready = true;
 				// notify waiter
-				System.out.println("Notifying");
 				lock.notifyAll();
 			}
 			// Start a new while loop to listen for answers to function
 			// calls here
-			System.out.println("waiting for input...");
-			while (reading) {
+			while (reading && !Thread.currentThread().isInterrupted()) {
 				// Listen to input from Java main thread
 				if (input != null) {
 					if (input.startsWith("categorize") || input.startsWith("gender") || input.startsWith("verb")
 							|| input.startsWith("emotion")) {
-						System.out.println("sending input to python: " + input);
 						writer.write(input);
 						writer.flush();
 						input = null;
-						System.out.println("written");
 					}
 				}
-				//Print Python errors
+				// Print Python errors
 				for (int i = 0; i < stderr.available(); i++) {
 					System.out.println("Error: " + stderr.read());
 				}
 				// Listen to input from Python program
 				if (reader.ready()) {
-					System.out.println("reader ready");
 					response = reader.readLine();
 					if (response != null) {
-						System.out.println("input from python: " + response);
 						synchronized (lock) {
 							ready = true;
 							// notify waiter that Python has returned it
@@ -114,6 +106,16 @@ public class PythonThread extends Thread {
 
 	public String getReturnVal() {
 		return response;
+	}
+
+	@Override
+	public void interrupt() {
+		try {
+			System.out.println("process destroyed before termination");
+			process.destroy();
+		} finally {
+			super.interrupt();
+		}
 	}
 
 }

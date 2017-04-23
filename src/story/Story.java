@@ -2,7 +2,6 @@ package story;
 
 import java.util.ArrayList;
 
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import story.AStory.Sentiment;
 
 public interface Story {
@@ -18,8 +17,8 @@ public interface Story {
 
 	public Sentiment getSentiment();
 
-	public void setSentiment(StanfordCoreNLP pipeline);
-
 	public void addFrames(ArrayList<Frame> additionalFrames);
+
+	public void addSentiment(int newSentimentVal);
 
 }
