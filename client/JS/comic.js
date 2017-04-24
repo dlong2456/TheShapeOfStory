@@ -1,7 +1,7 @@
 var Comic = (function()
 {
 	//Panels
-	var Action = function(num,subjects,predicates , action,emotionColor,setting ,emotion,name)
+	var Action = function(num,subjects,predicates , action,emotion,setting ,sentiment,name)
 	{
 
 		this.type = "action",
@@ -9,11 +9,11 @@ var Comic = (function()
 		this.subjects = subjects || [] ;
 		this.predicates = predicates || [] ;
 		this.action = action || "";
-		this.color = emotionColor || "";
-		
 		this.emotion = emotion || "";
+		
+		this.sentiment = sentiment || "";
     this.setting = setting || "";
-		this.agentLayer = new Renderer.AgentLayer(num,this.subjects,this.predicates,this.action,this.setting,this.emotion);
+		this.agentLayer = new Renderer.AgentLayer(num,this.subjects,this.predicates,this.action,this.setting,this.sentiment,this.emotion);
 		this.num = num;//frame number variable
   }
 

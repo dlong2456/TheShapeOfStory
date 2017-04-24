@@ -1,6 +1,6 @@
 var Agent = (function(){
 	//public stuff
-	var Human = function(emotionColor,gender,name)
+	var Human = function(sentiment,gender,name)
 	{
 		this.type = "human";
 		this.name = name || "";
@@ -11,25 +11,25 @@ var Agent = (function(){
 			this.shape = "circle";
 		else
 			this.shape = "triangle";
-		this.color = emotionColor || "";
+		this.sentiment = sentiment || "";
 	};
-	var NonHuman = function(emotionColor,gender,name)
+	var NonHuman = function(sentiment,gender,name)
 	{
 		this.type = "nonHuman";
 		this.name = name || "";
 		this.gender = gender || "MALE";
 		this.shape = "rectangle";
-		this.color = emotionColor || "";
+		this.sentiment = sentiment || "";
 
 	};
 
-	var Object = function(emotionColor,name)
+	var Object = function(sentiment,name)
 	{
 		this.type = "object";
 		this.name = name || "";
 		this.shape = "square";
 		this.position = new pv.P(50,50);
-		this.color = emotionColor || "";
+		this.sentiment = sentiment || "";
 	};
 
 //private stuff

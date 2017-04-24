@@ -38,7 +38,6 @@ public class AMyWebSocket implements MyWebSocket {
 	private Object lock;
 	
 	public AMyWebSocket(PythonThread outThread, Object lock, StanfordCoreNLP pipeline) {
-		System.out.println("Constructed");
 		this.outThread = outThread;
 		this.lock = lock;
 		this.pipeline = pipeline;
@@ -62,7 +61,6 @@ public class AMyWebSocket implements MyWebSocket {
 		this.session = session;
 		// Make NLP pipeline here because it takes awhile
 		story = new AStory();
-		sendMessage("ready");
 	}
 
 	// Receives messages from the web client(s)
@@ -76,7 +74,7 @@ public class AMyWebSocket implements MyWebSocket {
 			if (message.equals("new person")) {
 				// get story sentiment
 				JSONObject sentiment = new JSONObject();
-				sentiment.put("sentiment", story.getSentiment());
+				sentiment.put("sentiment", story.getSentiment().toString().toLowerCase());
 				sendMessage(sentiment.toJSONString());
 				//save story sentiment to file
 				writeToFile(sentiment.toJSONString());
@@ -166,7 +164,7 @@ public class AMyWebSocket implements MyWebSocket {
 				frame.put("emotion", "");
 			}
 			if (sentiment != null) {
-				frame.put("sentiment", sentiment.toString());
+				frame.put("sentiment", sentiment.toString().toLowerCase());
 			} else {
 				frame.put("sentiment", "");
 			}

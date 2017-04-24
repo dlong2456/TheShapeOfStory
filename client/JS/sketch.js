@@ -1,9 +1,12 @@
 var recordedText = "";
+var offset = 0;
+var storySentiment = "";
 //var tex = "He woke to the smell of smoke. The house was burning and he did not know what to do. He ran downstairs and went outside. Suddenly, he remembered that he left his cat inside. He called 911 and the firefighters saved the cat.";
 //var tex = "Once upon a time ,in a village there lived a beautiful girl named Cinderella with her wicked stepmother and two step-sisters. She worked hard all day. One day, they all went to a ball in the palace, leaving Cinderella behind. Cinderella was feeling sad. Suddenly there was a burst of light and the fairy godmother appeared. With a flick of the magic she turned Cinderella into a beautiful princess with glass slippers and a horse carriage appeared at the door. The fairy godmother warned Cinderella to return before midnight. Cinderella arrived at the ball, the prince saw her and fell in love with her. They danced together all night. As the clock struck twelve, Cinderella rushed out to her carriage leaving one of her slippers behind. The prince went to every house in the town with the slipper until he found Cinderella. The prince and Cinderella lived happily ever after.";
 //I was visiting my now late grandmother (or Khun Yai, as I called her in Thai) in Bangkok, where she and my mother's family lived. I picked at it, unsure of whether or not I wanted to eat this decidedly raw fish in its spongy sleeve of rice. I was, after all, American, and was used to food served through a car window. All of a sudden, I spotted something familiar on my plate: a small but appetizing lump of green guacamole. I scraped all of it up and plopped it in my mouth, noticing an amused glint in my grandmother's eyes far too late. Fire swept my mouth in a painful, sinus-clearing swell. As I wailed, experiencing the zing of wasabi for the first time, my grandmother laughed the heartiest, most earnest laugh I've ever heard to this day."
 //Web socket functionality 
 start("ws://127.0.0.1:8000/");
+var num = 0;
 function start(websocketServerLocation) {
 
   ws = new WebSocket(websocketServerLocation);
@@ -15,8 +18,18 @@ function start(websocketServerLocation) {
 
   ws.onmessage = function (evt) {
     console.log("message received");
-
+    if(evt.data.startsWith('{"sentiment"'))
+    {
+      showPattern = true;
+      var jData = JSON.parse(evt.data)
+      storySentiment = jData["sentiment"];
+      //console.log(storySentiment);
+    }
+//{"sentiment": "NEUTRAL"}
+   if(!showPattern)
     createComic(evt.data);
+    offset = t - offset;
+    //console.log("offset time "+t);
    
   };
 
@@ -37,19 +50,21 @@ recorder.continuous = true; // do continuous recognition
 function parseResult() {
   console.log("parsing");
   recordedText += recorder.resultString + ". ";
-    if (recordedText.length > 100) {
+    // if (recordedText.length > 100) {
       console.log("sending");
       ws.send(recordedText);
       // ws.send(recorder.resultString);
       recordedText = "";
-    }
+    // }
 }
 
 var comicStrip = [];
 function createComic(data)
 {
-  console.log(JSON.parse(data));
+  //console.log("comic being created");
+  //console.log(JSON.parse(data));
   var jsonData = JSON.parse(data);
+  //console.log(jsonData);
   var framesArray = jsonData["frames"];
   
   framesArray.forEach(function(panelData){
@@ -58,7 +73,8 @@ function createComic(data)
          var predis = panelData["predicates"];
          //var relates = panelData["relationships"];
         // var emoColor = panelData["color"];
-        var emotion = panelData["color"];
+        var emotion = panelData["emotion"];
+        var senti = panelData["sentiment"];
          var set = panelData["setting_preposition"];
          var subjectArray = [];
          var predArray = [];
@@ -70,15 +86,15 @@ function createComic(data)
                {
                 if(currentSubject["agentType"] == "HUMAN")
                 {
-                    subjectArray.push(new Agent.Human(emotion,currentSubject["gender"]));
+                    subjectArray.push(new Agent.Human(senti,currentSubject["gender"]));
                 }
                 else
                 {
-                   subjectArray.push(new Agent.NonHuman(emotion,currentSubject["gender"]));
+                   subjectArray.push(new Agent.NonHuman(senti,currentSubject["gender"]));
                 }
                }
                else if(currentSubject["subjectType"] == "object")
-                   subjectArray.push(new Agent.Object(emotion));
+                   subjectArray.push(new Agent.Object(senti));
         });
          predis.forEach(function(currentSubject)
         {
@@ -86,24 +102,25 @@ function createComic(data)
                {
                 if(currentSubject["agentType"] == "HUMAN")
                 {
-                    predArray.push(new Agent.Human(emotion,currentSubject["gender"]));
+                    predArray.push(new Agent.Human(senti,currentSubject["gender"]));
                 }
                 else
                 {
-                   predArray.push(new Agent.NonHuman(emotion,currentSubject["gender"]));
+                   predArray.push(new Agent.NonHuman(senti,currentSubject["gender"]));
                 }
                }
                 else if(currentSubject["subjectType"] == "object")
-                   subjectArray.push(new Agent.object(emotion));
+                   subjectArray.push(new Agent.object(senti));
 
 
         });
 
 
 
-       var emptyRelation = new Relation("equal",0,0);
-       actionPanel = new Comic.Action(subjectArray,predArray,act,emotion,emptyRelation,set);
-       console.log(actionPanel);
+       //console.log(emotion);
+       actionPanel = new Comic.Action(num,subjectArray,predArray,act,emotion,set,senti);
+       num++;
+      //console.log(actionPanel);
        comicStrip.push(actionPanel);
   });
 }
@@ -166,6 +183,7 @@ function setup()
   scribble = new Scribble();
   //sentiment pattern 
  // colorMode(HSB, 255);
+
   cols = floor(width / scl);
   rows = floor(height / scl);
   fr = createP('');
@@ -181,12 +199,17 @@ function setup()
 function draw()
 {
   
- 
+ //console.log(showPattern);
   if(!showPattern)
+{
+  //ellipse(R[0]["pt"].x,R[0]["pt"].y,10,10);
+  colorMode(RGB);
    comic.display(P,R,t);
     t+=deltaTime;
+  }
 if(showPattern)
 {
+colorMode(HSB, 255);
   var yoff = 0;
   for (var y = 0; y < rows; y++) {
     var xoff = 0;
@@ -202,7 +225,7 @@ if(showPattern)
     }
     yoff += inc;
 
-    zoff += 0.0003;
+    zoff += 0.03;
   }
 
   for (var i = 0; i < particles.length; i++) {
@@ -214,13 +237,80 @@ if(showPattern)
 
 }
 }
+function mouseClicked()
+{
+  if(showPattern == false)
+  {
+  ws.send("new person");
+
+}
+if(showPattern == true)
+  showPattern = false;
+}
 function mouseWheel(event)
 {
   showPattern = !showPattern;
 }
 
 
+var colorUtility = 
+{
 
+//  "red" : Array(255,0,0),
+   "" : '#000000',
+  "red" : '#ff0000', //fear, disgust , 
+  "green" :'#00ff00', //
+  "blue" :'#0000ff', //sadness
+  "black" : '#000000', //anger
+  "white" : '#ffffff',
+ 
+  //anger
+"dark_red" : '#CC0000',
+"red_orange" : '#FF4500',
+"dark_green" : '#336600',
+
+//disgust
+"dull_yellow" : '#cccc00',
+"grey_black" : '#606060',
+"maroon" : '#660000',
+
+//fear
+"dark_orange" : '#FF8C00',
+"yellow_green" : '#CCCC00',
+"dull_yellow" : '#999900',
+
+//happiness
+"orange" : '#FFA500',
+"yellow" : '#ffff00',
+"olive_green" : '#00cc00',
+"gold" : '#FFDF00',
+"aqua" : '#00cccc',
+"light_blue" : '#99ffff',
+
+//sadness
+"dull_green" : '#666600',
+"dark_purple" : '#330066',
+"grey" : '#c0c0c0',
+
+//surprise
+"orange" : '#ff8000',
+"bright_yellow" : '#ffff00',
+"bright_blue" : '#002366',
+"bright_green" : '#80ff00',
+"magenta" : '#FF007F',
+
+
+};
+var sentimentUtility = 
+{
+  
+  "very-negative" : ["dark_red","black","red_orange","dark_green","grey_black","maroon"], //red orange for aggression
+  "negative" : ["dull_yellow"], //dull yellow for sickness
+  "neutral" : ["dull_green","blue"," dark_purple","grey","red","dark_orange","yellow_green","dull_yellow"],
+  "positive" : ["orange","yellow","olive_green","gold","aqua","light_blue"],
+  "very-positive" : ["orange","bright_yellow","bright_blue","bright_green","magenta"],
+
+}
 /*
 
 
@@ -273,7 +363,8 @@ Happiness
 Sadness
 Surprise
 */
-/*var inc = 0.1;
+/*
+var inc = 0.1;
 var scl = 10;
 var cols, rows;
 
@@ -305,16 +396,10 @@ var p2 = new Comic.Action(1,[testAgent2],[testAgent3],"feel","surprise","to");
 var p3 = new Comic.Action(2,[testAgent2],[testAgent3],"see","surprise","to");
 var p4 = new Comic.Action(3,[testAgent2],[testAgent3],"expel","surprise","to");
 var comic = new Comic.Holder([p1,p2,p3,p4]);
-var P1 = pv.P(100,200);
-var P2 = pv.P(50,300);
-var P3 = pv.P(150,300);
 
-var V1 = pv.U(P1,P2);
-var V2 = pv.U(P2,P3);
-var V3 = pv.U(P3,P1);
 var scribble;
 //V1 = pv.U(V1);
-var Pt = pv.P(P1);
+
 var s = 0;
 function preload()
 {
@@ -390,7 +475,8 @@ if(showPattern)
 function mouseWheel(event)
 {
   showPattern = !showPattern;
-}*/
+}
+*/
 /*var t = 0;
 var scribble;
 var x = 100;

@@ -130,7 +130,7 @@ var TextLayer = function()
 }
 
 //the entity layer class
-var AgentLayer = function(num,subjects,predicates,action,setting,emotion)
+var AgentLayer = function(num,subjects,predicates,action,setting,sentiment,emotion)
 {
   this.num = num;
 	this.type = "agent";
@@ -138,6 +138,7 @@ var AgentLayer = function(num,subjects,predicates,action,setting,emotion)
   this.predicates = predicates || [] ;
 	this.action = action || "";
   this.emotion = emotion || "";
+  this.sentiment = sentiment || "";
   this.setting = setting || "";
   this.setDone = false;
   this.subjectDone = false;
@@ -155,13 +156,14 @@ AgentLayer.prototype=
 	draw : function(pt,t)
 	{
     
-    var time = t-this.dt*this.num;
+    var time = (t-offset)-this.dt*this.num;
 
     
    if(time > 0 && time <=this.dt)
    {
-   
-    
+  // console.log(this.sentiment);
+   //console.log("emotion: "+this.emotion);
+   // console.log(t);
    if(time >= this.dt/this.et) this.setDone = true;
    if(time >= this.et * 2) this.subjectDone = true;
    if(time>=this.et*3) this.predicateDone = true;
@@ -281,12 +283,12 @@ AgentLayer.prototype=
 
     {  
 
-      console.log("drawing agents");
+      //console.log("drawing agents");
       this.subjects.forEach(function(agent)
       {
              
              
-      drawShape(agent.shape,agent.color, posSx , posSy,alpha/obj,boundingBoxX,boundingBoxY,time);
+      drawShape(agent.shape,agent.sentiment, posSx , posSy,alpha/obj,boundingBoxX,boundingBoxY,time);
       obj+=1;
 
       },this);
@@ -295,7 +297,7 @@ if(this.subjectDone && !this.predicateDone){
       this.predicates.forEach(function(agent)
       {
 
-               drawShape(agent.shape,agent.color, posPx , posPy,alpha/obj,boundingBoxX,boundingBoxY,time);
+               drawShape(agent.shape,agent.sentiment, posPx , posPy,alpha/obj,boundingBoxX,boundingBoxY,time,this.emotion);
       obj+=1;
 
       });
@@ -304,7 +306,7 @@ if(this.subjectDone && !this.predicateDone){
       {
         var scribble = new Scribble();
         strokeWeight(1);
-         actionUtility[this.action](posPx+boundingBoxX/2,posPy,boundingBoxX,boundingBoxY,scribble,time);
+         actionUtility[this.action](posPx+boundingBoxX/2,posPy,boundingBoxX,boundingBoxY,scribble,time,this.emotion);
       }
       
 	}
@@ -317,15 +319,19 @@ if(this.subjectDone && !this.predicateDone){
 
 //private stuff
 
- function drawShape(shape, color ,  i , j,alpha,w,h,time)
+ function drawShape(shape, color ,  i , j,alpha,w,h,time,emotion)
 {
   
   var scribble = new Scribble();
-  var c1 = colorUtility[random(feelingUtility[color])];
-  var c1 = random(feelingUtility[color]);
+  var item = Math.floor(Math.random()*feelingUtility[color].length)
+  //var c1 = colorUtility[feelingUtility[color][item]];
+  //console.log(feelingUtility[color][item]);
+ // console.log(feelingUtility[color]);
+  //var c1 = feelingUtility[color]);
+var c1 = feelingUtility[color][item];
   shapeUtility[shape](i,j,w,h,c1,scribble,time);
  
-  
+  //Math.floor(Math.random()*items.length)
  
 
 }
@@ -367,7 +373,7 @@ function drawTriangle(i,j,w,h,color,scribble,time)
 
   var colorDistance = h;
   var colorSpeed = h/T;
-  stroke(255,0,0);
+  stroke(color);
   //scribble.scribbleFilling([w/2,3*w/2,-w/2,],[0,h,h],2,0,2*time);
  // scribble.scribbleLine(w/2-(h/4)*t,h/2*t,w/2+(h/4)*t,h/2*t);
  scribble.scribbleLine(w/2-colorSpeed/2*t,colorSpeed*t,w/2+colorSpeed/2*t,colorSpeed*t);
@@ -434,7 +440,7 @@ function drawSquare(i,j,w,h,color,scribble,time)
 
    var colorDistance = w;
   var colorSpeed = w/T;
-  stroke(255,0,0);
+  stroke(color);
   //scribble.scribbleFilling([w/2,3*w/2,-w/2,],[0,h,h],2,0,2*time);
  // scribble.scribbleLine(w/2-(h/4)*t,h/2*t,w/2+(h/4)*t,h/2*t);
  scribble.scribbleLine(0,colorSpeed*t,w,colorSpeed*t);
@@ -501,7 +507,7 @@ function drawRectangle(i,j,w,h,color,scribble,time)
   translate(i,j);
  var colorDistance = h/2;
   var colorSpeed = h/(2*T);
-  stroke(255,0,0);
+  stroke(color);
   //scribble.scribbleFilling([w/2,3*w/2,-w/2,],[0,h,h],2,0,2*time);
  // scribble.scribbleLine(w/2-(h/4)*t,h/2*t,w/2+(h/4)*t,h/2*t);
  scribble.scribbleLine(0,colorSpeed*t,w,colorSpeed*t);
@@ -571,7 +577,7 @@ var colorDistanceX = PI/2;
   var colorSpeedX = colorDistanceX/T;
   var colorDistanceY = w;
   var colorSpeedY = colorDistanceY/(T/2);
-  stroke(255,0,0);
+  stroke(color);
   //scribble.scribbleFilling([w/2,3*w/2,-w/2,],[0,h,h],2,0,2*time);
  // scribble.scribbleLine(w/2-(h/4)*t,h/2*t,w/2+(h/4)*t,h/2*t);
  scribble.scribbleLine(minorAxis*Math.sin(colorSpeedX*t),-w+colorSpeedY*t,-minorAxis*Math.sin(colorSpeedX*t),-w+colorSpeedY*t);

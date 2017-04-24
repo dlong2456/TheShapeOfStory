@@ -184,7 +184,7 @@ function Scribble(p) {
 
     while ( (rectCoords = it.getNextLine()) != null ) {
       var lines = this.getIntersectingLines( rectCoords, xCoords, yCoords );
-      console.log(lines);
+     // console.log(lines);
       var p1 = lines[1];
       var p2 = lines[1+1]
       this.scribbleLine( p1[0], p1[1], p2[0], p2[1], 2 );
