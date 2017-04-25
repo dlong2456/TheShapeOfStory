@@ -1,6 +1,23 @@
 var recordedText = "";
 var offset = 0;
+
 var storySentiment = "";
+
+var strWt = 2;
+var r = 255;
+var g = 255;
+var b = 255;
+
+
+//end symbol variables
+var endStartTime; 
+var endEndTime = 40;
+var endX = 50;
+var endY = 600; //half of the height.
+var endSpeedX = 1;
+var drawEndSymbol = false;
+var tempX ;
+
 //var tex = "He woke to the smell of smoke. The house was burning and he did not know what to do. He ran downstairs and went outside. Suddenly, he remembered that he left his cat inside. He called 911 and the firefighters saved the cat.";
 //var tex = "Once upon a time ,in a village there lived a beautiful girl named Cinderella with her wicked stepmother and two step-sisters. She worked hard all day. One day, they all went to a ball in the palace, leaving Cinderella behind. Cinderella was feeling sad. Suddenly there was a burst of light and the fairy godmother appeared. With a flick of the magic she turned Cinderella into a beautiful princess with glass slippers and a horse carriage appeared at the door. The fairy godmother warned Cinderella to return before midnight. Cinderella arrived at the ball, the prince saw her and fell in love with her. They danced together all night. As the clock struck twelve, Cinderella rushed out to her carriage leaving one of her slippers behind. The prince went to every house in the town with the slipper until he found Cinderella. The prince and Cinderella lived happily ever after.";
 //I was visiting my now late grandmother (or Khun Yai, as I called her in Thai) in Bangkok, where she and my mother's family lived. I picked at it, unsure of whether or not I wanted to eat this decidedly raw fish in its spongy sleeve of rice. I was, after all, American, and was used to food served through a car window. All of a sudden, I spotted something familiar on my plate: a small but appetizing lump of green guacamole. I scraped all of it up and plopped it in my mouth, noticing an amused glint in my grandmother's eyes far too late. Fire swept my mouth in a painful, sinus-clearing swell. As I wailed, experiencing the zing of wasabi for the first time, my grandmother laughed the heartiest, most earnest laugh I've ever heard to this day."
@@ -62,7 +79,7 @@ var comicStrip = [];
 function createComic(data)
 {
   //console.log("comic being created");
-  //console.log(JSON.parse(data));
+  //
   var jsonData = JSON.parse(data);
   //console.log(jsonData);
   var framesArray = jsonData["frames"];
@@ -131,7 +148,7 @@ var comic = new Comic.Holder(comicStrip);
 
 
 var inc = 0.1;
-var scl = 10;
+var scl = 100;
 var cols, rows;
 
 var zoff = 0;
@@ -158,7 +175,7 @@ function preload()
 {
   recorder.onResult = parseResult;
   recorder.start();
- createCanvas(800,800);
+ createCanvas(1200,1200);
  background(255);
  G = new pv.pt(width/2,height/2);
  P = pv.drawSpiral1(G);
@@ -166,17 +183,34 @@ function preload()
  R = pv.circleSpaceBetweenTwoArcs(G,P,Q); 
  R[0]["length"] = R[1]["length"];
  R[0]["pt"].y-= (R[0]["length"]+25);
- R[1]["pt"].x+=R[1]["length"]+30;
+ R[1]["pt"].x+=R[1]["length"]+50;
  R[1]["pt"].y-=R[1]["length"];
+R[3]["pt"].x -=70;
+
  B = pv.circleSpaceBetweenTwoArcs2(G,P,Q); 
- B[0]["length"] = B[1]["length"];
- B[0]["pt"].y+= (B[0]["length"]+25);
- B[1]["pt"].x-=2*B[1]["length"];
- B[1]["pt"].y+=B[1]["length"];
+ 
+ 
+
+for(var i = 0 ; i < 10 ; i++)
+{
+  B[i]["length"] = B[12]["length"];
+
+}
+B[0]["pt"].y+= (B[0]["length"]+25);
+
+for(var i = 1 ; i < 10 ; i++)
+{
+  B[i]["pt"].x-=(B[i]["length"]);
+ B[i]["pt"].y+=B[i]["length"];
+
+}
+B[10]["pt"].x -=2*B[i]["length"];
+ 
 
 
 
 }
+var initSpiral = false;
 var deltaTime = 0.05;
 function setup()
 {
@@ -199,17 +233,27 @@ function setup()
 function draw()
 {
   
- //console.log(showPattern);
-  if(!showPattern)
-{
-  //ellipse(R[0]["pt"].x,R[0]["pt"].y,10,10);
-  colorMode(RGB);
+  
+ if(frameCount < 100)
+ {
+  //console.log("initi spiral");
+  initSpiral = true;
+  //console.log(initSpiral)
+  storySentiment = "init";
+  strWt = 2;
+ }
+else initSpiral = false;
+  if(!showPattern && !initSpiral && !drawEndSymbol)
+  {
+   // colorMode(RGB, 255);
    comic.display(P,R,t);
-    t+=deltaTime;
-  }
-if(showPattern)
+   t+=deltaTime;
+ }
+    
+if(showPattern || initSpiral)
 {
-colorMode(HSB, 255);
+   //colorMode(HSB, 255);
+   setSentimentParameters();
   var yoff = 0;
   for (var y = 0; y < rows; y++) {
     var xoff = 0;
@@ -225,20 +269,26 @@ colorMode(HSB, 255);
     }
     yoff += inc;
 
-    zoff += 0.03;
+    zoff += 0.0003;
   }
 
   for (var i = 0; i < particles.length; i++) {
     particles[i].follow(flowfield);
     particles[i].update();
     particles[i].edges(B[i]["length"]);
-    particles[i].show();
+    particles[i].show(strWt,r,g,b);
   }
 
 }
-}
-function mouseClicked()
+if(drawEndSymbol == true)
 {
+  t+=deltaTime;
+  EndSymbol();
+}
+}
+function mouseClick(e)
+{
+   //console.log(e);
   if(showPattern == false)
   {
   ws.send("new person");
@@ -249,68 +299,94 @@ if(showPattern == true)
 }
 function mouseWheel(event)
 {
-  showPattern = !showPattern;
+  //showPattern = !showPattern;
+  fill(150,150,150,20);
+   rect(0,0,1200,1200);
+  showPatterns = false;
+  endStartTime = t;
+  drawEndSymbol = true;
 }
 
+function setSentimentParameters()
+{
+  if(storySentiment == "neutral")
+  {
+    r = 147;
+    g = 222;
+    b = 105;
+    strWt = 1;
+  }
+  if(storySentiment == "positive")
+  {
+    r = random(200,250);
+    g = random(200,255);
+    b = 0;
+    strWt = 3;
+  }
+  if(storySentiment == "negative")
+  {
+    r = random(50,75);
+    g = 0;
+    b = random(128,255);
+    strWt = 3;
+  }
+  if(storySentiment == "very_positive")
+  {
+    r = 255;
+    g = random(150,180);
+    b = random(170,190);
+    strWt = 7;
+  }
+  if(storySentiment == "very_negative")
+  {
+     r = random(50,150);
+    g = random(50,150);
+    b = random(50,150);
+    strWt = 7;  
+  }
+  if(storySentiment == "init")
+  {
+     r = 150;
+    g = 150;
+    b = 150;
+    strWt = 1;  
+  }
 
-var colorUtility = 
+
+}
+
+function EndSymbol()
 {
 
-//  "red" : Array(255,0,0),
-   "" : '#000000',
-  "red" : '#ff0000', //fear, disgust , 
-  "green" :'#00ff00', //
-  "blue" :'#0000ff', //sadness
-  "black" : '#000000', //anger
-  "white" : '#ffffff',
- 
-  //anger
-"dark_red" : '#CC0000',
-"red_orange" : '#FF4500',
-"dark_green" : '#336600',
-
-//disgust
-"dull_yellow" : '#cccc00',
-"grey_black" : '#606060',
-"maroon" : '#660000',
-
-//fear
-"dark_orange" : '#FF8C00',
-"yellow_green" : '#CCCC00',
-"dull_yellow" : '#999900',
-
-//happiness
-"orange" : '#FFA500',
-"yellow" : '#ffff00',
-"olive_green" : '#00cc00',
-"gold" : '#FFDF00',
-"aqua" : '#00cccc',
-"light_blue" : '#99ffff',
-
-//sadness
-"dull_green" : '#666600',
-"dark_purple" : '#330066',
-"grey" : '#c0c0c0',
-
-//surprise
-"orange" : '#ff8000',
-"bright_yellow" : '#ffff00',
-"bright_blue" : '#002366',
-"bright_green" : '#80ff00',
-"magenta" : '#FF007F',
-
-
-};
-var sentimentUtility = 
-{
   
-  "very-negative" : ["dark_red","black","red_orange","dark_green","grey_black","maroon"], //red orange for aggression
-  "negative" : ["dull_yellow"], //dull yellow for sickness
-  "neutral" : ["dull_green","blue"," dark_purple","grey","red","dark_orange","yellow_green","dull_yellow"],
-  "positive" : ["orange","yellow","olive_green","gold","aqua","light_blue"],
-  "very-positive" : ["orange","bright_yellow","bright_blue","bright_green","magenta"],
+   //console.log(t);
+  // var tempX ;
+   stroke(0);
+  strokeWeight(20);
+   if(endX < 450)
+   {
+    
+  scribble.scribbleLine(endX ,endY ,endX+endSpeedX*(t-endStartTime)*5,endY );
+  scribble.scribbleLine(1200-endX ,endY ,1200-(endX+endSpeedX*(t-endStartTime)*5),endY );
+  endX = endX+ endSpeedX*(t-endStartTime);
+    tempX = endX+ 15*endSpeedX*(t-endStartTime);
 
 }
+else if(t-endStartTime < 2*TWO_PI)
+{ 
+  var b1 = -10
+  var b2 = 10;
+   var r1 = b1*sqrt(t);
+   var r2 = b2*sqrt(t);
+   scribble.scribbleLine(tempX+r1*cos(t-endStartTime),endY+r1*sin(t-endStartTime),(tempX+2*r1*cos(t-endStartTime+deltaTime)),endY+r1*sin(t-endStartTime+deltaTime));
+   scribble.scribbleLine(1200- tempX+r2*cos(t-endStartTime),endY+r2*sin(t-endStartTime),1200-tempX+2*r2*cos(t-endStartTime+deltaTime),endY+r2*sin(t-endStartTime+deltaTime));
+    
+   // scribble.scribbleLine(endX,endY,endX+10*cos((t-endStartTime)),endY+10*sin((t-endStartTime)))
+    //endX += 5+10*cos((t-endStartTime));
+    //endY -= 5+10*sin((t-endStartTime));
+}
+}
+
 /*
 
 
@@ -364,8 +440,15 @@ Sadness
 Surprise
 */
 /*
+ var storySentiment = "";
+
+var strWt = 2;
+var r = 255;
+var g = 255;
+var b = 255;
+
 var inc = 0.1;
-var scl = 10;
+var scl = 100;
 var cols, rows;
 
 var zoff = 0;
@@ -378,32 +461,32 @@ var showPattern = false;
 
 var t; //time for creating the animation.
 var G;
-
+var offset = 0;
 var t = 0;
 var P = [];
 var Q = [];
 var R = [];
 var B = [];
-var testAgent = new Agent.Human("happiness","FEMALE");
-var testAgent2 = new Agent.Human("surprise","MALE");
-var object = new Agent.Object("happiness");
-var testAgent3 = new Agent.NonHuman("surprise","MALE");
-var r = new Relation("dominant",1,2,[testAgent],[testAgent2]);
-var emptyRelation = {};
-var p1 = new Comic.Action(0,[testAgent],[testAgent3],"ingest","happiness","from");
+//actionPanel = new Comic.Action(num,subjectArray,predArray,act,emotion,set,senti);
+var testAgent = new Agent.Human("neutral","FEMALE");
+var testAgent2 = new Agent.Human("neutral","MALE");
+var object = new Agent.Object("neutral");
+var testAgent3 = new Agent.NonHuman("neutral","MALE");
 
-var p2 = new Comic.Action(1,[testAgent2],[testAgent3],"feel","surprise","to");
-var p3 = new Comic.Action(2,[testAgent2],[testAgent3],"see","surprise","to");
-var p4 = new Comic.Action(3,[testAgent2],[testAgent3],"expel","surprise","to");
+var p1 = new Comic.Action(0,[testAgent],[testAgent3],"ingest","fear","from","positive");
+
+var p2 = new Comic.Action(1,[testAgent],[testAgent3],"feel","happy","to","neutral");
+var p3 = new Comic.Action(2,[testAgent2],[testAgent3],"see","angry","to","neutral");
+var p4 = new Comic.Action(3,[testAgent2],[testAgent3],"expel","surprise","to","neutral");
 var comic = new Comic.Holder([p1,p2,p3,p4]);
 
 var scribble;
-//V1 = pv.U(V1);
+
 
 var s = 0;
 function preload()
 {
-  createCanvas(800,800);
+  createCanvas(1200,1200);
  background(255);
  G = new pv.pt(width/2,height/2);
  P = pv.drawSpiral1(G);
@@ -411,20 +494,39 @@ function preload()
  R = pv.circleSpaceBetweenTwoArcs(G,P,Q); 
  R[0]["length"] = R[1]["length"];
  R[0]["pt"].y-= (R[0]["length"]+25);
- R[1]["pt"].x+=R[1]["length"]+30;
+ R[1]["pt"].x+=R[1]["length"]+50;
  R[1]["pt"].y-=R[1]["length"];
+R[3]["pt"].x -=70;
+ //pattern cricle.
  B = pv.circleSpaceBetweenTwoArcs2(G,P,Q); 
- B[0]["length"] = B[1]["length"];
- B[0]["pt"].y+= (B[0]["length"]+25);
- B[1]["pt"].x-=2*B[1]["length"];
- B[1]["pt"].y+=B[1]["length"];
+ 
+ 
+
+for(var i = 0 ; i < 10 ; i++)
+{
+  B[i]["length"] = B[12]["length"];
+
 }
+B[0]["pt"].y+= (B[0]["length"]+25);
+
+for(var i = 1 ; i < 10 ; i++)
+{
+  B[i]["pt"].x-=(B[i]["length"]);
+ B[i]["pt"].y+=B[i]["length"];
+
+}
+B[10]["pt"].x -=2*B[i]["length"];
+ 
+ 
+
+}
+var initSpiral = false;
 var deltaTime = 0.05;
 function setup()
 {
 scribble = new Scribble();
   //sentiment pattern 
- // colorMode(HSB, 255);
+ //
   cols = floor(width / scl);
   rows = floor(height / scl);
   fr = createP('');
@@ -432,19 +534,38 @@ scribble = new Scribble();
 
   for (var i = 0; i < B.length; i++) {
     particles[i] = new Particle(B[i]["pt"].x,B[i]["pt"].y);
-  }
- 
+  }*/
+ /* for(var i = 0 ; i < B.length ; i++)
+  {
+    ellipse(B[i]["pt"].x,B[i]["pt"].y,2*B[i]["length"],2*B[i]["length"]);
+  }*/
+/*
+  storySentiment = "neutral";
 }
 
 function draw()
 {
   
- 
-  if(!showPattern)
+ if(frameCount < 100)
+ {
+  console.log("initi spiral");
+  initSpiral = true;
+  console.log(initSpiral)
+  storySentiment = "init";
+  strWt = 2;
+ }
+else initSpiral = false;
+  if(!showPattern && !initSpiral)
+  {
+   // colorMode(RGB, 255);
    comic.display(P,R,t);
-    t+=deltaTime;
-if(showPattern)
+   t+=deltaTime;
+ }
+    
+if(showPattern || initSpiral)
 {
+   //colorMode(HSB, 255);
+   setSentimentParameters();
   var yoff = 0;
   for (var y = 0; y < rows; y++) {
     var xoff = 0;
@@ -467,7 +588,7 @@ if(showPattern)
     particles[i].follow(flowfield);
     particles[i].update();
     particles[i].edges(B[i]["length"]);
-    particles[i].show();
+    particles[i].show(strWt,r,g,b);
   }
 
 }
@@ -476,7 +597,53 @@ function mouseWheel(event)
 {
   showPattern = !showPattern;
 }
-*/
+function setSentimentParameters()
+{
+  if(storySentiment == "neutral")
+  {
+    r = 147;
+    g = 222;
+    b = 105;
+    strWt = 1;
+  }
+  if(storySentiment == "positive")
+  {
+    r = random(200,250);
+    g = random(200,255);
+    b = 0;
+    strWt = 3;
+  }
+  if(storySentiment == "negative")
+  {
+    r = random(50,75);
+    g = 0;
+    b = random(128,255);
+    strWt = 3;
+  }
+  if(storySentiment == "very_positive")
+  {
+    r = 255;
+    g = random(150,180);
+    b = random(170,190);
+    strWt = 7;
+  }
+  if(storySentiment == "very_negative")
+  {
+     r = random(50,150);
+    g = random(50,150);
+    b = random(50,150);
+    strWt = 7;  
+  }
+  if(storySentiment == "init")
+  {
+     r = 5;
+    g = 5;
+    b = 5;
+    strWt = 1;  
+  }
+
+
+}*/
 /*var t = 0;
 var scribble;
 var x = 100;

@@ -36,7 +36,7 @@ public class AMyWebSocket implements MyWebSocket {
 	private PrintWriter out;
 	private PythonThread outThread;
 	private Object lock;
-	
+
 	public AMyWebSocket(PythonThread outThread, Object lock, StanfordCoreNLP pipeline) {
 		this.outThread = outThread;
 		this.lock = lock;
@@ -70,24 +70,29 @@ public class AMyWebSocket implements MyWebSocket {
 		// For debugging
 		System.out.println("received message: " + message);
 		if (!message.equals(null)) {
-			//Sent each time a new person begins to speak
+			// Sent each time a new person begins to speak
 			if (message.equals("new person")) {
 				// get story sentiment
 				JSONObject sentiment = new JSONObject();
-				sentiment.put("sentiment", story.getSentiment().toString().toLowerCase());
+				if (story.getSentiment() != null) {
+					sentiment.put("sentiment", story.getSentiment().toString().toLowerCase());
+				} else {
+					sentiment.put("sentiment", "");
+				}
 				sendMessage(sentiment.toJSONString());
-				//save story sentiment to file
+				// save story sentiment to file
 				writeToFile(sentiment.toJSONString());
-			//Sent each time a new story session begins
+				// Sent each time a new story session begins
 			} else if (message.equals("new story")) {
 				// start a new file for each new story
 				out = null;
 			} else {
-				//TODO: Measure how long this annotation takes and see if you can speed it up
-				//Annotate the new piece of the story that server has received
+				// TODO: Measure how long this annotation takes and see if you
+				// can speed it up
+				// Annotate the new piece of the story that server has received
 				Annotation document = new Annotation(message);
 				pipeline.annotate(document);
-				//Generate frames from annotated story
+				// Generate frames from annotated story
 				FrameMaker frameMaker = new AFrameMaker(outThread, lock, story);
 				ArrayList<Frame> frames = frameMaker.makeFrame(document);
 				if (story.getFrames() == null) {
@@ -95,13 +100,13 @@ public class AMyWebSocket implements MyWebSocket {
 				} else {
 					story.addFrames(frames);
 				}
-				//Add new section to existing story
+				// Add new section to existing story
 				story.augmentFullText(message);
 				// Only send message back to client if frames exist
 				if (frames != null) {
 					String jsonString = convertToJSON(frames);
 					sendMessage(jsonString);
-					//Write new frames to file for display later
+					// Write new frames to file for display later
 					writeToFile(jsonString);
 				}
 			}
@@ -123,8 +128,9 @@ public class AMyWebSocket implements MyWebSocket {
 		}
 	}
 
-	//Writes JSON string to a .txt file in the stories folder
-	//NOTE: To get project to run, you need to create a stories folder in your project
+	// Writes JSON string to a .txt file in the stories folder
+	// NOTE: To get project to run, you need to create a stories folder in your
+	// project
 	private void writeToFile(String json) {
 		if (out != null) {
 			out.println(json);
@@ -141,8 +147,8 @@ public class AMyWebSocket implements MyWebSocket {
 			}
 		}
 	}
-	
-	//Converts a list of frames to a JSON object so it can be sent to client
+
+	// Converts a list of frames to a JSON object so it can be sent to client
 	@SuppressWarnings("unchecked")
 	private static String convertToJSON(ArrayList<Frame> frames) {
 		JSONObject obj = new JSONObject();
@@ -179,7 +185,8 @@ public class AMyWebSocket implements MyWebSocket {
 					JSONObject subject = new JSONObject();
 					if (frames.get(i).getSubjects().get(j).getClass() == AnAgent.class) {
 						subject.put("subjectType", "agent");
-						subject.put("agentType", ((AnAgent) frames.get(i).getSubjects().get(j)).getAgentType().toString());
+						subject.put("agentType",
+								((AnAgent) frames.get(i).getSubjects().get(j)).getAgentType().toString());
 						subject.put("gender", ((AnAgent) frames.get(i).getSubjects().get(j)).getGender().toString());
 					} else {
 						subject.put("subjectType", "object");
@@ -196,11 +203,13 @@ public class AMyWebSocket implements MyWebSocket {
 					JSONObject predicate = new JSONObject();
 					if (frames.get(i).getPredicates().get(j).getClass() == AnAgent.class) {
 						predicate.put("predicateType", "agent");
-						predicate.put("agentType", ((AnAgent) frames.get(i).getPredicates().get(j)).getAgentType().toString());
-						predicate.put("gender", ((AnAgent) frames.get(i).getPredicates().get(j)).getGender().toString());
+						predicate.put("agentType",
+								((AnAgent) frames.get(i).getPredicates().get(j)).getAgentType().toString());
+						predicate.put("gender",
+								((AnAgent) frames.get(i).getPredicates().get(j)).getGender().toString());
 					} else if (frames.get(i).getPredicates().get(j).getClass() == AnObject.class) {
 						predicate.put("predicateType", "object");
-					} 
+					}
 					predicates.put(predicate);
 				}
 				frame.put("predicates", predicates);

@@ -27,16 +27,17 @@ function Particle(x,y) {
     this.acc.add(force);
   }
 
-  this.show = function() {
-    stroke(this.h, 255, 255, 25);
+  this.show = function(strWt,r,g,b) {
+    //stroke(this.h, 255, 255, 25);
+    stroke(r, g, b,25);
     this.h = this.h + 1;
     if (this.h > 255) {
       this.h = 0;
     }
-    strokeWeight(random(0,5));
-   // scribble.bowing = 50;
-   scribble.maxOffset = 100;
-    //scribble.roughness = random(50);
+    strokeWeight(strWt);
+   //scribble.bowing = 150;
+  // scribble.maxOffset = 100;
+    scribble.roughness = 50;
     scribble.scribbleLine(this.pos.x, this.pos.y, this.prevPos.x, this.prevPos.y);
     this.updatePrev();
   }

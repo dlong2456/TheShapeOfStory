@@ -438,7 +438,7 @@ var drawSpiral1 = function(G)
   for(var i = 1 ; i < Pt.length ; i++)
   {
     stroke(150);
-    line(Pt[i-1].x,Pt[i-1].y,Pt[i].x,Pt[i].y);
+   // line(Pt[i-1].x,Pt[i-1].y,Pt[i].x,Pt[i].y);
     stroke(0);
   }
     
@@ -461,8 +461,8 @@ var drawSpiral2 = function(G)
     r1 = b*sqrt(t);
     r2 = -b*sqrt(t);
    }
-     for(var i = 1 ; i < Qt.length ; i++)
-    line(Qt[i-1].x,Qt[i-1].y,Qt[i].x,Qt[i].y);
+    // for(var i = 1 ; i < Qt.length ; i++)
+    //line(Qt[i-1].x,Qt[i-1].y,Qt[i].x,Qt[i].y);
   return Qt;
 
 }
