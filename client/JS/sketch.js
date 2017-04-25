@@ -1,3 +1,5 @@
+
+/*
 var recordedText = "";
 var offset = 0;
 
@@ -286,9 +288,9 @@ if(drawEndSymbol == true)
   EndSymbol();
 }
 }
-function mouseClick(e)
+function mouseClicked(e)
 {
-   //console.log(e);
+   console.log(e);
   if(showPattern == false)
   {
   ws.send("new person");
@@ -299,12 +301,22 @@ if(showPattern == true)
 }
 function mouseWheel(event)
 {
+console.log(e);
+  if(showPattern == false)
+  {
+  ws.send("new person");
+
+}
+if(showPattern == true)
+  showPattern = false;
+
+
   //showPattern = !showPattern;
-  fill(150,150,150,20);
-   rect(0,0,1200,1200);
-  showPatterns = false;
-  endStartTime = t;
-  drawEndSymbol = true;
+  //fill(150,150,150,20);
+  // rect(0,0,1200,1200);
+  //showPatterns = false;
+  //endStartTime = t;
+  //drawEndSymbol = true;
 }
 
 function setSentimentParameters()
@@ -386,7 +398,7 @@ else if(t-endStartTime < 2*TWO_PI)
     //endY -= 5+10*sin((t-endStartTime));
 }
 }
-
+*/
 /*
 
 
@@ -439,7 +451,7 @@ Happiness
 Sadness
 Surprise
 */
-/*
+
  var storySentiment = "";
 
 var strWt = 2;
@@ -534,13 +546,13 @@ scribble = new Scribble();
 
   for (var i = 0; i < B.length; i++) {
     particles[i] = new Particle(B[i]["pt"].x,B[i]["pt"].y);
-  }*/
+  }
  /* for(var i = 0 ; i < B.length ; i++)
   {
     ellipse(B[i]["pt"].x,B[i]["pt"].y,2*B[i]["length"],2*B[i]["length"]);
   }*/
-/*
-  storySentiment = "neutral";
+
+  storySentiment = "init";
 }
 
 function draw()
@@ -551,8 +563,9 @@ function draw()
   console.log("initi spiral");
   initSpiral = true;
   console.log(initSpiral)
-  storySentiment = "init";
+ // storySentiment = "init";
   strWt = 2;
+
  }
 else initSpiral = false;
   if(!showPattern && !initSpiral)
@@ -564,6 +577,7 @@ else initSpiral = false;
     
 if(showPattern || initSpiral)
 {
+  console.log(storySentiment);
    //colorMode(HSB, 255);
    setSentimentParameters();
   var yoff = 0;
@@ -595,6 +609,7 @@ if(showPattern || initSpiral)
 }
 function mouseWheel(event)
 {
+  storySentiment == "very_positive";
   showPattern = !showPattern;
 }
 function setSentimentParameters()
@@ -643,7 +658,7 @@ function setSentimentParameters()
   }
 
 
-}*/
+}
 /*var t = 0;
 var scribble;
 var x = 100;
