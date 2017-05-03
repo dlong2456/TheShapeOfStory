@@ -3,18 +3,19 @@ var Comic = (function()
 	//Panels
 	var Action = function(num,subjects,predicates , action,emotion,setting ,sentiment,name)
 	{
-
-		this.type = "action",
+    console.log("action created");
+		this.type = "action";
 		this.name = name || "";
 		this.subjects = subjects || [] ;
 		this.predicates = predicates || [] ;
 		this.action = action || "";
 		this.emotion = emotion || "";
 		
-		this.sentiment = sentiment || "";
+		this.sentiment = sentiment || "neutral";
     this.setting = setting || "";
 		this.agentLayer = new Renderer.AgentLayer(num,this.subjects,this.predicates,this.action,this.setting,this.sentiment,this.emotion);
 		this.num = num;//frame number variable
+
   }
 
    

@@ -9,6 +9,10 @@ def main(model, word):
     genders = ["male", "female"]
     similarities = []
     for gender in genders:
-        similarity = model.similarity(word, gender)
-        similarities.append(similarity)
+        try: 
+            similarity = model.similarity(word, gender)
+            similarities.append(similarity)
+        except KeyError: 
+            #set similarity value to 0 if word is not found
+            similarities.append(0)
     return genders[similarities.index(max(similarities))]

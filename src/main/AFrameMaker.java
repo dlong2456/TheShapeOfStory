@@ -20,6 +20,7 @@ import edu.stanford.nlp.semgraph.SemanticGraphEdge;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.util.IntTuple;
+import edu.stanford.nlp.util.TypesafeMap.Key;
 import frameComponents.ASetting;
 import frameComponents.Action;
 import frameComponents.Agent;
@@ -176,6 +177,29 @@ public class AFrameMaker implements FrameMaker {
 		for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
 			SemanticGraph dependencies = sentence.get(BasicDependenciesAnnotation.class);
 			ArrayList<Frame> sentenceFrames = new ArrayList<Frame>();
+			// TODO: Make this so settings are read by preposition
+			// for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
+			// if (token.tag().equals("IN")) {
+			// Setting setting = new ASetting();
+			// if (token.lemma().toString().equals("to")
+			// || token.lemma().toString().equals("on")
+			// || token.lemma().toString().equals("in")
+			// || token.lemma().toString().equals("at")
+			// || token.lemma().toString().equals("from")) {
+			// setting.setPreposition(token.lemma().toString());
+			// } else if (token.lemma().toString().equals("inside")) {
+			// setting.setPreposition("in");
+			// } else if (token.lemma().toString().equals("toward")
+			// || token.lemma().toString().equals("towards")) {
+			// setting.setPreposition("to");
+			// } else if (token.lemma().toString().equals("upon")
+			// || token.lemma().toString().equals("above")) {
+			// setting.setPreposition("on");
+			// }
+			// }
+			// frame.setSetting(setting);
+			// }
+			// }
 			Collection<IndexedWord> rootVerbs = dependencies.getRoots();
 			for (IndexedWord root : rootVerbs) {
 				// create a new frame for each root verb
@@ -300,10 +324,8 @@ public class AFrameMaker implements FrameMaker {
 										// words in sentence? System is missing
 										// some of these
 										SemanticGraphEdge nextEdge = dependencies.getEdge(child, grandchild);
+										// TODO: make a hashmap for this mapping
 										if (nextEdge.getRelation().toString().equals("case")) {
-											// TODO: Do we want to add any other
-											// prepositions? Out/outside/inside?
-											// Maybe a mapping
 											if (grandchild.lemma().toString().equals("to")
 													|| grandchild.lemma().toString().equals("on")
 													|| grandchild.lemma().toString().equals("in")
@@ -311,6 +333,14 @@ public class AFrameMaker implements FrameMaker {
 													|| grandchild.lemma().toString().equals("from")) {
 												((Setting) ambiguousEntity)
 														.setPreposition(grandchild.lemma().toString());
+											} else if (grandchild.lemma().toString().equals("inside")) {
+												((Setting) ambiguousEntity).setPreposition("in");
+											} else if (grandchild.lemma().toString().equals("toward")
+													|| grandchild.lemma().toString().equals("towards")) {
+												((Setting) ambiguousEntity).setPreposition("to");
+											} else if (grandchild.lemma().toString().equals("upon")
+													|| grandchild.lemma().toString().equals("above")) {
+												((Setting) ambiguousEntity).setPreposition("on");
 											}
 										}
 									}
@@ -353,6 +383,7 @@ public class AFrameMaker implements FrameMaker {
 				}
 			}
 		}
+
 	}
 
 	// Finds an unknown entity in a list of known entities (assists in entity

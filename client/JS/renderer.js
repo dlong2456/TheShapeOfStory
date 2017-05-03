@@ -101,16 +101,27 @@ var actionUtility =
 
 }*/
 
-var sentiUtility = 
+/*var sentiUtility = 
 {
   
   "very_negative" : "grey", //red orange for aggression
   "negative" : "dark_purple", //dull yellow for sickness
-  "neutral" : "parrot_green",
+  "neutral" : "olive_green",
   "positive" : "yellow",
   "very_positive" : "pink",
 
+}*/
+var sentiUtility = 
+{
+  
+  "very_negative" : ['#302907','#242222','#282A31','#171A17','#312D27'], //red orange for aggression
+  "negative" : ['#1e2057','#181140','#2c1357','#2d1340','#481257'], //dull yellow for sickness
+  "neutral" : ['#07effc2','#5be884','#59ff63','#80e864','#aaff56'],
+  "positive" : ['#fffe2e','#e8cd00','#ffc509','#e89e13','#ff8e15'],
+  "very_positive" : ['#ff9325','#e8430c','#ff0000','#eb0cca','#f70dff'],
+
 }
+
 var emotionUtility1 = 
 {
   
@@ -140,13 +151,14 @@ var emotionUtility2 =
 //the entity layer class
 var AgentLayer = function(num,subjects,predicates,action,setting,sentiment,emotion)
 {
+  console.log("HELLO");
   this.num = num;
 	this.type = "agent";
 	this.subjects = subjects || [] ;
   this.predicates = predicates || [] ;
 	this.action = action || "";
   this.emotion = emotion || "happy";
-  this.sentiment = sentiment || "";
+  this.sentiment = sentiment || "neutral";
   this.setting = setting || "";
   this.setDone = false;
   this.subjectDone = false;
@@ -154,7 +166,7 @@ var AgentLayer = function(num,subjects,predicates,action,setting,sentiment,emoti
   this.actDone = false;
   this.dt = 20;//frame drawing time
   this.et = 5; //element drawing time - time to draw setting, 2 agents , action
- // console.log(this.relation);
+ console.log("inside agent: "+this.sentiment);
   
 }
 
@@ -163,15 +175,12 @@ AgentLayer.prototype=
 	constructor :AgentLayer,
 	draw : function(pt,t)
 	{
-    //console.log(this.emotion);
+    
     var time = (t-offset)-this.dt*this.num;
 
     
    if(time > 0 && time <=this.dt)
    {
-  // console.log(this.sentiment);
-   //console.log("emotion: "+this.emotion);
-   // console.log(t);
    if(time >= this.dt/this.et) this.setDone = true;
    if(time >= this.et * 2) this.subjectDone = true;
    if(time>=this.et*3) this.predicateDone = true;
@@ -210,8 +219,6 @@ AgentLayer.prototype=
      }
      if(this.setting == "in")
      {
-     // posSettingx = i+0.1*pt["length"]*2;
-     // posSettingy = j+0.1*pt["length"]*2;
      //middle of the "in" box
      posSettingx = i;
      posSettingy = j;
@@ -230,8 +237,6 @@ AgentLayer.prototype=
      }
      if(this.setting == "")
      {
-     // posSettingx = i+0.1*pt["length"]*2;
-     // posSettingy = j+0.1*pt["length"]*2;
      posSettingx = i;
      posSettingy = j;
      settingBoundx = 0.8*pt["length"]*2;
@@ -290,12 +295,10 @@ AgentLayer.prototype=
   if(this.setDone && !this.subjectDone)
 
     {  
-
-      //console.log("drawing agents");
       this.subjects.forEach(function(agent)
       {
              
-             
+            //console.log("subject: "+this.sentiment); 
       drawShape(agent.shape,this.sentiment, posSx , posSy,alpha/obj,boundingBoxX,boundingBoxY,time,this.emotion);
       obj+=1;
 
@@ -304,11 +307,11 @@ AgentLayer.prototype=
 if(this.subjectDone && !this.predicateDone){
       this.predicates.forEach(function(agent)
       {
-
+              //console.log("predicate: "+this.sentiment);
                drawShape(agent.shape,this.sentiment, posPx , posPy,alpha/obj,boundingBoxX,boundingBoxY,time,this.emotion);
       obj+=1;
 
-      });
+      },this);
     }
       if(this.predicateDone)
       {
@@ -331,23 +334,15 @@ if(this.subjectDone && !this.predicateDone){
 {
   
   var scribble = new Scribble();
-  //var item = Math.floor(Math.random()*feelingUtility[color].length)
-  //var c1 = colorUtility[feelingUtility[color][item]];
-  //console.log(feelingUtility[color][item]);
- // console.log(feelingUtility[color]);
-  //var c1 = feelingUtility[color]);
-var c1 = colorUtility[sentiUtility[color]];
-var s1 = emotionUtility1[emotion]; //console.log(s1);
-if( c1 == null) c1 = colorUtility["yellow"];
-if( s1 == null) s1 = 2;
-var ctime = emotionUtility2[emotion] ;
-if( ctime == null) ctime = 5;
-//console.log(s1);
-//console.log(c1);
-//console.log(s1);
+  var num = Math.floor(random(5));
+  var colorArray = sentiUtility[color];
+  var c1 = colorArray[num];
+  var s1 = emotionUtility1[emotion]; 
+  if( s1 == null) s1 = 2;
+  var ctime = emotionUtility2[emotion] ;
+  if( ctime == null) ctime = 5;
   shapeUtility[shape](i,j,w,h,c1,scribble,time,s1,ctime);
  
-  //Math.floor(Math.random()*items.length)
  
 
 }
@@ -389,11 +384,10 @@ function drawTriangle(i,j,w,h,color,scribble,time,s1,ctime)
 var colorTime = ctime;
   var colorDistance = h;
   var colorSpeed = h/colorTime;
-  //console.log(s1);
+  
   stroke(color);
   strokeWeight(s1);
-  //scribble.scribbleFilling([w/2,3*w/2,-w/2,],[0,h,h],2,0,2*time);
- // scribble.scribbleLine(w/2-(h/4)*t,h/2*t,w/2+(h/4)*t,h/2*t);
+  
  if(t<colorTime)
  scribble.scribbleLine(w/2-colorSpeed/2*t,colorSpeed*t,w/2+colorSpeed/2*t,colorSpeed*t);
  strokeWeight(1);
@@ -424,7 +418,7 @@ var colorTime = ctime;
  
 
   pop();
-  //strokeWeight(1);
+  
 
 
  
@@ -535,8 +529,6 @@ function drawRectangle(i,j,w,h,color,scribble,time,s1,ctime)
    strokeWeight(s1);
   stroke(color);
   
-  //scribble.scribbleFilling([w/2,3*w/2,-w/2,],[0,h,h],2,0,2*time);
- // scribble.scribbleLine(w/2-(h/4)*t,h/2*t,w/2+(h/4)*t,h/2*t);
  if(t<colorTime)
  scribble.scribbleLine(0,colorSpeed*t,w,colorSpeed*t);
  strokeWeight(1);
@@ -573,7 +565,7 @@ else if(t<3*delTperLine)
   strokeWeight(1);
   
 }
-//(i,j,w,h,c1,scribble,time,s1)
+
 function drawCircle(i,j,w,h,color,scribble,time,s1,ctime)
 {
   if(time >= 5 && time < 10)
@@ -611,19 +603,8 @@ var colorDistanceX = PI;
   stroke(color);
   strokeWeight(s1);
   console.log(s1);
-  //scribble.scribbleFilling([w/2,3*w/2,-w/2,],[0,h,h],2,0,2*time);
- // scribble.scribbleLine(w/2-(h/4)*t,h/2*t,w/2+(h/4)*t,h/2*t);
  if(t<colorTime)
  scribble.scribbleLine(minorAxis*Math.sin(colorSpeedX*t),-w+colorSpeedY*t,-minorAxis*Math.sin(colorSpeedX*t),-w+colorSpeedY*t);
- //scribble.scribbleLine(minorAxis*Math.sin(colorSpeedX*t),w-colorSpeedY*t,-minorAxis*Math.sin(colorSpeedX*t),w-colorSpeedY*t);
-
-/*noStroke()
-if(t<T/3 || t > 2*T/3 ){
-fill(0,255,0,255*0.1*t*t);
-ellipse(0,0,w-2,w-2);
-noFill();*/
-
-//******
 stroke(0);
  strokeWeight(2);
  
@@ -774,9 +755,13 @@ function drawBe(i,j,w,h,scribble,time)
   translate(i,j);
  
   //using a sin wave.
-  
+  stroke(random(255),random(255),random(255));
+  pv.spiral2(pv.P(-w/2,-h/2),8,20);
+  stroke(0);
+
   pop();
 }
+
 function drawSmell(i,j,w,h,scribble,time)
 {
    push();
@@ -793,7 +778,7 @@ function drawSmell(i,j,w,h,scribble,time)
   scribble.scribbleCurve(3,-7,0,8,7,0,3,5);
   
   for(var t = 3*PI ; t < 8*PI ; t+=0.1)
-   // scribble.scribbleLine(t,8*sin(-t),t+0.1,-8*sin(t+0.1));
+   
  {
   scribble.scribbleLine(3*sin(-t)-4,t,-3*sin(t+0.1)-4,t+0.1);
   scribble.scribbleLine(3*sin(-t)+4,t,-3*sin(t+0.1)+4,t+0.1);
@@ -834,10 +819,40 @@ function drawMoveObject(i,j,w,h,scribble,time)
 }
 function drawHave(i,j,w,h,scribble,time)
 {
-    push();
+  push();
   translate(i,j);
+  stroke(0)
+  scribble.scribbleLine(-w+5,-h,-w-15,-h);
+  scribble.scribbleLine(w-5,-h,w+15,-h);
+  
+  scribble.scribbleLine(-w+5,-h+10,-w-15,-h+10);
+  scribble.scribbleLine(w-5,-h+10,w+15,-h+10);
 
+  fill(random(255),random(255),random(255));
+  scribble.scribbleEllipse(-w-15,-h,5,5);
+  fill(random(255),random(255),random(255));
+  scribble.scribbleEllipse(w+15,-h,5,5);
+
+  fill(random(255),random(255),random(255));
+  scribble.scribbleEllipse(-w-10,-h+10,5,5);
+  fill(random(255),random(255),random(255));
+  scribble.scribbleEllipse(w+10,-h+10,5,5);
   //using a sin wave.
+  noFill();
+  scribble.scribbleCurve(-w+5,-h+5,0,h/4-15,-w+7,h/4-20,-w+7,h/4-20);
+  scribble.scribbleCurve(w-5,-h+5,0,h/4-15,w-7,h/4-20,w-7,h/4-20);
+   
+  stroke(random(255),random(255),random(255));
+  scribble.scribbleCurve(-w+11,-h+11,0,h/4-11,-w+13,h/4-19,-w+13,h/4-19);
+  scribble.scribbleCurve(w-11,-h+11,0,h/4-11,w-13,h/4-19,w-13,h/4-19);
+
+  stroke(random(255),random(255),random(255));
+  scribble.scribbleCurve(-w+23,-h+23,0,h/4-23,-w+25,h/4-31,-w+25,h/4-31);
+  scribble.scribbleCurve(w-23,-h+23,0,h/4-23,w-25,h/4-31,w-25,h/4-31);
+
+  stroke(random(255),random(255),random(255));
+  scribble.scribbleCurve(-w+27,-h+27,0,h/4-27,-w+29,h/4-35,-w+29,h/4-35);
+  scribble.scribbleCurve(w-27,-h+27,0,h/4-27,w-29,h/4-35,w-29,h/4-35);
   
   pop();
 }
@@ -881,12 +896,23 @@ function drawExpel(i,j,w,h,scribble,time)
   translate(i,j);
  
   //using a sin wave.
-  fill(0);
-  scribble.scribbleEllipse(-4*PI-5,sin(-4*PI),5,5);
-  for(var t = -4*PI ; t < 8*PI ; t+=0.1)
-    scribble.scribbleLine(t,8*sin(-t),t+0.1,-8*sin(t+0.1));
-  fill(random(250,255),random(100,165),0);
-  scribble.scribbleEllipse(t+1,8*sin(t+0.1),10,10);
+  stroke(50);
+  noFill();
+  scribble.scribbleEllipse(-w/2,-h/4,40,40);
+  scribble.scribbleEllipse(-w/2,-h,30,30);
+  scribble.scribbleEllipse(-w/2,-1.5*h,20,20);
+
+
+  
+
+  //scribble.scribbleEllipse(-4*PI-5,sin(-4*PI),5,5);
+  stroke(random(255),random(255),random(255));
+  for(var t = -4*PI ; t < 4*PI ; t+=0.1)
+    //scribble.scribbleLine(t,8*sin(-t),t+0.1,-8*sin(t+0.1));
+
+  scribble.scribbleLine(-w/2+8*sin(-t/2),-2*h+t,-w/2-8*sin(t/2+0.1),-2*h+t+0.1);
+  //fill(random(250,255),random(100,165),0);
+  //scribble.scribbleEllipse(t+1,8*sin(t+0.1),10,10);
   noFill();
 
 

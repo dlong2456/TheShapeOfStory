@@ -12,11 +12,10 @@ import gender
 import verb
 import time
 
-# todo: deal with word not in library exception from word2vec
-
 # Load Google's pre-trained Word2Vec model.
 model = gensim.models.KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin', binary=True)
 print("model loaded")
+#have to flush output so that java program can read it in real-time
 sys.stdout.flush()
 
 try:  

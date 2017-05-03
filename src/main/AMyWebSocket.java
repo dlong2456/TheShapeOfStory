@@ -28,7 +28,7 @@ import story.AStory.Sentiment;
 import story.Frame;
 import story.Story;
 
-@WebSocket
+@WebSocket(maxIdleTime=36000000)
 public class AMyWebSocket implements MyWebSocket {
 	private Session session;
 	private StanfordCoreNLP pipeline;
@@ -41,7 +41,6 @@ public class AMyWebSocket implements MyWebSocket {
 		this.outThread = outThread;
 		this.lock = lock;
 		this.pipeline = pipeline;
-		System.out.println(pipeline);
 	}
 
 	@OnWebSocketClose
@@ -174,7 +173,7 @@ public class AMyWebSocket implements MyWebSocket {
 			} else {
 				frame.put("sentiment", "");
 			}
-			if (setting != null) {
+			if (setting != null && setting.getPreposition() != null) {
 				frame.put("setting_preposition", setting.getPreposition().toLowerCase());
 			} else {
 				frame.put("setting_preposition", "");
