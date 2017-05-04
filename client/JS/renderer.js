@@ -1,5 +1,6 @@
 var Renderer = (function()
 {
+  var reset = false;
 var settingUtility = 
 {
   "" : emptyFunction,
@@ -151,7 +152,7 @@ var emotionUtility2 =
 //the entity layer class
 var AgentLayer = function(num,subjects,predicates,action,setting,sentiment,emotion)
 {
-  console.log("HELLO");
+  //console.log("HELLO");
   this.num = num;
 	this.type = "agent";
 	this.subjects = subjects || [] ;
@@ -166,7 +167,7 @@ var AgentLayer = function(num,subjects,predicates,action,setting,sentiment,emoti
   this.actDone = false;
   this.dt = 20;//frame drawing time
   this.et = 5; //element drawing time - time to draw setting, 2 agents , action
- console.log("inside agent: "+this.sentiment);
+// console.log("inside agent: "+this.sentiment);
   
 }
 
@@ -181,7 +182,8 @@ AgentLayer.prototype=
     
    if(time > 0 && time <=this.dt)
    {
-   if(time >= this.dt/this.et) this.setDone = true;
+    //if(this.num % 5 == 0 && t < this.et) {  redraw();}
+   if(time >= this.et) this.setDone = true;
    if(time >= this.et * 2) this.subjectDone = true;
    if(time>=this.et*3) this.predicateDone = true;
       var i = pt["pt"].x;
@@ -315,6 +317,7 @@ if(this.subjectDone && !this.predicateDone){
     }
       if(this.predicateDone)
       {
+        //if(this.num % 5 == 0) reset = true; else reset = false;
         var scribble = new Scribble();
         strokeWeight(1);
          actionUtility[this.action](posPx+boundingBoxX/2,posPy,boundingBoxX,boundingBoxY,scribble,time);
@@ -481,7 +484,7 @@ else if(t<3*delTperLine)
   {
     var x = w;
     var y = w-speed*(t-2*delTperLine);
- console.log(t-2*delTperLine);
+ //console.log(t-2*delTperLine);
     scribble.scribbleLine(x,y,x,y-speed*(t-2*delTperLine));
 
   }
@@ -652,6 +655,8 @@ function drawOn(i,j,length,scribble,time)
     var x = 0+speed*(time-delTperLine);
     var y = dist/3;
     scribble.scribbleLine(x,y,x+speed*(time-delTperLine),y);
+    if(time>0.99*delTperLine*2) strokeWeight(0);
+   
 
   }
 
@@ -695,6 +700,8 @@ else if(time<3*delTperLine)
     var x = dist;
     var y = -dist+speed*(time-2*delTperLine);
     scribble.scribbleLine(x,y,x,y+speed*(time-2*delTperLine));
+
+    
 
   }
   else if (time<T)
@@ -923,7 +930,7 @@ function drawPropel(i,j,w,h,scribble,time)
    push();
   translate(i,j);
  
- 
+ strokeWeight(1);
   fill(random(100,255),0,random(200,255));
   scribble.scribbleEllipse(0,0,10,10);
   noFill();
@@ -985,7 +992,7 @@ function drawSpeak(i,j,w,h,scribble,time)
 {
   push();
   translate(i,j);
-  
+  strokeWeight(1)
   fill(255,150,0);
   arc(0,0,10,10,PI-3*PI/4,PI+3*PI/4);
   fill(0)
@@ -1176,7 +1183,7 @@ function fillTriangle(P,speed,color,roughness,sweight,time)
     BackgroundLayer : BackgroundLayer,
     TextLayer : TextLayer,
     AgentLayer : AgentLayer,
-   
+    reset : reset,
     //testFunction:testFunction,
     //failing: failing
   }

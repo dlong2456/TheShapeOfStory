@@ -3,7 +3,7 @@ var Comic = (function()
 	//Panels
 	var Action = function(num,subjects,predicates , action,emotion,setting ,sentiment,name)
 	{
-    console.log("action created");
+    //console.log("action created");
 		this.type = "action";
 		this.name = name || "";
 		this.subjects = subjects || [] ;
@@ -41,6 +41,7 @@ var Comic = (function()
   
      this.panels.forEach(function(panel)
      {
+      //if(i > 5) {i = 0; background(255);}
      	panel.agentLayer.draw(positions[i],t);
      	i+=1;
      });

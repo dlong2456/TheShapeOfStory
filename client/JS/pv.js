@@ -482,7 +482,7 @@ var spiral1 = function(G,b,t1)
   {
     
    beginShape();
-      stroke(255,0,0);
+      //stroke(255,0,0);
      scribble.scribbleLine(P(G.y-r*sin(t),G.x+r*cos(t)-28).x,P(G.y-r*sin(t),G.x+r*cos(t)-28).y,P(G.y-r*sin(t+0.05),G.x+r*cos(t+0.05)-28).x,P(G.y-r*sin(t+0.05),G.x+r*cos(t+0.05)-28).y);
      // show(P(G.y-r*sin(t),G.x+r*cos(t)-28),1);
      endShape();
@@ -500,7 +500,7 @@ var spiral2 = function(G,b,t2)
   {
     
    beginShape();
-    stroke(255,0,0);
+    //stroke(255,0,0);
   scribble.scribbleLine(P(G.y-r*sin(t),G.x+r*cos(t)).x,P(G.y-r*sin(t),G.x+r*cos(t)).y,P(G.y-r*sin(t+0.05),G.x+r*cos(t+0.05)).x,P(G.y-r*sin(t+0.05),G.x+r*cos(t+0.05)).y);
   
      endShape();
