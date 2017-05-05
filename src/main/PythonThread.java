@@ -27,9 +27,9 @@ public class PythonThread extends Thread {
 	public PythonThread(Object lock) {
 		this.lock = lock;
 		try {
-			ProcessBuilder pb = new ProcessBuilder("/Users/Duri/virtualenvironment/jython_app/venv/bin/python",
+			ProcessBuilder pb = new ProcessBuilder("/Users/adamlab/ShapeOfStoryPython/venv/bin/python",
 					"launcher.py", "run");
-			pb.directory(new File("/Users/Duri/TheRoadNotTaken/python/main"));
+			pb.directory(new File("/Users/adamlab/TheRoadNotTaken/python/main"));
 			process = pb.start();
 			stdout = process.getInputStream();
 			stdin = process.getOutputStream();

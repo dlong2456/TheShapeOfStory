@@ -79,10 +79,13 @@ public class AFrameMaker implements FrameMaker {
 		// COREFERENCE RESOLUTION
 		// Create an entity for each reference chain in the story
 		document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values();
-		for (CorefChain cc : document.get(CorefCoreAnnotations.CorefChainAnnotation.class).values()) {
+		for (CorefChain cc : document.get(
+				CorefCoreAnnotations.CorefChainAnnotation.class).values()) {
 			ArrayList<Entity> mentionEntities = new ArrayList<Entity>();
 			CorefMention mention = cc.getRepresentativeMention();
-			CoreMap sentence = document.get(CoreAnnotations.SentencesAnnotation.class).get(mention.sentNum - 1);
+			CoreMap sentence = document.get(
+					CoreAnnotations.SentencesAnnotation.class).get(
+					mention.sentNum - 1);
 			for (int i = mention.startIndex - 1; i < mention.endIndex - 1; i++) {
 				Entity entity = null;
 				CoreLabel token = sentence.get(TokensAnnotation.class).get(i);
@@ -91,18 +94,22 @@ public class AFrameMaker implements FrameMaker {
 					// assume personal prounouns indicate humanity
 					entity = new AnAgent();
 					((Agent) entity).setAgentType(AgentType.HUMAN);
-					if (token.lemma().toString().equals("her") || token.lemma().toString().equals("she")
+					if (token.lemma().toString().equals("her")
+							|| token.lemma().toString().equals("she")
 							|| token.lemma().toString().equals("hers")) {
 						((Agent) entity).setGender(Gender.FEMALE);
-					} else if (token.lemma().toString().equals("him") || token.lemma().toString().equals("his")
+					} else if (token.lemma().toString().equals("him")
+							|| token.lemma().toString().equals("his")
 							|| token.lemma().toString().equals("he")) {
 						((Agent) entity).setGender(Gender.MALE);
-					} else if (token.lemma().toString().equals("I") || token.lemma().toString().equals("my")
+					} else if (token.lemma().toString().equals("I")
+							|| token.lemma().toString().equals("my")
 							|| token.lemma().toString().equals("me")) {
 						// assume a male narrator
 						((Agent) entity).setGender(Gender.MALE);
 					}
-				} else if (pos.equals("NN") || pos.equals("NNS") || pos.equals("NNP") || pos.equals("NNPS")) {
+				} else if (pos.equals("NN") || pos.equals("NNS")
+						|| pos.equals("NNP") || pos.equals("NNPS")) {
 					// First try named entity recognition
 					String ner = token.ner();
 					if (ner.equals("PERSON")) {
@@ -120,23 +127,29 @@ public class AFrameMaker implements FrameMaker {
 					}
 					// Then try concept net matching
 					if (entity == null) {
-						String nounType = setInput("categorize " + token.lemma());
+						String nounType = setInput("categorize "
+								+ token.lemma());
 						if (mention.animacy.toString().equals("ANIMATE")) {
 							if (nounType.equals("person")) {
 								entity = new AnAgent();
 								((Agent) entity).setAgentType(AgentType.HUMAN);
 								if (mention.gender.toString() != null) {
-									if (mention.gender.toString().equals("MALE")) {
+									if (mention.gender.toString()
+											.equals("MALE")) {
 										((Agent) entity).setGender(Gender.MALE);
-									} else if (mention.gender.toString().equals("FEMALE")) {
-										((Agent) entity).setGender(Gender.FEMALE);
+									} else if (mention.gender.toString()
+											.equals("FEMALE")) {
+										((Agent) entity)
+												.setGender(Gender.FEMALE);
 									}
 								} else {
-									String gender = setInput("gender " + token.lemma());
+									String gender = setInput("gender "
+											+ token.lemma());
 									if (gender.equals("male")) {
 										((Agent) entity).setGender(Gender.MALE);
 									} else if (gender.equals("female")) {
-										((Agent) entity).setGender(Gender.FEMALE);
+										((Agent) entity)
+												.setGender(Gender.FEMALE);
 									}
 								}
 							} else if (nounType.equals("animal")) {
@@ -174,32 +187,11 @@ public class AFrameMaker implements FrameMaker {
 		// DEPENDENCY MAPPING
 		// Find and connect actions, entities, setting prepositions, and
 		// emotions
-		for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
-			SemanticGraph dependencies = sentence.get(BasicDependenciesAnnotation.class);
+		for (CoreMap sentence : document
+				.get(CoreAnnotations.SentencesAnnotation.class)) {
+			SemanticGraph dependencies = sentence
+					.get(BasicDependenciesAnnotation.class);
 			ArrayList<Frame> sentenceFrames = new ArrayList<Frame>();
-			// TODO: Make this so settings are read by preposition
-			// for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
-			// if (token.tag().equals("IN")) {
-			// Setting setting = new ASetting();
-			// if (token.lemma().toString().equals("to")
-			// || token.lemma().toString().equals("on")
-			// || token.lemma().toString().equals("in")
-			// || token.lemma().toString().equals("at")
-			// || token.lemma().toString().equals("from")) {
-			// setting.setPreposition(token.lemma().toString());
-			// } else if (token.lemma().toString().equals("inside")) {
-			// setting.setPreposition("in");
-			// } else if (token.lemma().toString().equals("toward")
-			// || token.lemma().toString().equals("towards")) {
-			// setting.setPreposition("to");
-			// } else if (token.lemma().toString().equals("upon")
-			// || token.lemma().toString().equals("above")) {
-			// setting.setPreposition("on");
-			// }
-			// }
-			// frame.setSetting(setting);
-			// }
-			// }
 			Collection<IndexedWord> rootVerbs = dependencies.getRoots();
 			for (IndexedWord root : rootVerbs) {
 				// create a new frame for each root verb
@@ -209,7 +201,8 @@ public class AFrameMaker implements FrameMaker {
 				int[] positionArr = { root.sentIndex(), root.index() };
 				action.setPosition(new IntTuple(positionArr));
 				action.setLemma(root.lemma());
-				action.setAnimation(actionMapping.get(setInput("verb " + action.getLemma())));
+				action.setAnimation(actionMapping.get(setInput("verb "
+						+ action.getLemma())));
 				action.setVerb(root);
 				actions.add(action);
 				frame.setAction(action);
@@ -217,20 +210,28 @@ public class AFrameMaker implements FrameMaker {
 				sentenceFrames.add(frame);
 				// find additional verbs in sentence (this handles compound
 				// sentences)
-				Collection<IndexedWord> verbChildren = dependencies.getChildren(root);
+				Collection<IndexedWord> verbChildren = dependencies
+						.getChildren(root);
 				for (IndexedWord child : verbChildren) {
 					SemanticGraphEdge edge = dependencies.getEdge(root, child);
 					if (edge.getRelation().toString().equals("conj")) {
-						if (child.tag().equals("VB") || child.tag().equals("VBD") || child.tag().equals("VBG")
-								|| child.tag().equals("VBN") || child.tag().equals("VBP")
+						if (child.tag().equals("VB")
+								|| child.tag().equals("VBD")
+								|| child.tag().equals("VBG")
+								|| child.tag().equals("VBN")
+								|| child.tag().equals("VBP")
 								|| child.tag().equals("VBZ")) {
 							Action secondAction = new AnAction();
 							Frame secondFrame = new AFrame();
 							secondAction.setOriginalWord(child.originalText());
-							int[] secondPositionArr = { child.sentIndex(), child.index() };
-							secondAction.setPosition(new IntTuple(secondPositionArr));
+							int[] secondPositionArr = { child.sentIndex(),
+									child.index() };
+							secondAction.setPosition(new IntTuple(
+									secondPositionArr));
 							secondAction.setLemma(child.lemma());
-							secondAction.setAnimation(actionMapping.get(setInput("verb " + secondAction.getLemma())));
+							secondAction.setAnimation(actionMapping
+									.get(setInput("verb "
+											+ secondAction.getLemma())));
 							secondAction.setVerb(child);
 							actions.add(secondAction);
 							secondFrame.setAction(secondAction);
@@ -246,8 +247,32 @@ public class AFrameMaker implements FrameMaker {
 			ArrayList<Entity> subjects = new ArrayList<Entity>();
 			for (Frame frame : sentenceFrames) {
 				IndexedWord verb = frame.getAction().getVerb();
-				Collection<IndexedWord> children = dependencies.getChildren(verb);
+				Collection<IndexedWord> children = dependencies
+						.getChildren(verb);
 				for (IndexedWord child : children) {
+					// TODO: Make this so settings are read by preposition
+					// TODO: What are to/from children of?
+					System.out.println("TAG: " + child.tag());
+					if (child.tag().equals("IN") || child.tag().equals("TO")
+							|| child.tag().equals("RB")) {
+						Setting setting = new ASetting();
+						if (child.lemma().toString().equals("to")
+								|| child.lemma().toString().equals("on")
+								|| child.lemma().toString().equals("in")
+								|| child.lemma().toString().equals("at")
+								|| child.lemma().toString().equals("from")) {
+							setting.setPreposition(child.lemma().toString());
+						} else if (child.lemma().toString().equals("inside")) {
+							setting.setPreposition("in");
+						} else if (child.lemma().toString().equals("toward")
+								|| child.lemma().toString().equals("towards")) {
+							setting.setPreposition("to");
+						} else if (child.lemma().toString().equals("upon")
+								|| child.lemma().toString().equals("above")) {
+							setting.setPreposition("on");
+						}
+						frame.setSetting(setting);
+					}
 					SemanticGraphEdge edge = dependencies.getEdge(verb, child);
 					if (edge.getRelation().toString().equals("cop")) {
 						// verb is a copula
@@ -261,6 +286,7 @@ public class AFrameMaker implements FrameMaker {
 						// the sentence? This misses some
 						// TODO: How to associate an emotion with an agent?
 						String emotion = setInput("emotion " + verb.lemma());
+						System.out.println("emotion: " + emotion);
 						if (emotion != null) {
 							Emotion emotionObj = new AnEmotion();
 							emotionObj.setEmotion(verb.lemma());
@@ -272,15 +298,18 @@ public class AFrameMaker implements FrameMaker {
 							Action action = new AnAction();
 							action.setOriginalWord(child.originalText());
 							action.setLemma(child.lemma());
-							int[] positionArr = { verb.sentIndex(), verb.index() };
+							int[] positionArr = { verb.sentIndex(),
+									verb.index() };
 							action.setPosition(new IntTuple(positionArr));
 							action.setAnimation("feel");
 							frame.setAction(action);
 						} else {
+							System.out.println("BE");
 							Action action = new AnAction();
 							action.setOriginalWord(child.originalText());
 							action.setLemma(child.lemma());
-							int[] positionArr = { verb.sentIndex(), verb.index() };
+							int[] positionArr = { verb.sentIndex(),
+									verb.index() };
 							action.setPosition(new IntTuple(positionArr));
 							action.setAnimation("be");
 							frame.setAction(action);
@@ -288,22 +317,30 @@ public class AFrameMaker implements FrameMaker {
 					} else if (edge.getRelation().toString().equals("dobj")) {
 						// predicate
 						matchEntity(entities, child, predicates);
-						Collection<IndexedWord> grandchildren = dependencies.getChildren(child);
+						Collection<IndexedWord> grandchildren = dependencies
+								.getChildren(child);
 						for (IndexedWord grandchild : grandchildren) {
-							if (grandchild.tag().equals("PRP") || grandchild.tag().equals("PRP$")
-									|| grandchild.tag().equals("NN") || grandchild.tag().equals("NNS")
-									|| grandchild.tag().equals("NNP") || grandchild.tag().equals("NNPS")) {
+							if (grandchild.tag().equals("PRP")
+									|| grandchild.tag().equals("PRP$")
+									|| grandchild.tag().equals("NN")
+									|| grandchild.tag().equals("NNS")
+									|| grandchild.tag().equals("NNP")
+									|| grandchild.tag().equals("NNPS")) {
 								matchEntity(entities, grandchild, predicates);
 							}
 						}
 					} else if (edge.getRelation().toString().equals("nsubj")) {
 						// subject
 						matchEntity(entities, child, subjects);
-						Collection<IndexedWord> grandchildren = dependencies.getChildren(child);
+						Collection<IndexedWord> grandchildren = dependencies
+								.getChildren(child);
 						for (IndexedWord grandchild : grandchildren) {
-							if (grandchild.tag().equals("PRP") || grandchild.tag().equals("PRP$")
-									|| grandchild.tag().equals("NN") || grandchild.tag().equals("NNS")
-									|| grandchild.tag().equals("NNP") || grandchild.tag().equals("NNPS")) {
+							if (grandchild.tag().equals("PRP")
+									|| grandchild.tag().equals("PRP$")
+									|| grandchild.tag().equals("NN")
+									|| grandchild.tag().equals("NNS")
+									|| grandchild.tag().equals("NNP")
+									|| grandchild.tag().equals("NNPS")) {
 								matchEntity(entities, grandchild, subjects);
 							}
 						}
@@ -317,30 +354,56 @@ public class AFrameMaker implements FrameMaker {
 							Entity ambiguousEntity = tempList.get(0);
 							if (ambiguousEntity != null) {
 								if (ambiguousEntity.getClass() == frameComponents.ASetting.class) {
-									Collection<IndexedWord> grandchildren = dependencies.getChildren(child);
+									Collection<IndexedWord> grandchildren = dependencies
+											.getChildren(child);
 									// case
 									for (IndexedWord grandchild : grandchildren) {
 										// TODO: just look for preposition key
 										// words in sentence? System is missing
 										// some of these
-										SemanticGraphEdge nextEdge = dependencies.getEdge(child, grandchild);
+										SemanticGraphEdge nextEdge = dependencies
+												.getEdge(child, grandchild);
 										// TODO: make a hashmap for this mapping
-										if (nextEdge.getRelation().toString().equals("case")) {
-											if (grandchild.lemma().toString().equals("to")
-													|| grandchild.lemma().toString().equals("on")
-													|| grandchild.lemma().toString().equals("in")
-													|| grandchild.lemma().toString().equals("at")
-													|| grandchild.lemma().toString().equals("from")) {
+										if (nextEdge.getRelation().toString()
+												.equals("case")) {
+											if (grandchild.lemma().toString()
+													.equals("to")
+													|| grandchild.lemma()
+															.toString()
+															.equals("on")
+													|| grandchild.lemma()
+															.toString()
+															.equals("in")
+													|| grandchild.lemma()
+															.toString()
+															.equals("at")
+													|| grandchild.lemma()
+															.toString()
+															.equals("from")) {
 												((Setting) ambiguousEntity)
-														.setPreposition(grandchild.lemma().toString());
-											} else if (grandchild.lemma().toString().equals("inside")) {
-												((Setting) ambiguousEntity).setPreposition("in");
-											} else if (grandchild.lemma().toString().equals("toward")
-													|| grandchild.lemma().toString().equals("towards")) {
-												((Setting) ambiguousEntity).setPreposition("to");
-											} else if (grandchild.lemma().toString().equals("upon")
-													|| grandchild.lemma().toString().equals("above")) {
-												((Setting) ambiguousEntity).setPreposition("on");
+														.setPreposition(grandchild
+																.lemma()
+																.toString());
+											} else if (grandchild.lemma()
+													.toString()
+													.equals("inside")) {
+												((Setting) ambiguousEntity)
+														.setPreposition("in");
+											} else if (grandchild.lemma()
+													.toString()
+													.equals("toward")
+													|| grandchild.lemma()
+															.toString()
+															.equals("towards")) {
+												((Setting) ambiguousEntity)
+														.setPreposition("to");
+											} else if (grandchild.lemma()
+													.toString().equals("upon")
+													|| grandchild.lemma()
+															.toString()
+															.equals("above")) {
+												((Setting) ambiguousEntity)
+														.setPreposition("on");
 											}
 										}
 									}
@@ -370,13 +433,16 @@ public class AFrameMaker implements FrameMaker {
 	class PositionComparator implements Comparator<Frame> {
 		@Override
 		public int compare(Frame a, Frame b) {
-			if (a.getAction().getPosition().get(0) < b.getAction().getPosition().get(0)) {
+			if (a.getAction().getPosition().get(0) < b.getAction()
+					.getPosition().get(0)) {
 				return -1;
-			} else if (b.getAction().getPosition().get(0) < a.getAction().getPosition().get(0)) {
+			} else if (b.getAction().getPosition().get(0) < a.getAction()
+					.getPosition().get(0)) {
 				return 1;
 			} else {
 				// same sentence, look at indices
-				if (a.getAction().getPosition().get(1) < b.getAction().getPosition().get(1)) {
+				if (a.getAction().getPosition().get(1) < b.getAction()
+						.getPosition().get(1)) {
 					return -1;
 				} else {
 					return 1;
@@ -388,9 +454,11 @@ public class AFrameMaker implements FrameMaker {
 
 	// Finds an unknown entity in a list of known entities (assists in entity
 	// tracking throughout a story)
-	private void matchEntity(ArrayList<Entity> entities, IndexedWord token, ArrayList<Entity> list) {
+	private void matchEntity(ArrayList<Entity> entities, IndexedWord token,
+			ArrayList<Entity> list) {
 		for (int i = 0; i < entities.size(); i++) {
-			List<CorefMention> referenceChain = entities.get(i).getReferences().getMentionsInTextualOrder();
+			List<CorefMention> referenceChain = entities.get(i).getReferences()
+					.getMentionsInTextualOrder();
 			for (int j = 0; j < referenceChain.size(); j++) {
 				if (referenceChain.get(j).position.get(0) == token.sentIndex() + 1
 						&& token.index() <= referenceChain.get(j).endIndex
@@ -403,7 +471,8 @@ public class AFrameMaker implements FrameMaker {
 	}
 
 	private void calculateSentiment(CoreMap sentence, Frame frame, Story story) {
-		String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
+		String sentiment = sentence
+				.get(SentimentCoreAnnotations.SentimentClass.class);
 		int sentimentVal = 0;
 		if (sentiment.equalsIgnoreCase("Neutral")) {
 			sentimentVal = 0;
