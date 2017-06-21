@@ -1,2 +1,2 @@
-# TheRoadNotTaken
-An interactive exploration of the subjunctive mood
+# The Shape of Story
+The Shape of Story is an interactive story circle experience in which participants collectively create a story line-by-line. Artificial intelligence in narrative understanding is used in conjunction with a symbolic visual language in order to visualize this story in real-time. The result is a communally created narrative art piece. Read more here: http://www.durilong.com/art/#/shape-of-story/
