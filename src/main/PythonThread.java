@@ -11,11 +11,13 @@ import java.io.OutputStreamWriter;
 
 public class PythonThread extends Thread {
 
+	private static final String virtualEnvPath = "/Users/Duri/virtualenvironment/jython_app/venv/bin/python";
+	private static final String pythonCodePath = "python/main";
 	private OutputStream stdin;
 	private InputStream stdout;
 	private InputStream stderr;
 	private Process process;
-	private BufferedReader errReader;
+	//private BufferedReader errReader;
 	private BufferedReader reader;
 	private BufferedWriter writer;
 	private boolean ready = false;
@@ -27,15 +29,15 @@ public class PythonThread extends Thread {
 	public PythonThread(Object lock) {
 		this.lock = lock;
 		try {
-			ProcessBuilder pb = new ProcessBuilder("/Users/adamlab/ShapeOfStoryPython/venv/bin/python",
+			ProcessBuilder pb = new ProcessBuilder(virtualEnvPath,
 					"launcher.py", "run");
-			pb.directory(new File("/Users/adamlab/TheRoadNotTaken/python/main"));
+			pb.directory(new File(pythonCodePath));
 			process = pb.start();
 			stdout = process.getInputStream();
 			stdin = process.getOutputStream();
 			stderr = process.getErrorStream();
 			reader = new BufferedReader(new InputStreamReader(stdout));
-			errReader = new BufferedReader(new InputStreamReader(stderr));
+			//errReader = new BufferedReader(new InputStreamReader(stderr));
 			writer = new BufferedWriter(new OutputStreamWriter(stdin));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block

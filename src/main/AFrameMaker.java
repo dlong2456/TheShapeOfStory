@@ -20,7 +20,6 @@ import edu.stanford.nlp.semgraph.SemanticGraphEdge;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.util.IntTuple;
-import edu.stanford.nlp.util.TypesafeMap.Key;
 import frameComponents.ASetting;
 import frameComponents.Action;
 import frameComponents.Agent;
@@ -39,8 +38,6 @@ import story.Frame;
 import story.Story;
 
 //TODO: Thread the startup so the stanford annotator loads while the model is loading
-//TODO: Make sure you are properly terminating python process so you don't create zombies
-//TODO: Get this so it will work on Sanjana's comp as well/list instructions to get it to work
 public class AFrameMaker implements FrameMaker {
 
 	private PythonThread outThread;
@@ -252,7 +249,6 @@ public class AFrameMaker implements FrameMaker {
 				for (IndexedWord child : children) {
 					// TODO: Make this so settings are read by preposition
 					// TODO: What are to/from children of?
-					System.out.println("TAG: " + child.tag());
 					if (child.tag().equals("IN") || child.tag().equals("TO")
 							|| child.tag().equals("RB")) {
 						Setting setting = new ASetting();
