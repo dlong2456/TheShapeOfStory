@@ -5,9 +5,9 @@ var Agent = (function(){
 		this.type = "human";
 		this.name = name || "";
 		this.gender = gender || "MALE";
-		if(this.gender == "MALE")
+		if(this.gender === "MALE")
 			this.shape = "triangle";
-		else if(this.gender == "FEMALE" )
+		else if(this.gender === "FEMALE" )
 			this.shape = "circle";
 		else
 			this.shape = "triangle";

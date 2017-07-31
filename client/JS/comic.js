@@ -1,9 +1,8 @@
 var Comic = (function()
 {
 	//Panels
-	var Action = function(num,subjects,predicates , action,emotion,setting ,sentiment,name)
+	var Action = function(num, subjects, predicates, action, emotion, setting, sentiment, name)
 	{
-    //console.log("action created");
 		this.type = "action";
 		this.name = name || "";
 		this.subjects = subjects || [] ;
@@ -14,14 +13,9 @@ var Comic = (function()
 		this.sentiment = sentiment || "neutral";
     this.setting = setting || "";
 		this.agentLayer = new Renderer.AgentLayer(num,this.subjects,this.predicates,this.action,this.setting,this.sentiment,this.emotion);
-		this.num = num;//frame number variable
+		this.num = num; //frame number variable
 
   }
-
-   
-
-   
-
 
  var Holder = function(panels , capacity)
    {

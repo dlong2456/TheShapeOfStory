@@ -1,341 +1,320 @@
 var Renderer = (function()
 {
   var reset = false;
-var settingUtility = 
-{
-  "" : emptyFunction,
-  "in" : drawIn,
-  "from" : drawFrom,
-  "to" : drawTo,
-  "at" : drawOn,
-  "on" : drawOn,
-}
+  var settingUtility =
+  {
+    "" : emptyFunction,
+    "in" : drawIn,
+    "from" : drawFrom,
+    "to" : drawTo,
+    "at" : drawOn,
+    "on" : drawOn,
+  }
 
-var shapeUtility={
-   "" : drawSquare,
-  "circle" : drawCircle,
-  "triangle" : drawTriangle,
-  "square" : drawSquare,
-  "rectangle" : drawRectangle,
+  var shapeUtility= 
+  {
+     "" : drawSquare,
+    "circle" : drawCircle,
+    "triangle" : drawTriangle,
+    "square" : drawSquare,
+    "rectangle" : drawRectangle,
+  };
 
-
-};
-var colorUtility = 
-{
-
-//  "red" : Array(255,0,0),
-   "" : '#000000',
-  "red" : '#ff0000', //fear, disgust , 
-  "green" :'#00ff00', //
-  "blue" :'#0000ff', //sadness
-  "black" : '#000000', //anger
-  "white" : '#ffffff',
- 
-  //anger
-"dark_red" : '#CC0000',
-"red_orange" : '#FF4500',
-"dark_green" : '#336600',
-
-//disgust
-"dull_yellow" : '#cccc00',
-"grey_black" : '#606060',
-"maroon" : '#660000',
-
-//fear
-"dark_orange" : '#FF8C00',
-"yellow_green" : '#CCCC00',
-"dull_yellow" : '#999900',
-
-//happiness
-"orange" : '#FFA500',
-"yellow" : '#ffff00',
-"olive_green" : '#00cc00',
-"gold" : '#FFDF00',
-"aqua" : '#00cccc',
-"light_blue" : '#99ffff',
-
-//sadness
-"dull_green" : '#666600',
-"dark_purple" : '#330066',
-"grey" : '#c0c0c0',
-
-//surprise
-"orange" : '#ff8000',
-"bright_yellow" : '#ffff00',
-"bright_blue" : '#002366',
-"bright_green" : '#80ff00',
-"magenta" : '#FF007F',
-
-"pink" : "#FFB6C1",
-"parrot_green" :"93DC69",
-
-
-};
-
-
-var actionUtility = 
-{
-  "" : drawExpel,
-  "expel" : drawExpel,
-  "propel" : drawPropel,
-  "see" : drawSee,
-  "smell" : drawSmell,
-  "move-object" : drawMoveObject,
-  "think-about" : drawThinkAbout,
-  "ingest" : drawIngest,
-  "speak" : drawSpeak,
-  "hear" :drawHear,
- "feel" : drawFeel,
-  "have" :drawHave,
-  "conclude" : drawConclude,
-  "move-body-part": drawMoveBodyPart,
-  "be" : drawBe,
-};
-/*var feelingUtility = 
-{
-  
-  "very-negative" : ["dark_red","black","red_orange","dark_green","grey_black","maroon"], //red orange for aggression
-  "negative" : ["dull_yellow",], //dull yellow for sickness
-  "neutral" : ["dull_green","blue"," dark_purple","grey","red","dark_orange","yellow_green","dull_yellow"],
-  "positive" : ["orange","yellow","olive_green","gold","aqua","light_blue"],
-  "very-positive" : ["orange","bright_yellow","bright_blue","bright_green","magenta"],
-
-}*/
-
-/*var sentiUtility = 
-{
-  
-  "very_negative" : "grey", //red orange for aggression
-  "negative" : "dark_purple", //dull yellow for sickness
-  "neutral" : "olive_green",
-  "positive" : "yellow",
-  "very_positive" : "pink",
-
-}*/
-var sentiUtility = 
-{
-  
-  "very_negative" : ['#302907','#242222','#282A31','#171A17','#312D27'], //red orange for aggression
-  "negative" : ['#1e2057','#181140','#2c1357','#2d1340','#481257'], //dull yellow for sickness
-  "neutral" : ['#07effc2','#5be884','#59ff63','#80e864','#aaff56'],
-  "positive" : ['#fffe2e','#e8cd00','#ffc509','#e89e13','#ff8e15'],
-  "very_positive" : ['#ff9325','#e8430c','#ff0000','#eb0cca','#f70dff'],
-
-}
-
-var emotionUtility1 = 
-{
-  
-  "happy" : 1, //red orange for aggression
-  "sad" : 1, //dull yellow for sickness
-  "angry" : 1,
-  "surprise" : 2,
-  "fear" : 3,
-  "disgust" : 1,
-
-}
-var emotionUtility2 = 
-{
-  
-  "happy" : 3, //red orange for aggression
-  "sad" : 5, //dull yellow for sickness
-  "angry" : 2,
-  "surprise" : 3,
-  "fear" : 5,
-  "disgust" : 3,
-
-}
-
-
-
-
-//the entity layer class
-var AgentLayer = function(num,subjects,predicates,action,setting,sentiment,emotion)
-{
-  //console.log("HELLO");
-  this.num = num;
-	this.type = "agent";
-	this.subjects = subjects || [] ;
-  this.predicates = predicates || [] ;
-	this.action = action || "";
-  this.emotion = emotion || "happy";
-  this.sentiment = sentiment || "neutral";
-  this.setting = setting || "";
-  this.setDone = false;
-  this.subjectDone = false;
-   this.predicateDone = false;
-  this.actDone = false;
-  this.dt = 20;//frame drawing time
-  this.et = 5; //element drawing time - time to draw setting, 2 agents , action
-// console.log("inside agent: "+this.sentiment);
-  
-}
-
-AgentLayer.prototype=
-{
-	constructor :AgentLayer,
-	draw : function(pt,t)
-	{
-    
-    var time = (t-offset)-this.dt*this.num;
-
-    
-   if(time > 0 && time <=this.dt)
-   {
-    //if(this.num % 5 == 0 && t < this.et) {  redraw();}
-   if(time >= this.et) this.setDone = true;
-   if(time >= this.et * 2) this.subjectDone = true;
-   if(time>=this.et*3) this.predicateDone = true;
-      var i = pt["pt"].x;
-      var j = pt["pt"].y;
-     
-      var alpha = 255;
-      var obj = 1;
-      var posSettingx, posSettingy; 
-      var settingBoundx , settingBoundy;
-      var posPx,posPy;
-      var posSx , posSy;
-     
-      var agentspacex , agentspacey;
-      var posx, posy;
-      var boundingBoxX, boundingBoxY;
-
-     if(this.setting == "on" || this.setting == "at")
-     {
-     //top left corner 
-      posSettingx = i-pt["length"];
-      posSettingy = j + 0.1*pt["length"]*2;
-      settingBoundx = pt["length"];
-      settingBoundy = pt["length"]*0.4*2;
-      agentspacex = pt["length"]*2;
-      agentspacey = pt["length"]*0.6*2;
-      
-      posSx = i-pt["length"];
-      posSy = j-pt["length"];
-      posPx = posSx+agentspacex/2;
-      posPy = posSy;
-      posx = posSx+agentspacex/2;
-      posy = posSy+agentspacey/2;
-      
+  var colorUtility = 
+  {
+  //  "red" : Array(255,0,0),
+     "" : '#000000',
+    "red" : '#ff0000', //fear, disgust , 
+    "green" :'#00ff00', //
+    "blue" :'#0000ff', //sadness
+    "black" : '#000000', //anger
+    "white" : '#ffffff',
    
-     }
-     if(this.setting == "in")
-     {
-     //middle of the "in" box
-     posSettingx = i;
-     posSettingy = j;
-     settingBoundx = 0.8*pt["length"]*2;
-     settingBoundy = 0.8*pt["length"]*2;
-      agentspacex = 0.7*pt["length"]*2;
-      agentspacey = 0.7*pt["length"]*2;
-     
-      posSx =  i-0.7*pt["length"];
-      posSy = j-0.7*pt["length"];
-      posPx = posSx+agentspacex/2;
-      posPy = posSy;
-      posx = posSx+agentspacex/2;
-      posy = posSy+agentspacey/2;
-       
-     }
-     if(this.setting == "")
-     {
-     posSettingx = i;
-     posSettingy = j;
-     settingBoundx = 0.8*pt["length"]*2;
-     settingBoundy = 0.8*pt["length"]*2;
-      agentspacex = 0.7*pt["length"]*2;
-      agentspacey = 0.7*pt["length"]*2;
-     
-      posSx =  i-0.7*pt["length"];
-      posSy = j-0.7*pt["length"];
-      posPx = posSx+agentspacex/2;
-      posPy = posSy;
-      posx = posSx+agentspacex/2;
-      posy = posSy+agentspacey/2;
-       
-     }
-     if(this.setting == "to")
-     {
-      //middle of the "to" circle.
-      posSettingx = i+0.3*pt["length"];
-      posSettingy = j;
-      settingBoundx = 0.6*pt["length"]*2;
-      settingBoundy = 0.8*pt["length"]*2;
-      agentspacex = 0.6*pt["length"]*2;
-      agentspacey = 0.4*pt["length"]*2;
+  //anger
+  "dark_red" : '#CC0000',
+  "red_orange" : '#FF4500',
+  "dark_green" : '#336600',
+
+  //disgust
+  "dull_yellow" : '#cccc00',
+  "grey_black" : '#606060',
+  "maroon" : '#660000',
+
+  //fear
+  "dark_orange" : '#FF8C00',
+  "yellow_green" : '#CCCC00',
+  "dull_yellow" : '#999900',
+
+  //happiness
+  "orange" : '#FFA500',
+  "yellow" : '#ffff00',
+  "olive_green" : '#00cc00',
+  "gold" : '#FFDF00',
+  "aqua" : '#00cccc',
+  "light_blue" : '#99ffff',
+
+  //sadness
+  "dull_green" : '#666600',
+  "dark_purple" : '#330066',
+  "grey" : '#c0c0c0',
+
+  //surprise
+  "orange" : '#ff8000',
+  "bright_yellow" : '#ffff00',
+  "bright_blue" : '#002366',
+  "bright_green" : '#80ff00',
+  "magenta" : '#FF007F',
+
+  "pink" : "#FFB6C1",
+  "parrot_green" :"93DC69",
+  };
+
+  var actionUtility = 
+  {
+    "" : drawExpel,
+    "expel" : drawExpel,
+    "propel" : drawPropel,
+    "see" : drawSee,
+    "smell" : drawSmell,
+    "move-object" : drawMoveObject,
+    "think-about" : drawThinkAbout,
+    "ingest" : drawIngest,
+    "speak" : drawSpeak,
+    "hear" :drawHear,
+   "feel" : drawFeel,
+    "have" :drawHave,
+    "conclude" : drawConclude,
+    "move-body-part": drawMoveBodyPart,
+    "be" : drawBe,
+  };
+
+  /*var feelingUtility = 
+  {
     
-      posSx = i-pt["length"];
-      posSy = j-pt["length"]/2;
-      posPx = posSx+agentspacex/2;
-      posPy = posSy;
-      posx = posSx+agentspacex/2;
-      posy = j;
-          
-     }
-     if(this.setting == "from")
+    "very-negative" : ["dark_red","black","red_orange","dark_green","grey_black","maroon"], //red orange for aggression
+    "negative" : ["dull_yellow",], //dull yellow for sickness
+    "neutral" : ["dull_green","blue"," dark_purple","grey","red","dark_orange","yellow_green","dull_yellow"],
+    "positive" : ["orange","yellow","olive_green","gold","aqua","light_blue"],
+    "very-positive" : ["orange","bright_yellow","bright_blue","bright_green","magenta"],
+
+  }*/
+
+  /*var sentiUtility = 
+  {
+    
+    "very_negative" : "grey", //red orange for aggression
+    "negative" : "dark_purple", //dull yellow for sickness
+    "neutral" : "olive_green",
+    "positive" : "yellow",
+    "very_positive" : "pink",
+
+  }*/
+
+  var sentiUtility = 
+  {
+    "very_negative" : ['#302907','#242222','#282A31','#171A17','#312D27'], //red orange for aggression
+    "negative" : ['#1e2057','#181140','#2c1357','#2d1340','#481257'], //dull yellow for sickness
+    "neutral" : ['#07effc2','#5be884','#59ff63','#80e864','#aaff56'],
+    "positive" : ['#fffe2e','#e8cd00','#ffc509','#e89e13','#ff8e15'],
+    "very_positive" : ['#ff9325','#e8430c','#ff0000','#eb0cca','#f70dff'],
+  }
+
+  var emotionUtility1 = 
+  {
+    "happy" : 1, //red orange for aggression
+    "sad" : 1, //dull yellow for sickness
+    "angry" : 1,
+    "surprise" : 2,
+    "fear" : 3,
+    "disgust" : 1,
+  }
+
+  var emotionUtility2 = 
+  {
+    "happy" : 3, //red orange for aggression
+    "sad" : 5, //dull yellow for sickness
+    "angry" : 2,
+    "surprise" : 3,
+    "fear" : 5,
+    "disgust" : 3,
+  }
+
+  //the entity layer class
+  var AgentLayer = function(num,subjects,predicates,action,setting,sentiment,emotion)
+  {
+    this.num = num;
+  	this.type = "agent";
+  	this.subjects = subjects || [] ;
+    this.predicates = predicates || [] ;
+  	this.action = action || "";
+    this.emotion = emotion || "happy";
+    this.sentiment = sentiment || "neutral";
+    this.setting = setting || "";
+    this.setDone = false;
+    this.subjectDone = false;
+    this.predicateDone = false;
+    this.actDone = false;
+    this.dt = 20;//frame drawing time
+    this.et = 5; //element drawing time - time to draw setting, 2 agents , action
+  }
+
+  AgentLayer.prototype=
+  {
+  	constructor :AgentLayer,
+  	draw : function(pt,t)
+  	{ 
+      var time = (t-offset)-this.dt*this.num;
+     if(time > 0 && time <=this.dt)
      {
-         //middle of the "from" circle.
-      posSettingx = i;
-      posSettingy = j;
-      settingBoundx = 0.6*pt["length"]*2;
-      settingBoundy = 0.8*pt["length"]*2;
-      agentspacex = 0.6*pt["length"]*2;
-      agentspacey = 0.4*pt["length"]*2;
-     
-      posSx = i;
-      posSy = j-pt["length"]/2;
-      posPx = posSx+agentspacex/2;
-      posPy = posSy;
-      posx = posSx+agentspacex/2;
-      posy = j;
+      //if(this.num % 5 == 0 && t < this.et) {  redraw();}
+     if(time >= this.et) this.setDone = true;
+     if(time >= this.et * 2) this.subjectDone = true;
+     if(time>=this.et*3) this.predicateDone = true;
+        var i = pt["pt"].x;
+        var j = pt["pt"].y;
+       
+        var alpha = 255;
+        var obj = 1;
+        var posSettingx, posSettingy; 
+        var settingBoundx , settingBoundy;
+        var posPx,posPy;
+        var posSx , posSy;
+       
+        var agentspacex , agentspacey;
+        var posx, posy;
+        var boundingBoxX, boundingBoxY;
+
+       if(this.setting == "on" || this.setting == "at")
+       {
+       //top left corner 
+        posSettingx = i-pt["length"];
+        posSettingy = j + 0.1*pt["length"]*2;
+        settingBoundx = pt["length"];
+        settingBoundy = pt["length"]*0.4*2;
+        agentspacex = pt["length"]*2;
+        agentspacey = pt["length"]*0.6*2;
+        
+        posSx = i-pt["length"];
+        posSy = j-pt["length"];
+        posPx = posSx+agentspacex/2;
+        posPy = posSy;
+        posx = posSx+agentspacex/2;
+        posy = posSy+agentspacey/2; 
+       }
+
+       if(this.setting == "in")
+       {
+       //middle of the "in" box
+       posSettingx = i;
+       posSettingy = j;
+       settingBoundx = 0.8*pt["length"]*2;
+       settingBoundy = 0.8*pt["length"]*2;
+        agentspacex = 0.7*pt["length"]*2;
+        agentspacey = 0.7*pt["length"]*2;
+       
+        posSx =  i-0.7*pt["length"];
+        posSy = j-0.7*pt["length"];
+        posPx = posSx+agentspacex/2;
+        posPy = posSy;
+        posx = posSx+agentspacex/2;
+        posy = posSy+agentspacey/2; 
+       }
+
+       if(this.setting == "")
+       {
+       posSettingx = i;
+       posSettingy = j;
+       settingBoundx = 0.8*pt["length"]*2;
+       settingBoundy = 0.8*pt["length"]*2;
+        agentspacex = 0.7*pt["length"]*2;
+        agentspacey = 0.7*pt["length"]*2;
+       
+        posSx =  i-0.7*pt["length"];
+        posSy = j-0.7*pt["length"];
+        posPx = posSx+agentspacex/2;
+        posPy = posSy;
+        posx = posSx+agentspacex/2;
+        posy = posSy+agentspacey/2;  
+       }
+
+       if(this.setting == "to")
+       {
+        //middle of the "to" circle.
+        posSettingx = i+0.3*pt["length"];
+        posSettingy = j;
+        settingBoundx = 0.6*pt["length"]*2;
+        settingBoundy = 0.8*pt["length"]*2;
+        agentspacex = 0.6*pt["length"]*2;
+        agentspacey = 0.4*pt["length"]*2;
       
-     }
-     boundingBoxX = agentspacex/2;
-     boundingBoxY = agentspacey;
-  if(!this.setDone)
-  drawSetting(this.setting,posSettingx,posSettingy, pt["length"],time);
-  if(this.setDone && !this.subjectDone)
+        posSx = i-pt["length"];
+        posSy = j-pt["length"]/2;
+        posPx = posSx+agentspacex/2;
+        posPy = posSy;
+        posx = posSx+agentspacex/2;
+        posy = j;  
+       }
 
-    {  
-      this.subjects.forEach(function(agent)
-      {
-             
-            //console.log("subject: "+this.sentiment); 
-      drawShape(agent.shape,this.sentiment, posSx , posSy,alpha/obj,boundingBoxX,boundingBoxY,time,this.emotion);
-      obj+=1;
+       if(this.setting == "from")
+       {
+           //middle of the "from" circle.
+        posSettingx = i;
+        posSettingy = j;
+        settingBoundx = 0.6*pt["length"]*2;
+        settingBoundy = 0.8*pt["length"]*2;
+        agentspacex = 0.6*pt["length"]*2;
+        agentspacey = 0.4*pt["length"]*2;
+       
+        posSx = i;
+        posSy = j-pt["length"]/2;
+        posPx = posSx+agentspacex/2;
+        posPy = posSy;
+        posx = posSx+agentspacex/2;
+        posy = j;
+       }
 
-      },this);
-}
-if(this.subjectDone && !this.predicateDone){
-      this.predicates.forEach(function(agent)
-      {
-              //console.log("predicate: "+this.sentiment);
-               drawShape(agent.shape,this.sentiment, posPx , posPy,alpha/obj,boundingBoxX,boundingBoxY,time,this.emotion);
-      obj+=1;
+       boundingBoxX = agentspacex/2;
+       boundingBoxY = agentspacey;
 
-      },this);
-    }
-      if(this.predicateDone)
-      {
-        //if(this.num % 5 == 0) reset = true; else reset = false;
-        var scribble = new Scribble();
-        strokeWeight(1);
-         actionUtility[this.action](posPx+boundingBoxX/2,posPy,boundingBoxX,boundingBoxY,scribble,time);
+    if(!this.setDone)
+    drawSetting(this.setting,posSettingx,posSettingy, pt["length"],time);
+    if(this.setDone && !this.subjectDone)
+
+      {  
+        this.subjects.forEach(function(agent)
+        {
+               
+              //console.log("subject: "+this.sentiment); 
+        drawShape(agent.shape,this.sentiment, posSx , posSy,alpha/obj,boundingBoxX,boundingBoxY,time,this.emotion);
+        obj+=1;
+
+        },this);
+  }
+  if(this.subjectDone && !this.predicateDone){
+        this.predicates.forEach(function(agent)
+        {
+                //console.log("predicate: "+this.sentiment);
+                 drawShape(agent.shape,this.sentiment, posPx , posPy,alpha/obj,boundingBoxX,boundingBoxY,time,this.emotion);
+        obj+=1;
+
+        },this);
       }
-      
-	}
-  },
-	
-}
-
-
-
+        if(this.predicateDone)
+        {
+          //if(this.num % 5 == 0) reset = true; else reset = false;
+          var scribble = new Scribble();
+          strokeWeight(1);
+           actionUtility[this.action](posPx+boundingBoxX/2,posPy,boundingBoxX,boundingBoxY,scribble,time);
+        }
+        
+  	}
+    },
+  	
+  }
 
 //private stuff
 
- function drawShape(shape, color ,  i , j,alpha,w,h,time,emotion)
-{
-  
+function drawShape(shape, color ,  i , j,alpha,w,h,time,emotion) {
   var scribble = new Scribble();
   var num = Math.floor(random(5));
   var colorArray = sentiUtility[color];
@@ -345,9 +324,6 @@ if(this.subjectDone && !this.predicateDone){
   var ctime = emotionUtility2[emotion] ;
   if( ctime == null) ctime = 5;
   shapeUtility[shape](i,j,w,h,c1,scribble,time,s1,ctime);
- 
- 
-
 }
 
 function drawSetting(setting,i,j,length,time)
@@ -357,34 +333,27 @@ function drawSetting(setting,i,j,length,time)
 }
 
 function drawTriangle(i,j,w,h,color,scribble,time,s1,ctime)
-{
-  
+{ 
   if(time >= 5 && time < 10)
  {
   var a = 5;
-
   var b = 10;
   var t = time-a;
  }
  else if(time >= 10 && time < 15)
  {
   var a = 10;
-
   var b = 15;
   var t = time-a;
-
  }
 
   var T = 5; //amount of time available for drawing this animation
   var delTperLine = T/3; //amount of time available to draw each part of the animation. This element has 4 parts therefore, 5/4.
   var dist = sqrt(sq(w/2)+sq(h/2))/2; // length of each line to be drawn.
- 
   var speed = dist/delTperLine; //speed of drawing each line.
-  
-  
   push();
   translate(i,j);
-var colorTime = ctime;
+  var colorTime = ctime;
   var colorDistance = h;
   var colorSpeed = h/colorTime;
   
@@ -410,7 +379,6 @@ var colorTime = ctime;
     scribble.scribbleLine(x,y,x+speed*(t-delTperLine),y+speed*2*(t-delTperLine));
 
   }
-
   else if (t<=T)
   {
     var x = -w/2+2*speed*(t-2*delTperLine);
@@ -418,13 +386,7 @@ var colorTime = ctime;
     scribble.scribbleLine(x,y,x+2*speed*(t-2*delTperLine),y);
   }
 
- 
-
   pop();
-  
-
-
- 
 }
 
 function drawSquare(i,j,w,h,color,scribble,time,s1,ctime)
@@ -432,17 +394,14 @@ function drawSquare(i,j,w,h,color,scribble,time,s1,ctime)
  if(time >= 5 && time < 10)
  {
   var a = 5;
-
   var b = 10;
   var t = time-a;
  }
  else if(time >= 10 && time < 15)
  {
   var a = 10;
-
   var b = 15;
   var t = time-a;
-
  }
 
   var T = 5; //amount of time available for drawing this animation
@@ -454,8 +413,8 @@ function drawSquare(i,j,w,h,color,scribble,time,s1,ctime)
   strokeWeight(1);
   push();
   translate(i,j);
-var colorTime = ctime;
-   var colorDistance = w;
+  var colorTime = ctime;
+  var colorDistance = w;
   var colorSpeed = w/colorTime;
   strokeWeight(s1);
   
@@ -478,15 +437,13 @@ var colorTime = ctime;
     var x = 0+speed*(t-delTperLine);
     var y = 0;
     scribble.scribbleLine(x,y,x+speed*(t-delTperLine),y);
-
   }
-else if(t<3*delTperLine)
+  else if(t<3*delTperLine)
   {
     var x = w;
     var y = w-speed*(t-2*delTperLine);
- //console.log(t-2*delTperLine);
+    //console.log(t-2*delTperLine);
     scribble.scribbleLine(x,y,x,y-speed*(t-2*delTperLine));
-
   }
   else if (t<T)
   {
@@ -496,26 +453,22 @@ else if(t<3*delTperLine)
   }
   pop();
   strokeWeight(1);
-
 }
 
 function drawRectangle(i,j,w,h,color,scribble,time,s1,ctime)
 {
- if(time >= 5 && time < 10)
- {
-  var a = 5;
-
-  var b = 10;
-  var t = time-a;
- }
- else if(time >= 10 && time < 15)
- {
-  var a = 10;
-
-  var b = 15;
-  var t = time-a;
-
- }
+   if(time >= 5 && time < 10)
+   {
+    var a = 5;
+    var b = 10;
+    var t = time-a;
+   }
+   else if(time >= 10 && time < 15)
+   {
+    var a = 10;
+    var b = 15;
+    var t = time-a;
+   }
 
   var T = 5; //amount of time available for drawing this animation
   var delTperLine = T/4; //amount of time available to draw each part of the animation. This element has 4 parts therefore, 5/4.
@@ -527,9 +480,9 @@ function drawRectangle(i,j,w,h,color,scribble,time,s1,ctime)
   push();
   translate(i,j);
   var colorTime = ctime;
- var colorDistance = h/2;
+  var colorDistance = h/2;
   var colorSpeed = h/(2*colorTime);
-   strokeWeight(s1);
+  strokeWeight(s1);
   stroke(color);
   
  if(t<colorTime)
@@ -548,15 +501,12 @@ function drawRectangle(i,j,w,h,color,scribble,time,s1,ctime)
     var x = 0+speedX*(t-delTperLine);
     var y = 0;
     scribble.scribbleLine(x,y,x+speedX*(t-delTperLine),y);
-
   }
-else if(t<3*delTperLine)
+  else if(t<3*delTperLine)
   {
     var x = distX;
     var y = distY-speedY*(t-2*delTperLine);
-   
     scribble.scribbleLine(x,y,x,y-speedY*(t-2*delTperLine));
-
   }
   else if (t<T)
   {
@@ -565,30 +515,26 @@ else if(t<3*delTperLine)
     scribble.scribbleLine(x,y,x-speedX*(t-3*delTperLine),y);
   }
   pop();
-  strokeWeight(1);
-  
+  strokeWeight(1); 
 }
 
 function drawCircle(i,j,w,h,color,scribble,time,s1,ctime)
 {
   if(time >= 5 && time < 10)
- {
-  var a = 5;
+  {
+    var a = 5;
+    var b = 10;
+    var t = time-a;
+  }
+  else if(time >= 10 && time < 15)
+  {
+    var a = 10;
+    var b = 15;
+    var t = time-a;
+  }
 
-  var b = 10;
-  var t = time-a;
- }
- else if(time >= 10 && time < 15)
- {
-  var a = 10;
-
-  var b = 15;
-  var t = time-a;
-
- }
-
- //variable to make the circle scribbly
- var r = random(0,0.5);
+  //variable to make the circle scribbly
+  var r = random(0,0.5);
   var majorAxis = w;
   var minorAxis = w;
   var T = 5; //amount of time available for drawing this animation
@@ -599,17 +545,17 @@ function drawCircle(i,j,w,h,color,scribble,time,s1,ctime)
   push();
   translate(i,j);
   var colorTime = ctime;
-var colorDistanceX = PI;
+  var colorDistanceX = PI;
   var colorSpeedX = colorDistanceX/colorTime;
   var colorDistanceY = w;
   var colorSpeedY = colorDistanceY/(colorTime/2);
   stroke(color);
   strokeWeight(s1);
   console.log(s1);
- if(t<colorTime)
- scribble.scribbleLine(minorAxis*Math.sin(colorSpeedX*t),-w+colorSpeedY*t,-minorAxis*Math.sin(colorSpeedX*t),-w+colorSpeedY*t);
-stroke(0);
- strokeWeight(2);
+  if(t<colorTime)
+    scribble.scribbleLine(minorAxis*Math.sin(colorSpeedX*t),-w+colorSpeedY*t,-minorAxis*Math.sin(colorSpeedX*t),-w+colorSpeedY*t);
+  stroke(0);
+  strokeWeight(2);
  
   var x1 = minorAxis*Math.cos(speed*t);
   var y1 = majorAxis*Math.sin(speed*t);
@@ -618,13 +564,10 @@ stroke(0);
 
   scribble.scribbleLine(x1,y1,x2,y2);
 
-  
   pop();
-  strokeWeight(1);
-  
- 
-  
+  strokeWeight(1);  
 }
+
 function emptyFunction()
 {
   return -1;
@@ -632,9 +575,7 @@ function emptyFunction()
 
 function drawOn(i,j,length,scribble,time)
 {
-
-
-   var T = 5; //amount of time available for drawing this animation
+  var T = 5; //amount of time available for drawing this animation
   var delTperLine = T/3; //amount of time available to draw each part of the animation. This element has 4 parts therefore, 5/4.
   var dist = 0.9*length; // length of each line to be drawn.
   var speed = dist/delTperLine; //speed of drawing each line.
@@ -651,7 +592,7 @@ function drawOn(i,j,length,scribble,time)
   }
   else if(time<2*delTperLine)
   {
-     if(time>0.99*delTperLine*2) strokeWeight(0);
+    if(time>0.99*delTperLine*2) strokeWeight(0);
     var x = 0+speed*(time-delTperLine);
     var y = dist/3;
     scribble.scribbleLine(x,y,x+speed*(time-delTperLine),y);
@@ -659,7 +600,6 @@ function drawOn(i,j,length,scribble,time)
    
 
   }
-
   else if (time<T)
   {
     if(time>0.99*delTperLine*3) strokeWeight(0);
@@ -668,10 +608,9 @@ function drawOn(i,j,length,scribble,time)
     scribble.scribbleLine(x,y,x+speed*(time-2*delTperLine),y);
   }
   pop();
-  strokeWeight(1);
-   
-  
+  strokeWeight(1);  
 }
+
 function drawIn(i,j,length,scribble,time)
 {
   var T = 5; //amount of time available for drawing this animation
@@ -695,14 +634,11 @@ function drawIn(i,j,length,scribble,time)
     scribble.scribbleLine(x,y,x+speed*(time-delTperLine),y);
 
   }
-else if(time<3*delTperLine)
+  else if(time<3*delTperLine)
   {
     var x = dist;
     var y = -dist+speed*(time-2*delTperLine);
     scribble.scribbleLine(x,y,x,y+speed*(time-2*delTperLine));
-
-    
-
   }
   else if (time<T)
   {
@@ -721,7 +657,7 @@ function drawFrom(i,j,length,scribble,time)
   var T = 5; //amount of time available for drawing this animation
   var dist = TWO_PI; // length of each line to be drawn.
   var speed = dist/T; //speed of drawing each line.
-   var r = random(0,0.5);
+  var r = random(0,0.5);
   strokeWeight(2);
   push();
   translate(i,j);
@@ -732,13 +668,12 @@ function drawFrom(i,j,length,scribble,time)
 
   scribble.scribbleLine(x1,y1,x2,y2);
   pop();
-  strokeWeight(1);
-  
+  strokeWeight(1);  
 }
+
 function drawTo(i,j,length,scribble,time)
 {
- 
-   var majorAxis = 0.8*length*2;
+  var majorAxis = 0.8*length*2;
   var minorAxis = 0.6*length*2;
   var T = 5; //amount of time available for drawing this animation
   var dist = TWO_PI; // length of each line to be drawn.
@@ -756,9 +691,10 @@ function drawTo(i,j,length,scribble,time)
   pop();
   strokeWeight(1);
 }
+
 function drawBe(i,j,w,h,scribble,time)
 {
-   push();
+  push();
   translate(i,j);
  
   //using a sin wave.
@@ -771,40 +707,38 @@ function drawBe(i,j,w,h,scribble,time)
 
 function drawSmell(i,j,w,h,scribble,time)
 {
-   push();
+  push();
   translate(i,j);
   
   //using a sin wave.
   fill(0);
- scribble.scribbleEllipse(-9,-8,5,5);
+  scribble.scribbleEllipse(-9,-8,5,5);
   scribble.scribbleEllipse(9,-8,5,5);
-    noFill();
+  noFill();
   scribble.scribbleCurve(-9,-8,-3,-7,-7,-12,-5,-12);
   scribble.scribbleCurve(9,-8,3,-7,7,-12,5,-12);
   scribble.scribbleCurve(-3,-7,0,8,-7,0,-3,5);
   scribble.scribbleCurve(3,-7,0,8,7,0,3,5);
   
-  for(var t = 3*PI ; t < 8*PI ; t+=0.1)
-   
- {
-  scribble.scribbleLine(3*sin(-t)-4,t,-3*sin(t+0.1)-4,t+0.1);
-  scribble.scribbleLine(3*sin(-t)+4,t,-3*sin(t+0.1)+4,t+0.1);
-}
+  for(var t = 3*PI ; t < 8*PI ; t+=0.1) 
+  {
+    scribble.scribbleLine(3*sin(-t)-4,t,-3*sin(t+0.1)-4,t+0.1);
+    scribble.scribbleLine(3*sin(-t)+4,t,-3*sin(t+0.1)+4,t+0.1);
+  }
   fill(random(255),random(255),random(255));
   noStroke();
   scribble.scribbleEllipse(3*sin(-3*PI)-4,3*PI,4,4);
-
-   fill(random(255),random(255),random(255));
+  fill(random(255),random(255),random(255));
   scribble.scribbleEllipse(3*sin(-3*PI)+4,3*PI,4,4);
   stroke(0);
   noFill();
 
-  pop();
-  
+  pop();  
 }
+
 function drawMoveObject(i,j,w,h,scribble,time)
 {
-     push();
+  push();
   translate(i,j);
  
   scribble.scribbleLine(-5,-5,0,0);
@@ -824,6 +758,7 @@ function drawMoveObject(i,j,w,h,scribble,time)
   stroke(0);
   pop();
 }
+
 function drawHave(i,j,w,h,scribble,time)
 {
   push();
@@ -863,12 +798,12 @@ function drawHave(i,j,w,h,scribble,time)
   
   pop();
 }
+
 function drawIngest(i,j,w,h,scribble,time)
 {
-    push();
+  push();
   translate(i,j);
  
-
   //using a sin wave.
   stroke(0);
    //strokeWeight(3);
@@ -891,8 +826,7 @@ function drawIngest(i,j,w,h,scribble,time)
   noStroke();
   fill(random(200,255),random(200,255),0);
   scribble.scribbleEllipse(0,0,5,5)
-   stroke(0);
-
+  stroke(0);
 
   pop();
 }
@@ -909,37 +843,33 @@ function drawExpel(i,j,w,h,scribble,time)
   scribble.scribbleEllipse(-w/2,-h,30,30);
   scribble.scribbleEllipse(-w/2,-1.5*h,20,20);
 
-
-  
-
   //scribble.scribbleEllipse(-4*PI-5,sin(-4*PI),5,5);
   stroke(random(255),random(255),random(255));
   for(var t = -4*PI ; t < 4*PI ; t+=0.1)
-    //scribble.scribbleLine(t,8*sin(-t),t+0.1,-8*sin(t+0.1));
+  //scribble.scribbleLine(t,8*sin(-t),t+0.1,-8*sin(t+0.1));
 
   scribble.scribbleLine(-w/2+8*sin(-t/2),-2*h+t,-w/2-8*sin(t/2+0.1),-2*h+t+0.1);
   //fill(random(250,255),random(100,165),0);
   //scribble.scribbleEllipse(t+1,8*sin(t+0.1),10,10);
   noFill();
 
-
   pop();
 }
+
 function drawPropel(i,j,w,h,scribble,time)
 {
-   push();
+  push();
   translate(i,j);
- 
- strokeWeight(1);
+  strokeWeight(1);
   fill(random(100,255),0,random(200,255));
   scribble.scribbleEllipse(0,0,10,10);
   noFill();
- scribble.scribbleLine(5,-5,25,-10);
- scribble.scribbleLine(5,0,28,-5);
+  scribble.scribbleLine(5,-5,25,-10);
+  scribble.scribbleLine(5,0,28,-5);
   scribble.scribbleLine(5,2,26,0);
-  
   pop();
 }
+
 function drawFeel(i,j,w,h,scribble,time)
 {
   push();
@@ -949,28 +879,26 @@ function drawFeel(i,j,w,h,scribble,time)
   scribble.scribbleLine(0,-h/2,0,h/2);
   scribble.scribbleLine(-w/2,0,w/2,0);
   scribble.scribbleLine(w/2-15,h/2-10,-w/2+15,-h/2+10);
-   scribble.scribbleLine(-w/2+15,h/2-10,w/2-15,-h/2+10);
-   noStroke();
- 
-    fill(random(255),random(255),0);
-    scribble.scribbleEllipse(0,-h/2,5,5);
-      fill(random(255),random(255),random(255));
-    scribble.scribbleEllipse(-w/2,0,5,5);
-      fill(0,random(255),random(255));
-    scribble.scribbleEllipse(w/2,0,5,5);
-      fill(random(255),random(255),random(255));
-    scribble.scribbleEllipse(-w/2+10,h/2-5,5,5);
-      fill(random(255),0,random(255));
-    scribble.scribbleEllipse(w/2-10,-h/2+5,5,5);
-      fill(random(255),random(255),0);
-    scribble.scribbleEllipse(w/2-10,h/2-5,5,5);
-      fill(random(255),random(255),random(255));
-    scribble.scribbleEllipse(-w/2+10,-h/2+5,5,5);
-     fill(random(255),random(255),random(255));
-    scribble.scribbleEllipse(0,h/2,5,5);
-    noFill();
-    
-    stroke(0);
+  scribble.scribbleLine(-w/2+15,h/2-10,w/2-15,-h/2+10);
+  noStroke();
+  fill(random(255),random(255),0);
+  scribble.scribbleEllipse(0,-h/2,5,5);
+  fill(random(255),random(255),random(255));
+  scribble.scribbleEllipse(-w/2,0,5,5);
+  fill(0,random(255),random(255));
+  scribble.scribbleEllipse(w/2,0,5,5);
+  fill(random(255),random(255),random(255));
+  scribble.scribbleEllipse(-w/2+10,h/2-5,5,5);
+  fill(random(255),0,random(255));
+  scribble.scribbleEllipse(w/2-10,-h/2+5,5,5);
+  fill(random(255),random(255),0);
+  scribble.scribbleEllipse(w/2-10,h/2-5,5,5);
+  fill(random(255),random(255),random(255));
+  scribble.scribbleEllipse(-w/2+10,-h/2+5,5,5);
+  fill(random(255),random(255),random(255));
+  scribble.scribbleEllipse(0,h/2,5,5);
+  noFill();
+  stroke(0);
   //pv.emotionCircle(pv.P(0,0),h);
   pop();
 }
@@ -979,7 +907,6 @@ function drawSee(i,j,w,h,scribble,time)
 {
   push();
   translate(i,j);
-  
   strokeWeight(2)
   scribble.scribbleEllipse(0,0,w/4,h/2);
   fill(0)
@@ -988,6 +915,7 @@ function drawSee(i,j,w,h,scribble,time)
   strokeWeight(1);
   pop();
 }
+
 function drawSpeak(i,j,w,h,scribble,time)
 {
   push();
@@ -997,7 +925,7 @@ function drawSpeak(i,j,w,h,scribble,time)
   arc(0,0,10,10,PI-3*PI/4,PI+3*PI/4);
   fill(0)
   arc(0,0,10,10,PI+3*PI/4,PI/4);
-   noFill();
+  noFill();
   scribble.scribbleCurve(5,-5,25,-25,10,-5,20,-5);
   fill(0)
   scribble.scribbleEllipse(25,-25,5,5);
@@ -1005,32 +933,32 @@ function drawSpeak(i,j,w,h,scribble,time)
   scribble.scribbleCurve(5,-3,35,-22,10,-3,20,-3);
   fill(0)
   scribble.scribbleEllipse(35,-22,5,5);
-   noFill();
+  noFill();
   scribble.scribbleCurve(5,0,30,0,10,0,20,0);
   fill(0)
   scribble.scribbleEllipse(25,0,5,5);
-   noFill();
+  noFill();
   scribble.scribbleCurve(5,3,35,22,10,3,20,3);
   fill(0)
   scribble.scribbleEllipse(35,22,5,5);
-   noFill();
+  noFill();
   scribble.scribbleCurve(5,5,25,25,10,5,20,5);
   fill(0)
   scribble.scribbleEllipse(25,25,5,5);
-   noFill();
+  noFill();
  
-
   /*
   noFill();
   arc(0.5*w,0.7*h,0.5*w,0.5*h,-PI/6,PI/6);
   arc(0.6*w,0.7*h,0.5*w,0.5*h,-PI/3,PI/3);
   arc(0.7*w,0.7*h,0.5*w,0.5*h,-PI/3,PI/3);
   */
+
   pop();
 }
 function drawHear(i,j,w,h,scribble,time)
 {
-   push();
+  push();
   translate(i,j);
  
   fill(random(255),random(255),random(255));
@@ -1048,15 +976,13 @@ function drawHear(i,j,w,h,scribble,time)
   scribble.scribbleLine(w/2,-h/2+10,w/2+15,-h/2+20);
   scribble.scribbleLine(w/2+15,-h/2+20,w/2,-h/2+25);
   scribble.scribbleLine(w/2,-h/2+25,w/2+15,-h/2+30);
-   scribble.scribbleLine(w/2+15,-h/2+30,w/2,-h/2+35);
-
-
-   scribble.scribbleLine(-w/2,-h/2,-w/2-15,-h/2+5);
+  scribble.scribbleLine(w/2+15,-h/2+30,w/2,-h/2+35);
+  scribble.scribbleLine(-w/2,-h/2,-w/2-15,-h/2+5);
   scribble.scribbleLine(-w/2-15,-h/2+5,-w/2,-h/2+10);
   scribble.scribbleLine(-w/2,-h/2+10,-w/2-15,-h/2+20);
   scribble.scribbleLine(-w/2-15,-h/2+20,-w/2,-h/2+25);
   scribble.scribbleLine(-w/2,-h/2+25,-w/2-15,-h/2+30);
-   scribble.scribbleLine(-w/2-15,-h/2+30,-w/2,-h/2+35);
+  scribble.scribbleLine(-w/2-15,-h/2+30,-w/2,-h/2+35);
   
 //scribble.scribbleCurve(-w/2-5+10,-h/2+5,-w/2-5+10,-h/2+30,-w/2-15+10,-h/2+15,-w/2-15+10,-h/2+20)
 
@@ -1080,15 +1006,14 @@ function drawHear(i,j,w,h,scribble,time)
 */
 function drawMoveBodyPart(i,j,w,h,scribble,time)
 {
-  
   push();
   translate(i,j);
-noStroke();
+  noStroke();
   fill(random(250,255),random(100,165),0);
   scribble.scribbleEllipse(-10*PI-5,-5+sin(-10*PI),5,5);
-   fill(random(250,255),0,random(100,165));
+  fill(random(250,255),0,random(100,165));
   scribble.scribbleEllipse(-8*PI-5,sin(-8*PI),5,5);
-   fill(0,random(100,165),random(250,255));
+  fill(0,random(100,165),random(250,255));
   scribble.scribbleEllipse(-6*PI-5,5+sin(-6*PI),5,5);
   stroke(0);
   strokeWeight(1);
@@ -1099,7 +1024,7 @@ noStroke();
    for(var t = -6*PI ; t < -4*PI ; t+=0.1)
     scribble.scribbleLine(t,5+sin(-t),t+0.1,5-sin(t+0.1));
   noFill();
-  
+ 
 /*
   
   scale(s);
@@ -1108,9 +1033,8 @@ noStroke();
   line(0,0+h-20,0+w/2+5,0+h-20);
   */
   pop();
- 
-
 }
+
 function drawThinkAbout(i,j,w,h,time)
 {
   push();
@@ -1119,6 +1043,7 @@ function drawThinkAbout(i,j,w,h,time)
   pv.questionMark(pv.P(0,0));
   pop();
 }
+
 function drawConclude(i,j,w,h,time)
 {
   push();
@@ -1164,6 +1089,7 @@ function drawAngry(P,color,time)
    }
 
 }
+
 function fillCircle(P,speed,color,roughness,sweight,time)
 {
 
