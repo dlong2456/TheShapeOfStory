@@ -176,6 +176,7 @@ public class AFrameMaker implements FrameMaker {
 			}
 			// If mention contains more than one noun, ignore it. This prevents
 			// duplicates.
+			//TODO: This is an issue when you input longer stories
 			if (mentionEntities.size() == 1) {
 				entities.add(mentionEntities.get(0));
 			}
@@ -282,7 +283,6 @@ public class AFrameMaker implements FrameMaker {
 						// the sentence? This misses some
 						// TODO: How to associate an emotion with an agent?
 						String emotion = setInput("emotion " + verb.lemma());
-						System.out.println("emotion: " + emotion);
 						if (emotion != null) {
 							Emotion emotionObj = new AnEmotion();
 							emotionObj.setEmotion(verb.lemma());
@@ -300,7 +300,6 @@ public class AFrameMaker implements FrameMaker {
 							action.setAnimation("feel");
 							frame.setAction(action);
 						} else {
-							System.out.println("BE");
 							Action action = new AnAction();
 							action.setOriginalWord(child.originalText());
 							action.setLemma(child.lemma());
@@ -327,6 +326,7 @@ public class AFrameMaker implements FrameMaker {
 						}
 					} else if (edge.getRelation().toString().equals("nsubj")) {
 						// subject
+						//TODO: For plural pronouns, place two agents (i.e. They)
 						matchEntity(entities, child, subjects);
 						Collection<IndexedWord> grandchildren = dependencies
 								.getChildren(child);

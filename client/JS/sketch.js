@@ -35,9 +35,8 @@ function setSentimentParameters() {
     b = 150;
     strWt = 1;
   }
-
-
 }
+
 var recordedText = "";
 var offset = 0;
 
@@ -65,7 +64,7 @@ var patternStartTime;
 // var tex = "Once upon a time ,in a village there lived a beautiful girl named Cinderella with her wicked stepmother and two step-sisters. She worked hard all day. One day, they all went to a ball in the palace, leaving Cinderella behind. Cinderella was feeling sad. Suddenly there was a burst of light and the fairy godmother appeared. With a flick of the magic she turned Cinderella into a beautiful princess with glass slippers and a horse carriage appeared at the door. The fairy godmother warned Cinderella to return before midnight. Cinderella arrived at the ball, the prince saw her and fell in love with her. They danced together all night. As the clock struck twelve, Cinderella rushed out to her carriage leaving one of her slippers behind. The prince went to every house in the town with the slipper until he found Cinderella. The prince and Cinderella lived happily ever after.";
 //var tex = "I was visiting my now late grandmother (or Khun Yai, as I called her in Thai) in Bangkok, where she and my mother's family lived. I picked at it, unsure of whether or not I wanted to eat this decidedly raw fish in its spongy sleeve of rice. I was, after all, American, and was used to food served through a car window. All of a sudden, I spotted something familiar on my plate: a small but appetizing lump of green guacamole. I scraped all of it up and plopped it in my mouth, noticing an amused glint in my grandmother's eyes far too late. Fire swept my mouth in a painful, sinus-clearing swell. As I wailed, experiencing the zing of wasabi for the first time, my grandmother laughed the heartiest, most earnest laugh I've ever heard to this day."
 //var tex = "Well, Prince, so Genoa and Lucca are now just family estates of the Buonapartes. But I warn you, if you don’t tell me that this means war, if you still try to defend the infamies and horrors perpetrated by that Antichrist—I really believe he is Antichrist—I will have nothing more to do with you and you are no longer my friend, no longer my ‘faithful slave,’ as you call yourself! But how do you do? I see I have frightened you—sit down and tell me all the news. It was in July, 1805, and the speaker was the well-known Anna Pávlovna Schérer, maid of honor and favorite of the Empress Márya Fëdorovna. With these words she greeted Prince Vasíli Kurágin, a man of high rank and importance, who was the first to arrive at her reception. Anna Pávlovna had had a cough for some days. She was, as she said, suffering from la grippe; grippe being then a new word in St. Petersburg, used only by the elite. All her invitations without exception, written in French, and delivered by a scarlet-liveried footman that morning, ran as follows: If you have nothing better to do, Count (or Prince), and if the prospect of spending an evening with a poor invalid is not too terrible, I shall be very charmed to see you tonight between 7 and 10—Annette Schérer. Heavens! what a virulent attack!” replied the prince, not in the least disconcerted by this reception. He had just entered, wearing an embroidered court uniform, knee breeches, and shoes, and had stars on his breast and a serene expression on his flat face. He spoke in that refined French in which our grandfathers not only spoke but thought, and with the gentle, patronizing intonation natural to a man of importance who had grown old in society and at court. He went up to Anna Pávlovna, kissed her hand, presenting to her his bald, scented, and shining head, and complacently seated himself on the sofa."
-var tex = "The pool of glowing water didn’t seem safe, but she felt drawn to it. She walked towards it and climbed into the water. Suddenly, she heard a noise. It was coming from below. She called her friend John to join her. Together, she and John dove deep into the water, where they found a treasure chest. They decided to open it and inside of the chest, they found lots of gold."
+//var tex = "They decided to open it and inside of the chest, they found lots of gold."
 
 
 //Web socket functionality 
@@ -77,8 +76,7 @@ function start(websocketServerLocation) {
   ws = new WebSocket(websocketServerLocation);
 
   ws.onopen = function() {
-    console.log("open and sending");
-    ws.send(tex);
+    console.log("open");
   };
 
   ws.onmessage = function(evt) {
@@ -104,8 +102,6 @@ function start(websocketServerLocation) {
   ws.onerror = function(err) {
     console.log(err);
   };
-
-
 }
 
 var recorder = new p5.SpeechRec();
@@ -120,7 +116,7 @@ function parseResult() {
   console.log("parsing");
   recordedText += recorder.resultString + ". ";
   console.log("sending: " + recordedText);
-  //ws.send(recordedText);
+  ws.send(recordedText);
   recordedText = "";
 }
 
