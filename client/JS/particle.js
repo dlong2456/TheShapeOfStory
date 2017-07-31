@@ -1,5 +1,5 @@
-function Particle(x,y) {
-  this.center = createVector(x,y);
+function Particle(x, y) {
+  this.center = createVector(x, y);
   this.pos = createVector(x, y);
   this.vel = createVector(0, 0);
   this.acc = createVector(0, 0);
@@ -27,16 +27,16 @@ function Particle(x,y) {
     this.acc.add(force);
   }
 
-  this.show = function(strWt,r,g,b) {
+  this.show = function(strWt, r, g, b) {
     //stroke(this.h, 255, 255, 25);
-    stroke(r, g, b,25);
+    stroke(r, g, b, 25);
     this.h = this.h + 1;
     if (this.h > 255) {
       this.h = 0;
     }
     strokeWeight(strWt);
-   //scribble.bowing = 150;
-  // scribble.maxOffset = 100;
+    //scribble.bowing = 150;
+    // scribble.maxOffset = 100;
     scribble.roughness = 50;
     scribble.scribbleLine(this.pos.x, this.pos.y, this.prevPos.x, this.prevPos.y);
     this.updatePrev();
@@ -48,30 +48,26 @@ function Particle(x,y) {
   }
 
   this.edges = function(radius) {
-   /* for(var i = 0 ; i < P.length ; i++)
-    {
-      var vec1 = new pv.vec(P[i],P[(i+1)%P.length]);
-      var vec2 = new pv.vec(P[i],pv.P(this.pos.x,this.pos.y))
-      if(pv.dot(vec1,vec2)>0)
-        console.log("some success");
-    }*/
-    if(this.pos.x > this.center.x+radius)
-    {
+    /* for(var i = 0 ; i < P.length ; i++)
+     {
+       var vec1 = new pv.vec(P[i],P[(i+1)%P.length]);
+       var vec2 = new pv.vec(P[i],pv.P(this.pos.x,this.pos.y))
+       if(pv.dot(vec1,vec2)>0)
+         console.log("some success");
+     }*/
+    if (this.pos.x > this.center.x + radius) {
       this.pos.x = this.center.x;
       this.updatePrev();
     }
-    if(this.pos.x < this.center.x-radius)
-    {
+    if (this.pos.x < this.center.x - radius) {
       this.pos.x = this.center.x;
       this.updatePrev();
     }
-     if(this.pos.y < this.center.y-radius)
-    {
+    if (this.pos.y < this.center.y - radius) {
       this.pos.y = this.center.y;
       this.updatePrev();
     }
-    if(this.pos.y > this.center.y+radius)
-    {
+    if (this.pos.y > this.center.y + radius) {
       this.pos.y = this.center.y;
       this.updatePrev();
     }

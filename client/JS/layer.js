@@ -1,5 +1,4 @@
-var Layer = function(layerType)
-{
-   this.type = layerType || "entity";
-   
+var Layer = function(layerType) {
+	this.type = layerType || "entity";
+
 }

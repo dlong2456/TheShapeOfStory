@@ -1,48 +1,39 @@
-
-
-function setSentimentParameters()
-{
-  if(storySentiment == "neutral")
-  {
+function setSentimentParameters() {
+  if (storySentiment == "neutral") {
     r = 147;
     g = 222;
     b = 105;
     strWt = 1;
   }
-  if(storySentiment == "positive")
-  {
-    r = random(200,250);
-    g = random(200,255);
+  if (storySentiment == "positive") {
+    r = random(200, 250);
+    g = random(200, 255);
     b = 0;
     strWt = 3;
   }
-  if(storySentiment == "negative")
-  {
-    r = random(50,75);
+  if (storySentiment == "negative") {
+    r = random(50, 75);
     g = 0;
-    b = random(128,255);
+    b = random(128, 255);
     strWt = 3;
   }
-  if(storySentiment == "very_positive")
-  {
+  if (storySentiment == "very_positive") {
     r = 255;
-    g = random(150,180);
-    b = random(170,190);
+    g = random(150, 180);
+    b = random(170, 190);
     strWt = 7;
   }
-  if(storySentiment == "very_negative")
-  {
-     r = random(50,150);
-    g = random(50,150);
-    b = random(50,150);
-    strWt = 7;  
+  if (storySentiment == "very_negative") {
+    r = random(50, 150);
+    g = random(50, 150);
+    b = random(50, 150);
+    strWt = 7;
   }
-  if(storySentiment == "init")
-  {
-     r = 150;
+  if (storySentiment == "init") {
+    r = 150;
     g = 150;
     b = 150;
-    strWt = 1;  
+    strWt = 1;
   }
 
 
@@ -59,13 +50,13 @@ var b = 255;
 
 
 //end symbol variables
-var endStartTime; 
+var endStartTime;
 var endEndTime = 40;
 var endX = 50;
 var endY = 600; //half of the height.
 var endSpeedX = 1;
 var drawEndSymbol = false;
-var tempX ;
+var tempX;
 
 //Pattern time
 var patternStartTime;
@@ -80,30 +71,30 @@ var tex = "The pool of glowing water didn’t seem safe, but she felt drawn to i
 //Web socket functionality 
 start("ws://127.0.0.1:8000/");
 var num = 0;
+
 function start(websocketServerLocation) {
 
   ws = new WebSocket(websocketServerLocation);
- 
+
   ws.onopen = function() {
     console.log("open and sending");
     ws.send(tex);
   };
 
-  ws.onmessage = function (evt) {
+  ws.onmessage = function(evt) {
     console.log("message received");
-    if(evt.data.startsWith('{"sentiment"'))
-    {
+    if (evt.data.startsWith('{"sentiment"')) {
       showPattern = true;
       var jData = JSON.parse(evt.data)
       storySentiment = jData["sentiment"];
-      
+
     }
 
-   if(!showPattern)
-    createComic(evt.data);
+    if (!showPattern)
+      createComic(evt.data);
     offset = t - offset;
-    
-   
+
+
   };
 
   ws.onclose = function() {
@@ -120,7 +111,11 @@ function start(websocketServerLocation) {
 var recorder = new p5.SpeechRec();
 recorder.continuous = true; // do continuous recognition 
 recorder.onResult = parseResult;
-recorder.onEnd = function(){console.log("listening again"); recorder.start();}
+recorder.onEnd = function() {
+  console.log("listening again");
+  recorder.start();
+}
+
 function parseResult() {
   console.log("parsing");
   recordedText += recorder.resultString + ". ";
@@ -130,16 +125,15 @@ function parseResult() {
 }
 
 var comicStrip = [];
-function createComic(data)
-{
+
+function createComic(data) {
   var jsonData = JSON.parse(data);
   var framesArray = jsonData["frames"];
-  
-  framesArray.forEach(function(panelData){
+
+  framesArray.forEach(function(panelData) {
     var act = panelData["action"];
     var subs = panelData["subjects"];
     var predis = panelData["predicates"];
-    console.log("predis: " + panelData["predicates"]);
     var emotion = panelData["emotion"];
     var senti = panelData["sentiment"];
     var set = panelData["setting_preposition"];
@@ -149,35 +143,29 @@ function createComic(data)
     var actionPanel = {};
 
     subs.forEach(function(currentSubject) {
-      if(currentSubject["subjectType"] == "agent") {
-        if(currentSubject["agentType"] == "HUMAN") {
-            subjectArray.push(new Agent.Human(currentSubject["gender"], senti));
+      if (currentSubject["subjectType"] == "agent") {
+        if (currentSubject["agentType"] == "HUMAN") {
+          subjectArray.push(new Agent.Human(currentSubject["gender"], senti));
+        } else {
+          subjectArray.push(new Agent.NonHuman(currentSubject["gender"], senti));
         }
-        else {
-           subjectArray.push(new Agent.NonHuman(currentSubject["gender"], senti));
-        }
-      } else if(currentSubject["subjectType"] == "object") {
+      } else if (currentSubject["subjectType"] == "object") {
         subjectArray.push(new Agent.Object(senti));
       }
     });
 
     predis.forEach(function(currentPredicate) {
-      if(currentPredicate["predicateType"] === "agent")
-      {
-        if(currentPredicate["agentType"] == "HUMAN")
-        {
-            predArray.push(new Agent.Human(currentPredicate["gender"], senti));
+      if (currentPredicate["predicateType"] === "agent") {
+        if (currentPredicate["agentType"] == "HUMAN") {
+          predArray.push(new Agent.Human(currentPredicate["gender"], senti));
+        } else {
+          predArray.push(new Agent.NonHuman(currentPredicate["gender"], senti));
         }
-        else
-        {
-           predArray.push(new Agent.NonHuman(currentPredicate["gender"], senti));
-        }
-      }
-      else if(currentPredicate["predicateType"] === "object") {
-         subjectArray.push(new Agent.Object(senti));
+      } else if (currentPredicate["predicateType"] === "object") {
+        subjectArray.push(new Agent.Object(senti));
       }
     });
-    
+
     actionPanel = new Comic.Action(num, subjectArray, predArray, act, emotion, set, senti);
     num++;
     comicStrip.push(actionPanel);
@@ -213,49 +201,46 @@ var B = [];
 
 
 
-function preload()
-{
+function preload() {
   //recorder.onResult = parseResult;
   recorder.start();
- createCanvas(1200,1200);
- background(255);
- G = new pv.pt(width/2,height/2);
- P = pv.drawSpiral1(G);
- Q = pv.drawSpiral2(G);
- R = pv.circleSpaceBetweenTwoArcs(G,P,Q); 
- R[0]["length"] = R[1]["length"];
- R[0]["pt"].y-= (R[0]["length"]+25);
- R[1]["pt"].x+=R[1]["length"]+50;
- R[1]["pt"].y-=R[1]["length"];
-R[3]["pt"].x -=70;
+  createCanvas(1200, 1200);
+  background(255);
+  G = new pv.pt(width / 2, height / 2);
+  P = pv.drawSpiral1(G);
+  Q = pv.drawSpiral2(G);
+  R = pv.circleSpaceBetweenTwoArcs(G, P, Q);
+  R[0]["length"] = R[1]["length"];
+  R[0]["pt"].y -= (R[0]["length"] + 25);
+  R[1]["pt"].x += R[1]["length"] + 50;
+  R[1]["pt"].y -= R[1]["length"];
+  R[3]["pt"].x -= 70;
 
- B = pv.circleSpaceBetweenTwoArcs2(G,P,Q); 
- 
- 
+  B = pv.circleSpaceBetweenTwoArcs2(G, P, Q);
 
-for(var i = 0 ; i < 10 ; i++)
-{
-  B[i]["length"] = B[12]["length"];
 
-}
-B[0]["pt"].y+= (B[0]["length"]+25);
 
-for(var i = 1 ; i < 10 ; i++)
-{
-  B[i]["pt"].x-=(B[i]["length"]);
- B[i]["pt"].y+=B[i]["length"];
+  for (var i = 0; i < 10; i++) {
+    B[i]["length"] = B[12]["length"];
 
-}
-B[10]["pt"].x -=2*B[i]["length"];
- 
+  }
+  B[0]["pt"].y += (B[0]["length"] + 25);
+
+  for (var i = 1; i < 10; i++) {
+    B[i]["pt"].x -= (B[i]["length"]);
+    B[i]["pt"].y += B[i]["length"];
+
+  }
+  B[10]["pt"].x -= 2 * B[i]["length"];
+
 
 
 
 }
 var initSpiral = false;
 var deltaTime = 0.05;
-function setup()
-{
+
+function setup() {
   scribble = new Scribble();
   cols = floor(width / scl);
   rows = floor(height / scl);
@@ -263,93 +248,91 @@ function setup()
   flowfield = new Array(cols * rows);
 
   for (var i = 0; i < B.length; i++) {
-    particles[i] = new Particle(B[i]["pt"].x,B[i]["pt"].y);
+    particles[i] = new Particle(B[i]["pt"].x, B[i]["pt"].y);
   }
 
   background(255);
   console.log(Renderer.reset);
 }
 
-function draw()
-{
-  
+function draw() {
+
   //recorder.onEnd() console.log("I stopped listening");
- if(frameCount < 100)
- {
-  initSpiral = true;
-  storySentiment = "init";
-  strWt = 2;
- }
-else initSpiral = false;
-  if(!showPattern && !initSpiral && !drawEndSymbol)
-  {
-   comic.display(P,R,t);
-   t+=deltaTime;
+  if (frameCount < 100) {
+    initSpiral = true;
+    storySentiment = "init";
+    strWt = 2;
+  } else initSpiral = false;
+  if (!showPattern && !initSpiral && !drawEndSymbol) {
+    comic.display(P, R, t);
+    t += deltaTime;
 
- }
-    
-if(showPattern || initSpiral)
-{
-  
-  if(showPattern && !drawEndSymbol) {patternStartTime+=1;}// console.log(patternStartTime);}
-   if(patternStartTime > 150 && !drawEndSymbol) {console.log("Pattern end"); showPattern = false};
-   //if(showPattern) storySentiment = 
-   setSentimentParameters();
-  var yoff = 0;
-  for (var y = 0; y < rows; y++) {
-    var xoff = 0;
-    for (var x = 0; x < cols; x++) {
-      var index = x + y * cols;
-      var angle = noise(xoff, yoff, zoff) * TWO_PI * 4;
-      var v = p5.Vector.fromAngle(angle);
-      v.setMag(1);
-      flowfield[index] = v;
-      xoff += inc;
-      stroke(0, 50);
-     
+  }
+
+  if (showPattern || initSpiral) {
+
+    if (showPattern && !drawEndSymbol) {
+      patternStartTime += 1;
+    } // console.log(patternStartTime);}
+    if (patternStartTime > 150 && !drawEndSymbol) {
+      console.log("Pattern end");
+      showPattern = false
+    };
+    //if(showPattern) storySentiment = 
+    setSentimentParameters();
+    var yoff = 0;
+    for (var y = 0; y < rows; y++) {
+      var xoff = 0;
+      for (var x = 0; x < cols; x++) {
+        var index = x + y * cols;
+        var angle = noise(xoff, yoff, zoff) * TWO_PI * 4;
+        var v = p5.Vector.fromAngle(angle);
+        v.setMag(1);
+        flowfield[index] = v;
+        xoff += inc;
+        stroke(0, 50);
+
+      }
+      yoff += inc;
+
+      zoff += 0.0003;
     }
-    yoff += inc;
 
-    zoff += 0.0003;
+    for (var i = 0; i < particles.length; i++) {
+      particles[i].follow(flowfield);
+      particles[i].update();
+      particles[i].edges(B[i]["length"]);
+      particles[i].show(strWt, r, g, b);
+    }
+
   }
-
-  for (var i = 0; i < particles.length; i++) {
-    particles[i].follow(flowfield);
-    particles[i].update();
-    particles[i].edges(B[i]["length"]);
-    particles[i].show(strWt,r,g,b);
+  if (drawEndSymbol == true) {
+    t += deltaTime;
+    EndSymbol();
   }
+}
 
-}
-if(drawEndSymbol == true)
-{
-  t+=deltaTime;
-  EndSymbol();
-}
-}
-function mouseClicked(e)
-{
-   
-  if(showPattern == false)
-  {
+function mouseClicked(e) {
+
+  if (showPattern == false) {
     patternStartTime = 0;
 
-  ws.send("new person");
+    ws.send("new person");
 
-}
-if(showPattern == true)
-  showPattern = false;
+  }
+  if (showPattern == true)
+    showPattern = false;
 
-//if (Renderer.reset = true) background(255);
+  //if (Renderer.reset = true) background(255);
 }
-function mouseWheel(event)
-{
+
+function mouseWheel(event) {
 
 
   t = 0;
   showPattern = !showPattern;
-  fill(150,150,150,20);
-  rect(0,0,1200,1200);
+  fill(150, 150, 150, 20);
+  rect(0, 0, 1200, 1200);
   //showPatterns = false;
   endStartTime = t;
   drawEndSymbol = true;
@@ -357,30 +340,26 @@ function mouseWheel(event)
 
 
 
-function EndSymbol()
-{
-   stroke(0);
+function EndSymbol() {
+  stroke(0);
   strokeWeight(20);
-   if(endX < 450)
-   {
-    
-  scribble.scribbleLine(endX ,endY ,endX+endSpeedX*(t-endStartTime)*5,endY );
-  scribble.scribbleLine(1200-endX ,endY ,1200-(endX+endSpeedX*(t-endStartTime)*5),endY );
-  endX = endX+ endSpeedX*(t-endStartTime);
-    tempX = endX+ 15*endSpeedX*(t-endStartTime);
+  if (endX < 450) {
 
-}
-else if(t-endStartTime < 2*TWO_PI)
-{ 
-  var b1 = -10
-  var b2 = 10;
-   var r1 = b1*sqrt(t);
-   var r2 = b2*sqrt(t);
-   scribble.scribbleLine(tempX+r1*cos(t-endStartTime),endY+r1*sin(t-endStartTime),(tempX+2*r1*cos(t-endStartTime+deltaTime)),endY+r1*sin(t-endStartTime+deltaTime));
-   scribble.scribbleLine(1200- tempX+r2*cos(t-endStartTime),endY+r2*sin(t-endStartTime),1200-tempX+2*r2*cos(t-endStartTime+deltaTime),endY+r2*sin(t-endStartTime+deltaTime));
-    
-   
-}
+    scribble.scribbleLine(endX, endY, endX + endSpeedX * (t - endStartTime) * 5, endY);
+    scribble.scribbleLine(1200 - endX, endY, 1200 - (endX + endSpeedX * (t - endStartTime) * 5), endY);
+    endX = endX + endSpeedX * (t - endStartTime);
+    tempX = endX + 15 * endSpeedX * (t - endStartTime);
+
+  } else if (t - endStartTime < 2 * TWO_PI) {
+    var b1 = -10
+    var b2 = 10;
+    var r1 = b1 * sqrt(t);
+    var r2 = b2 * sqrt(t);
+    scribble.scribbleLine(tempX + r1 * cos(t - endStartTime), endY + r1 * sin(t - endStartTime), (tempX + 2 * r1 * cos(t - endStartTime + deltaTime)), endY + r1 * sin(t - endStartTime + deltaTime));
+    scribble.scribbleLine(1200 - tempX + r2 * cos(t - endStartTime), endY + r2 * sin(t - endStartTime), 1200 - tempX + 2 * r2 * cos(t - endStartTime + deltaTime), endY + r2 * sin(t - endStartTime + deltaTime));
+
+
+  }
 }
 
 //TESTING and animating the FERMAT'S SPIRAL FOR HOLDING THE COMIC STRIPS

@@ -1,15 +1,14 @@
-function copyOwnPropertiesFrom(target,source)
-{
-	Object.getOwnPropertyNames(source).forEach(function(propKey){
-		var desc = Object.getOwnPropertyDescriptor(source,propKey);
-		Object.defineProperty(target,propKey,desc);
+function copyOwnPropertiesFrom(target, source) {
+	Object.getOwnPropertyNames(source).forEach(function(propKey) {
+		var desc = Object.getOwnPropertyDescriptor(source, propKey);
+		Object.defineProperty(target, propKey, desc);
 	});
 
 }
 
-function subClasses(SubC , SuperC){
+function subClasses(SubC, SuperC) {
 	var subProto = Object.create(SuperC.prototype);
-	copyOwnPropertiesFrom(subProto,SubC.prototype);
+	copyOwnPropertiesFrom(subProto, SubC.prototype);
 	SubC.prototype = subProto;
 	subC.__super = SuperC.prototype;
 };
