@@ -9,7 +9,7 @@ The Shape of Story is an interactive story circle experience in which participan
 To install and run this project: 
 
 1. Clone this Github repository.
-2. Download Eclipse if you don't already have it and import the project into Eclipse (File &rarr; Import &rarr; Existing Project into Workspace).
+2. Download Eclipse if you don't already have it and import the project into Eclipse (File &rarr; Import &rarr; Existing Project into Workspace. It may be seen as summarizer in the package explorer window in Eclipse.).
 3. Add [all necessary jar files](https://drive.google.com/open?id=0B7Q1JqWywb_nWEM3TmRwR09BdVU) to the project (right click on project &rarr; Properties &rarr; Java Build Path &rarr; Add External JARs) 
 4. [Install Python](http://python-guide-pt-br.readthedocs.io/en/latest/starting/installation/) if it is not already installed on your machine. Also install setup tools and pip (instructions in link).
 5. [Create a Python virtual environment](http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/#virtualenvironments-ref) and install the following libraries within it using pip: numpy, scipy, gensim.
