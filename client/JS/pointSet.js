@@ -1,3 +1,4 @@
+//TODO: comment
 var pointset = (function() {
 
 	var pts = function(nv) {
@@ -7,6 +8,6 @@ var pointset = (function() {
 		this.maxnv = 100 * 2 * 2 * 2 * 2 * 2 * 2;
 		this.loop = true;
 		this.G = [];
-	}
+	};
 
 })();

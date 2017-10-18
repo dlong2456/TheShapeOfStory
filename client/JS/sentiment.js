@@ -132,7 +132,7 @@ var Sentiment = (function() {
         //fill(255-abs(U[i][j]*255),abs(U[i][j]*255),255-abs(U[i][j]*255));
         // stroke(255-abs(U[i][j]*255),abs(U[i][j]*255),255-abs(U[i][j]*255));
         if (abs(U[i][j] * 255) != 255) {
-          fill(abs(U[i][j] * 255))
+          fill(abs(U[i][j] * 255));
           rect(i * cellSize, j * cellSize, cellSize, cellSize);
           // point(i*cellSize,j*cellSize)
           // stroke(0);
@@ -146,7 +146,6 @@ var Sentiment = (function() {
     reactionDiffusion: reactionDiffusion,
     drawCells: drawCells,
     initialise: initialise,
-
-  }
+  };
 
 })();

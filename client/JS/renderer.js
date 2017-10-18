@@ -1,3 +1,4 @@
+//Contains math for rendering all aspects of the illustrations
 var Renderer = (function() {
   var reset = false;
   var settingUtility = {
@@ -7,7 +8,7 @@ var Renderer = (function() {
     "to": drawTo,
     "at": drawOn,
     "on": drawOn,
-  }
+  };
 
   var shapeUtility = {
     "": drawSquare,
@@ -111,7 +112,7 @@ var Renderer = (function() {
     "neutral": ['#07effc2', '#5be884', '#59ff63', '#80e864', '#aaff56'],
     "positive": ['#fffe2e', '#e8cd00', '#ffc509', '#e89e13', '#ff8e15'],
     "very_positive": ['#ff9325', '#e8430c', '#ff0000', '#eb0cca', '#f70dff'],
-  }
+  };
 
   var emotionUtility1 = {
     "happy": 1, //red orange for aggression
@@ -120,7 +121,7 @@ var Renderer = (function() {
     "surprise": 2,
     "fear": 3,
     "disgust": 1,
-  }
+  };
 
   var emotionUtility2 = {
     "happy": 3, //red orange for aggression
@@ -129,7 +130,7 @@ var Renderer = (function() {
     "surprise": 3,
     "fear": 5,
     "disgust": 3,
-  }
+  };
 
   //the entity layer class
   var AgentLayer = function(num, subjects, predicates, action, setting, sentiment, emotion) {
@@ -145,15 +146,24 @@ var Renderer = (function() {
     this.subjectDone = false;
     this.predicateDone = false;
     this.actDone = false;
-    this.dt = 20; //frame drawing time
-    this.et = 5; //element drawing time - time to draw setting, 2 agents , action
-  }
 
+    this.dt = 20; //frame drawing time
+
+    this.et = 5; //element drawing time - time to draw setting, 2 agents , action
+  };
+
+  //This draws all frame components
   AgentLayer.prototype = {
     constructor: AgentLayer,
-    draw: function(pt, t) {
-      var time = (t - offset) - this.dt * this.num;
-      if (time > 0 && time <= this.dt) {
+    draw: function(pt, t, cb) { //pt is point where you have to start drawing (xy coordinate)
+
+     // var time = (t - offset) - this.dt * this.num;
+     //var time = (t ) - this.dt * this.num;
+      //console.log("first time: " + time);
+     // console.log("offset: "+offset);
+      if (t >= 0 && t <= this.dt)
+      {
+        //console.log("drawing panel number: " + this.num);
         //if(this.num % 5 == 0 && t < this.et) {  redraw();}
         if (time >= this.et) this.setDone = true;
         if (time >= this.et * 2) this.subjectDone = true;
@@ -172,7 +182,7 @@ var Renderer = (function() {
         var posx, posy;
         var boundingBoxX, boundingBoxY;
 
-        if (this.setting == "on" || this.setting == "at") {
+        if (this.setting === "on" || this.setting === "at") {
           //top left corner 
           posSettingx = i - pt["length"];
           posSettingy = j + 0.1 * pt["length"] * 2;
@@ -189,7 +199,7 @@ var Renderer = (function() {
           posy = posSy + agentspacey / 2;
         }
 
-        if (this.setting == "in") {
+        if (this.setting === "in") {
           //middle of the "in" box
           posSettingx = i;
           posSettingy = j;
@@ -206,7 +216,7 @@ var Renderer = (function() {
           posy = posSy + agentspacey / 2;
         }
 
-        if (this.setting == "") {
+        if (this.setting === "") {
           posSettingx = i;
           posSettingy = j;
           settingBoundx = 0.8 * pt["length"] * 2;
@@ -222,7 +232,7 @@ var Renderer = (function() {
           posy = posSy + agentspacey / 2;
         }
 
-        if (this.setting == "to") {
+        if (this.setting === "to") {
           //middle of the "to" circle.
           posSettingx = i + 0.3 * pt["length"];
           posSettingy = j;
@@ -239,7 +249,7 @@ var Renderer = (function() {
           posy = j;
         }
 
-        if (this.setting == "from") {
+        if (this.setting === "from") {
           //middle of the "from" circle.
           posSettingx = i;
           posSettingy = j;
@@ -284,11 +294,13 @@ var Renderer = (function() {
           strokeWeight(1);
           actionUtility[this.action](posPx + boundingBoxX / 2, posPy, boundingBoxX, boundingBoxY, scribble, time);
         }
-
+      } else {
+        console.log("Frame draw complete");
+        cb();
       }
     },
 
-  }
+  };
 
   //private stuff
 
@@ -298,9 +310,9 @@ var Renderer = (function() {
     var colorArray = sentiUtility[color];
     var c1 = colorArray[num];
     var s1 = emotionUtility1[emotion];
-    if (s1 == null) s1 = 2;
+    if (s1 === null) s1 = 2;
     var ctime = emotionUtility2[emotion];
-    if (ctime == null) ctime = 5;
+    if (ctime === null) ctime = 5;
     shapeUtility[shape](i, j, w, h, c1, scribble, time, s1, ctime);
   }
 
@@ -353,7 +365,6 @@ var Renderer = (function() {
       var y = h;
       scribble.scribbleLine(x, y, x + 2 * speed * (t - 2 * delTperLine), y);
     }
-
     pop();
   }
 
